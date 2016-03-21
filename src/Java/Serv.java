@@ -22,7 +22,12 @@ public class Serv implements Communication{
 		//prend le verrou
 
 		while(listForApply.isEmpty()){
-			wait();//se met en attente
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}//se met en attente
 		}
 		//libere le verrou
 		return listForApply.pop().getContenu();
@@ -59,7 +64,7 @@ public class Serv implements Communication{
 			this.udp2=b;
 		}
 		else{
-			//TODO
+			// TODO
 		}
 	}
 	public int getB() {
