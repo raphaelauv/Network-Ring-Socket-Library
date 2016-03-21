@@ -1,9 +1,9 @@
 public interface Communication {
 //cette interface defini les actions realisable par une applicationa avec son implementation reseaux
 
-	public int envoyer(string message , int id);
+	public void envoyer(String message , int id) throws SizeException;
 		// demande l'envoy d'un message a l'entité id
-	public string lire();
+	public String lire();
 		//lit le premier message disponible dans la liste géré par l'implementation reseaux
 	
 }
