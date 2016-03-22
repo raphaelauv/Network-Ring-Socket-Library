@@ -14,7 +14,6 @@ class SizeException extends Exception{
 class AlreadyAllUdpPortSet extends Exception{
 	
 }
-
 public class Serv implements Communication{
 	
 	
@@ -24,8 +23,10 @@ public class Serv implements Communication{
 	private int portTcp;
 	
 	
-	DatagramSocket sender;
+	DatagramSocket sockSender;
+	DatagramSocket sockRecever;
 	byte[]dataTosend;
+	byte[]dataToReceve;
 	
 	private HashMap<Integer, Boolean> IdAlreadyReceve;// hashmap contenant les id deja croisé
 	private LinkedList<Message> listForApply; // liste des message recu qui sont pour cette ID
@@ -44,7 +45,7 @@ public class Serv implements Communication{
 
 			while (listForApply.isEmpty()) {
 				try {
-					wait();
+					listForApply.wait();
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -69,15 +70,28 @@ public class Serv implements Communication{
 		
 	}
 
-	private void receveMessage(){
+	private void receveMessage() throws IOException{
 		
-		//TODO
+		this.dataToReceve=new byte[100];
+		DatagramPacket paquet=new DatagramPacket(dataToReceve,dataToReceve.length);
+		System.out.println("j'attends de recevoir un message dans RECEVE");
+		this.sockRecever.receive(paquet);
+		String st=new String(paquet.getData(),0,paquet.getLength());
+
+		Message tmp = new Message(10, st);
+		
+		synchronized (this.listToSend) {
+			this.listToSend.add(tmp);
+			listToSend.notify();
+		}
+		
 	}
 	
-	private void sendMessage() throws UnknownHostException, InterruptedException{
+	private  void  sendMessage() throws UnknownHostException, InterruptedException{
 		synchronized (listToSend){
 			while(listToSend.isEmpty()){
-				wait();
+				System.out.println("j'attends d'avoir un message a envoyer dans SEND");
+				listToSend.wait();
 			}
 			dataTosend=listToSend.pop().getContenu().getBytes();
 		}
@@ -85,7 +99,7 @@ public class Serv implements Communication{
 		if(udp1 !=0){
 			DatagramPacket paquet1=new DatagramPacket(dataTosend,dataTosend.length,InetAddress.getByName("localhost"),udp1);
 			try {
-				sender.send(paquet1);
+				sockSender.send(paquet1);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -94,7 +108,7 @@ public class Serv implements Communication{
 		if(udp2 != 0){
 			DatagramPacket paquet2=new DatagramPacket(dataTosend,dataTosend.length,InetAddress.getByName("localhost"),udp2);
 			try {
-				sender.send(paquet2);
+				sockSender.send(paquet2);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -104,14 +118,15 @@ public class Serv implements Communication{
 		
 	}
 	
-	public Serv(int a, int id) throws SocketException, InterruptedException {
+	public Serv() throws SocketException, InterruptedException {
 
 		super();
-		this.sender = new DatagramSocket();
+		this.sockSender = new DatagramSocket();
+		this.sockRecever =new DatagramSocket(5555);
 		this.listToSend = new LinkedList<Message>();
-		this.listToSend = new LinkedList<Message>();
-		this.udp1 = a;
-		this.id = id;
+		this.listForApply = new LinkedList<Message>();
+		//this.udp1 = udp1;
+		//this.id = id;
 
 		/*******************************************************************
 		 * Creation des class anonyme propre au thread d'envoi et celui de reception
@@ -121,6 +136,15 @@ public class Serv implements Communication{
 			public void run() {
 				while(true){
 					try {
+						
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						System.out.println("dans thread send");
 						sendMessage();
 					} catch (UnknownHostException | InterruptedException e) {
 						// TODO Auto-generated catch block
@@ -133,7 +157,19 @@ public class Serv implements Communication{
 		this.runSend1 = new Runnable() {
 			public void run() {
 				while(true){
-					receveMessage();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					System.out.println("dans thread receve");
+					try {
+						receveMessage();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		};
@@ -141,8 +177,13 @@ public class Serv implements Communication{
 		this.ThRecev=new Thread(runRecev);
 		this.ThSend1=new Thread(runSend1);
 		
+		this.ThRecev.start();
+		this.ThSend1.start();
+		
 		this.ThRecev.join();
 		this.ThSend1.join();
+		
+		System.out.println("fin serv");
 		
 	}
 
@@ -157,7 +198,12 @@ public class Serv implements Communication{
 			this.runSend2 = new Runnable() {
 				public void run() {
 					while(true){
-						receveMessage();
+						try {
+							receveMessage();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
 			};
