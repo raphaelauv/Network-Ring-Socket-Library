@@ -57,15 +57,51 @@ public class Serv implements Communication {
 	private Thread ThSend1;
 	private Thread ThSend2;
 
-	@Override
-	public void connectTo(String adresse, int udp) throws AlreadyAllUdpPortSet {
+	
+	
+	public void connectTo(String adresse, int idTCP) throws AlreadyAllUdpPortSet {
 		
-		if(numberPortUDP1 != 0 && numberPortUDP2 !=0){
+		if(numberPortUDP1 != 0){
 			throw new AlreadyAllUdpPortSet();
 		}
 		
 	}
-
+	
+	/**
+	 * Serv in TCP to accept an entrance TCP connection
+	 * @param idTCP port TCP of serv
+	 * @throws IOException
+	 */
+	private void servTCP(int idTCP) throws IOException {
+		
+		this.sockServerTCP=new ServerSocket(idTCP);
+		
+		Socket socket=sockServerTCP.accept();
+		
+		if(verboseMode){System.out.println("TCP connect");
+		
+		}
+		BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		PrintWriter pw=new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+		
+		
+		String m1="WELC"+" "+ip+" "port+" "+ip-diff+" "+port-diff+"\n";
+		
+		pw.print(m1);
+		if(verboseMode){System.out.println("TCP : message WELC envoyé: "+m1);}
+		String m2=br.readLine();
+		
+		if(verboseMode){System.out.println("TCP : message recu : "+m2);}
+		
+		pw.print("ACKC\n");
+		
+		if(verboseMode){System.out.println("TCP : message ACKC envoyé: ");}
+		
+		pw.close();
+		br.close();
+		socket.close();
+	}
+	
 	public String lire() {
 		synchronized (listForApply) {
 
@@ -178,7 +214,6 @@ public class Serv implements Communication {
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
 		this.verboseMode = verboseMode;
-		this.sockServerTCP = new ServerSocket(idTCP);
 		
 		// this.udp1 = udp1;
 		// this.id = id;
@@ -217,7 +252,7 @@ public class Serv implements Communication {
 			public void run() {
 				while (true) {
 					try {
-						connectTCP();
+						servTCP(idTCP);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -240,14 +275,7 @@ public class Serv implements Communication {
 		//this.ThSend1.join();
 
 	}
-	
-	private void connectTCP() throws IOException {
-		Socket socket=sockServerTCP.accept();	
-		BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		PrintWriter pw=new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-		
-		
-	}
+
 
 	public void dedoubler(int udpNew) throws AlreadyAllUdpPortSet, InterruptedException {
 
