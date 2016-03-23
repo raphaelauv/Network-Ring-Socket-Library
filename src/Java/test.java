@@ -12,7 +12,10 @@ public class test {
 					try {
 						premier.envoyer("mamama", 10);
 					} catch (SizeException e) {
-						// TODO Auto-generated catch block
+
+						e.printStackTrace();
+					} catch (DOWNmessageException e) {
+
 						e.printStackTrace();
 					}
 			}

@@ -130,7 +130,12 @@ public class Serv implements Communication {
 			}
 			Message tmp=new Message(10,"Down");
 			tmp.setMulti(true);
-			envoyer(tmp);
+			try {
+				envoyer(tmp);
+			} catch (SizeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		if (verboseMode) {
 			System.out.println("message TEST is comeback");
@@ -273,13 +278,13 @@ public class Serv implements Communication {
 		}
 	}
 
-	public void envoyer(String message, int id) throws SizeException, DOWNmessageException {
+	public void envoyer(String message, int id) throws DOWNmessageException, SizeException{
 		envoyer(new Message(id, message));
 	}
 	
-	private void envoyer(Message msg){
+	private void envoyer(Message msg) throws DOWNmessageException, SizeException{
 		communicationIsDown();
-		if (msg.length() > 250) {
+		if (msg.getContenu().length() > 250) {
 			throw new SizeException();
 		}
 
@@ -440,7 +445,7 @@ public class Serv implements Communication {
 				while (true) {
 					try {
 						sendMessage();
-					} catch (UnknownHostException | InterruptedException e) {
+					} catch ( InterruptedException | IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}

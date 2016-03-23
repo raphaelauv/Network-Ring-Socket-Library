@@ -38,7 +38,7 @@ public interface Communication {
 	 * @param id
 	 * @throws SizeException
 	 */
-	public void envoyer(String message , int id) throws SizeException ,DOWNmessageException;
+	public void envoyer(String message , int id) throws DOWNmessageException, SizeException;
 
 	/**
 	 * Demande un message en attente de lecture par l'apply
