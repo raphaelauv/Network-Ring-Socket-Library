@@ -59,10 +59,38 @@ public class Serv implements Communication {
 
 	
 	
-	public void connectTo(String adresse, int idTCP) throws AlreadyAllUdpPortSet {
+	public void connectTo(String adresse, int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException {
 		
 		if(numberPortUDP1 != 0){
 			throw new AlreadyAllUdpPortSet();
+		}
+		
+		synchronized (sockServerTCP) {//pas d'acceptation de connection pendant une connection
+			
+			Socket socket=new Socket(adresse,idTCP);
+			if(verboseMode){System.out.println("conecter en TCP a :"+adresse+" sur port : "+idTCP);
+			
+			}
+			BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			PrintWriter pw=new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+			String m1=br.readLine();
+			
+			if(verboseMode){System.out.println("message recu "+m1);}
+			
+
+			String m1="NEWC"+" "+ip+" "+this.numberPortUDP1+"\n";
+			
+			pw.print(m1);
+			pw.flush();
+			
+			String m2=br.readLine();
+			if(verboseMode){System.out.println("message recu "+m1);}
+			pw.close();
+			br.close();
+			socket.close();
+			
+			
+			}
 		}
 		
 	}
@@ -74,32 +102,39 @@ public class Serv implements Communication {
 	 */
 	private void servTCP(int idTCP) throws IOException {
 		
-		this.sockServerTCP=new ServerSocket(idTCP);
+		synchronized (sockServerTCP) {
 		
-		Socket socket=sockServerTCP.accept();
-		
-		if(verboseMode){System.out.println("TCP connect");
-		
+			this.sockServerTCP=new ServerSocket(idTCP);
+			
+			Socket socket=sockServerTCP.accept();
+			
+			if(verboseMode){System.out.println("TCP connect");
+			
+			}
+			BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			PrintWriter pw=new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+			
+			
+			String m1="WELC"+" "+ip+" "port+" "+ip-diff+" "+port-diff+"\n";
+			
+			pw.print(m1);
+			pw.flush(); 
+			
+			if(verboseMode){System.out.println("TCP : message WELC envoyé: "+m1);}
+			String m2=br.readLine();
+			
+			if(verboseMode){System.out.println("TCP : message recu : "+m2);}
+			
+			pw.print("ACKC\n");
+			pw.flush();
+			
+			if(verboseMode){System.out.println("TCP : message ACKC envoyé: ");}
+			
+			pw.close();
+			br.close();
+			socket.close();
+			
 		}
-		BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		PrintWriter pw=new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-		
-		
-		String m1="WELC"+" "+ip+" "port+" "+ip-diff+" "+port-diff+"\n";
-		
-		pw.print(m1);
-		if(verboseMode){System.out.println("TCP : message WELC envoyé: "+m1);}
-		String m2=br.readLine();
-		
-		if(verboseMode){System.out.println("TCP : message recu : "+m2);}
-		
-		pw.print("ACKC\n");
-		
-		if(verboseMode){System.out.println("TCP : message ACKC envoyé: ");}
-		
-		pw.close();
-		br.close();
-		socket.close();
 	}
 	
 	public String lire() {
