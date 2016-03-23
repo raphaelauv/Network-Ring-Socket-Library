@@ -31,7 +31,7 @@ public class Serv implements Communication {
 
 	private int id;
 
-	private int portTcp;
+	private Integer numberPortTcp;
 	private ServerSocket sockServerTCP;
 
 	private DatagramSocket sockSender;
@@ -48,7 +48,7 @@ public class Serv implements Communication {
 	private Integer numberPortMULTI;
 	private MulticastSocket sockMultiRECEP;
 
-	private byte[] dataTosend;
+	
 	private byte[] dataToReceve;
 
 	private HashMap<Integer, Boolean> IdAlreadyReceveUDP1;// hashmap contenant
@@ -218,7 +218,7 @@ public class Serv implements Communication {
 
 		synchronized (sockServerTCP) {
 
-			this.sockServerTCP = new ServerSocket(this.portTcp);
+			this.sockServerTCP = new ServerSocket(this.numberPortTcp);
 
 			Socket socket = sockServerTCP.accept();
 
@@ -356,19 +356,23 @@ public class Serv implements Communication {
 					System.out.println("j'attends d'avoir un message a envoyer dans SEND");
 				}
 				this.listToSend.wait();
+				
 			}
 			msg=this.listToSend.pop();
-			tmp = msg.getContenu();
-			this.dataTosend = tmp.getBytes();
 		}
-
+		tmp = msg.getContenu();
+		
+		System.out.println("contenu du message a envoyer : "+tmp);
+		byte[] dataTosend = tmp.getBytes();
 		if(msg.isMulti()){
 			DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
 					InetAddress.getByName(this.ipMULTI.toString()), numberPortMULTI);
 			this.sockSender.send(paquetMulti);
 		}
 		else{
+			
 			if (numberPortUDP1 != 0) {
+				
 				DatagramPacket paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
 						InetAddress.getByName(this.ipPortUDP1.toString()), numberPortUDP1);
 				
@@ -390,21 +394,25 @@ public class Serv implements Communication {
 
 	}
 
-	public Serv(boolean verboseMode, Integer numberLICENPortUDP) throws SocketException {
+	public Serv(boolean verboseMode, Integer numberLICENPortUDP,Integer numberPortTcp) throws IOException {
 
 		super();
 		this.ipMULTI = "225.1.2.4";
 		this.numberPortMULTI = 9999;
+		this.numberPortTcp=numberPortTcp;
+		this.sockServerTCP=new ServerSocket(numberPortTcp);
 		this.sockSender = new DatagramSocket();
 		this.numberLICENPortUDP = numberLICENPortUDP;
 		this.sockRecever = new DatagramSocket(numberLICENPortUDP);
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
 		this.verboseMode = verboseMode;
-
-		// this.udp1 = udp1;
-		// this.id = id;
-
+		
+		this.ipPortUDP1="localhost";
+		this.ipPortUDP2="localhost";
+		this.numberPortUDP1=10;
+		this.numberPortUDP2=11;
+		
 		/*******************************************************************
 		 * Creation des 4 thread anonyme : d'envoi UDP | reception UDP | serv
 		 * tcp | reception multi
@@ -474,8 +482,8 @@ public class Serv implements Communication {
 
 		this.ThRecev.start();
 		this.ThSend1.start();
-		this.ThServTCP.start();
-		this.ThMULTIrecev.start();
+		//this.ThServTCP.start();
+		//this.ThMULTIrecev.start();
 
 		// this.ThServTCP.join();
 		// this.ThRecev.join();

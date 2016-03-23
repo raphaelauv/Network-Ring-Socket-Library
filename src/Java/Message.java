@@ -2,7 +2,7 @@
 public class Message {
 	
 	private int id;
-	private Boolean multi; 
+	private boolean multi; 
 	private String contenu;
 	
 	public Message(int id, String contenu) {
@@ -31,11 +31,11 @@ public class Message {
 		this.id = id;
 	}
 
-	public Boolean isMulti() {
+	public boolean isMulti() {
 		return multi;
 	}
 
-	public void setMulti(Boolean multi) {
+	public void setMulti(boolean multi) {
 		this.multi = multi;
 	}
 	
