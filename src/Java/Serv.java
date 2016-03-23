@@ -115,11 +115,9 @@ public class Serv implements Communication {
 		String test = "TEST" + " " + idMessage + " " + this.ipMULTI + " " + this.numberPortMULTI;
 
 		Message q = new Message(8, test);
-
 		this.ValTEST = idMessage;
-
 		this.TESTisComeBack = false;
-
+		
 		synchronized (listToSend) {
 			listToSend.add(q);
 		}
@@ -130,7 +128,9 @@ public class Serv implements Communication {
 			if (verboseMode) {
 				System.out.println("message TEST is NOT comeback");
 			}
-			// TODO
+			Message tmp=new Message(10,"Down");
+			tmp.setMulti(true);
+			envoyer(tmp);
 		}
 		if (verboseMode) {
 			System.out.println("message TEST is comeback");
@@ -274,21 +274,20 @@ public class Serv implements Communication {
 	}
 
 	public void envoyer(String message, int id) throws SizeException, DOWNmessageException {
-
+		envoyer(new Message(id, message));
+	}
+	
+	private void envoyer(Message msg){
 		communicationIsDown();
-		if (message.length() > 250) {
+		if (msg.length() > 250) {
 			throw new SizeException();
 		}
 
 		synchronized (listToSend) {
-
-			System.out.println("je suis dans methode envoyer");
-
 			// TODO mettre en forme le message avant d'ajouter dans liste
-			this.listToSend.add(new Message(id, message));
+			this.listToSend.add(msg);
 			this.listToSend.notifyAll();
 		}
-
 	}
 
 	private void receveMessage() throws IOException {
@@ -338,8 +337,9 @@ public class Serv implements Communication {
 		}
 	}
 
-	private void sendMessage() throws UnknownHostException, InterruptedException {
+	private void sendMessage() throws InterruptedException, IOException {
 		String tmp;
+		Message msg;
 		synchronized (listToSend) {
 
 			if (verboseMode) {
@@ -352,29 +352,32 @@ public class Serv implements Communication {
 				}
 				this.listToSend.wait();
 			}
-			tmp = this.listToSend.pop().getContenu();
+			msg=this.listToSend.pop();
+			tmp = msg.getContenu();
 			this.dataTosend = tmp.getBytes();
 		}
 
-		if (numberPortUDP1 != 0) {
-			DatagramPacket paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
-					InetAddress.getByName(this.ipPortUDP1.toString()), numberPortUDP1);
-			try {
-				this.sockSender.send(paquet1);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		if(msg.isMulti()){
+			DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
+					InetAddress.getByName(this.ipMULTI.toString()), numberPortMULTI);
+			this.sockSender.send(paquetMulti);
 		}
-		if (numberPortUDP2 != 0) {
-			DatagramPacket paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
-					InetAddress.getByName(this.ipPortUDP2.toString()), numberPortUDP2);
-			try {
-				this.sockSender.send(paquet2);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		else{
+			if (numberPortUDP1 != 0) {
+				DatagramPacket paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
+						InetAddress.getByName(this.ipPortUDP1.toString()), numberPortUDP1);
+				
+					this.sockSender.send(paquet1);
+			
 			}
+			if (numberPortUDP2 != 0) {
+				DatagramPacket paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
+						InetAddress.getByName(this.ipPortUDP2.toString()), numberPortUDP2);
+				
+					this.sockSender.send(paquet2);
+				
+			}
+			
 		}
 		if (verboseMode) {
 			System.out.println("message envoyer : " + tmp);
