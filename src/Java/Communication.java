@@ -11,13 +11,15 @@ public interface Communication {
 	/**
 	 * Demande une test de l'anneau
 	 * @throws InterruptedException
+	 * @throws DOWNmessageException 
 	 */
-	public void test() throws InterruptedException;
+	public void test() throws InterruptedException, DOWNmessageException;
 	
 	/**
 	 * Permet de quitter un anneau
+	 * @throws DOWNmessageException 
 	 */
-	public void quitter() throws InterruptedException;
+	public void quitter() throws InterruptedException, DOWNmessageException;
 	
 	/**
 	 * Pour s'inserer dans un anneau
@@ -26,8 +28,9 @@ public interface Communication {
 	 * @throws AlreadyAllUdpPortSet
 	 * @throws UnknownHostException
 	 * @throws IOException
+	 * @throws DOWNmessageException 
 	 */
-	public void connectTo(String adresse ,int udp) throws AlreadyAllUdpPortSet, UnknownHostException, IOException;
+	public void connectTo(String adresse ,int udp) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException;
 
 	/**
 	 * Pour demander l'envoi d'un message a l'entité id
@@ -35,13 +38,13 @@ public interface Communication {
 	 * @param id
 	 * @throws SizeException
 	 */
-	public void envoyer(String message , int id) throws SizeException;
+	public void envoyer(String message , int id) throws SizeException ,DOWNmessageException;
 
 	/**
 	 * Demande un message en attente de lecture par l'apply
 	 * @return Contenu du message
 	 */
-	public String lire();
+	public String lire() throws DOWNmessageException;
 		
 	
 }

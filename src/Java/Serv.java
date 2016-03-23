@@ -17,13 +17,12 @@ import java.lang.Runnable;
 
 class SizeException extends Exception {
 }
-
 class AlreadyAllUdpPortSet extends Exception {
 }
-
 class DOWNmessageException extends Exception{
 	
 }
+
 public class Serv implements Communication {
 	public boolean verboseMode;
 	private String ip;
@@ -80,7 +79,13 @@ public class Serv implements Communication {
 	private Boolean TESTisComeBack;
 	private Integer ValTEST;
 	
-	private boolean IsDOWN;
+	private boolean isDOWN;
+	
+	private void communicationIsDown() throws DOWNmessageException{
+		if(isDOWN){
+			throw new DOWNmessageException();
+		}
+	}
 	
 	private void receveMULTI() throws IOException, DOWNmessageException {
 		this.sockMultiRECEP = new MulticastSocket(this.numberPortMULTI);
@@ -96,13 +101,18 @@ public class Serv implements Communication {
 		}
 
 		if (st.equals("DOWN")) {
-			this.IsDOWN = true;
+			this.isDOWN = true;
+			this.ThRecev.interrupt();
+			this.ThSend1.interrupt();
+			this.ThSend2.interrupt();
+			this.ThServTCP.interrupt();
+			throw new DOWNmessageException();
 		}
 
 	}
 
-	public void test() throws InterruptedException{
-		
+	public void test() throws InterruptedException, DOWNmessageException{
+		communicationIsDown();
 		Integer idMessage=100;
 		String test="TEST"+" "+idMessage+" "+this.ipMULTI+" "+this.numberPortMULTI;
 		
@@ -128,7 +138,8 @@ public class Serv implements Communication {
 		
 	}
 	
-	public void quitter() throws InterruptedException {
+	public void quitter() throws InterruptedException, DOWNmessageException {
+		communicationIsDown();
 		Integer idMessage=100;
 		
 		String quit="GBYE"+" "+idMessage+" "+this.ip+" "+this.numberLICENPortUDP+" "+this.ipPortUDP1+" "+this.numberPortUDP1;
@@ -148,8 +159,8 @@ public class Serv implements Communication {
 		
 	}
 	
-	public void connectTo(String adresse, int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException {
-		
+	public void connectTo(String adresse, int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException {
+		communicationIsDown();
 		if(numberPortUDP1 != 0){
 			throw new AlreadyAllUdpPortSet();
 		}
@@ -227,7 +238,9 @@ public class Serv implements Communication {
 		}
 	}
 	
-	public String lire() {
+	public String lire() throws DOWNmessageException {
+		
+		communicationIsDown();
 		synchronized (listForApply) {
 
 			while (listForApply.isEmpty()) {
@@ -242,8 +255,9 @@ public class Serv implements Communication {
 		}
 	}
 
-	public void envoyer(String message, int id) throws SizeException {
+	public void envoyer(String message, int id) throws SizeException, DOWNmessageException {
 
+		communicationIsDown();
 		if (message.length() > 250) {
 			throw new SizeException();
 		}
@@ -352,7 +366,7 @@ public class Serv implements Communication {
 
 	}
 
-	public Serv(boolean verboseMode,Integer numberLICENPortUDP) throws SocketException ,DOWNmessageException {
+	public Serv(boolean verboseMode,Integer numberLICENPortUDP) throws SocketException {
 
 		super();
 		this.ipMULTI="225.1.2.4";
@@ -386,12 +400,15 @@ public class Serv implements Communication {
 		
 		this.runMULTIRecev = new Runnable() {
 			public void run() {
-				while (true) {
+				boolean isDown=false;
+				while (!isDown) {
 					try {
 						receveMULTI();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+					} catch (DOWNmessageException e) {
+						isDown=true;
 					}
 				}
 			}
@@ -428,11 +445,12 @@ public class Serv implements Communication {
 		this.ThRecev = new Thread(runRecev);
 		this.ThSend1 = new Thread(runSend1);
 		this.ThServTCP =new Thread(runServTCP);
+		this.ThMULTIrecev=new Thread(runMULTIRecev);
 		
 		this.ThRecev.start();
 		this.ThSend1.start();
 		this.ThServTCP.start();
-
+		this.ThMULTIrecev.start();
 	
 		//this.ThServTCP.join();
 		//this.ThRecev.join();
