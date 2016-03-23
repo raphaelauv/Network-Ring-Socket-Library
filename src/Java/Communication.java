@@ -8,6 +8,9 @@ import java.net.UnknownHostException;
  */
 public interface Communication {
 
+	
+	public void close();
+	
 	/**
 	 * Demande une test de l'anneau
 	 * @throws InterruptedException
@@ -30,7 +33,7 @@ public interface Communication {
 	 * @throws IOException
 	 * @throws DOWNmessageException 
 	 */
-	public void connectTo(String adresse ,int udp) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException;
+	public void connectTo(String adresse ,int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException;
 
 	/**
 	 * Pour demander l'envoi d'un message a l'entité id

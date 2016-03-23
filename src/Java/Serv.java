@@ -48,9 +48,6 @@ public class Serv implements Communication {
 	private Integer numberPortMULTI;
 	private MulticastSocket sockMultiRECEP;
 
-	
-	private byte[] dataToReceve;
-
 	private HashMap<Integer, Boolean> IdAlreadyReceveUDP1;// hashmap contenant
 															// les
 															// id deja croisé
@@ -77,10 +74,28 @@ public class Serv implements Communication {
 	private Boolean TESTisComeBack;
 	private Integer ValTEST;
 
-	private boolean isDOWN;
+	private boolean boolClose;
+	
+	public void close() {
+		this.sockRecever.close();
+		this.sockMultiRECEP.close();
+		this.sockSender.close();
+		try {
+			this.sockServerTCP.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+		}
+		this.ThRecev.interrupt();
+		this.ThMULTIrecev.interrupt();
+		this.ThServTCP.interrupt();;
+		this.ThSend1.interrupt();
+		//this.ThSend2.interrupt();
+		
+	}
 
-	private void communicationIsDown() throws DOWNmessageException {
-		if (isDOWN) {
+	private void isclose() throws DOWNmessageException {
+		if (boolClose) {
 			throw new DOWNmessageException();
 		}
 	}
@@ -98,19 +113,15 @@ public class Serv implements Communication {
 			System.out.println("message MULTI RECEVE : " + st);
 		}
 
-		if (st.equals("DOWN")) {
-			this.isDOWN = true;
-			this.ThRecev.interrupt();
-			this.ThSend1.interrupt();
-			this.ThSend2.interrupt();
-			this.ThServTCP.interrupt();
+		if (st.equals("DOWN\n")) {
+			close();
 			throw new DOWNmessageException();
 		}
 
 	}
 
 	public void test() throws InterruptedException, DOWNmessageException {
-		communicationIsDown();
+		isclose();
 		Integer idMessage = 100;
 		String test = "TEST" + " " + idMessage + " " + this.ipMULTI + " " + this.numberPortMULTI;
 
@@ -144,7 +155,7 @@ public class Serv implements Communication {
 	}
 
 	public void quitter() throws InterruptedException, DOWNmessageException {
-		communicationIsDown();
+		isclose();
 		Integer idMessage = 100;
 
 		String quit = "GBYE" + " " + idMessage + " " + this.ip + " " + this.numberLICENPortUDP + " " + this.ipPortUDP1
@@ -167,7 +178,7 @@ public class Serv implements Communication {
 
 	public void connectTo(String adresse, int idTCP)
 			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException {
-		communicationIsDown();
+		isclose();
 		if (numberPortUDP1 != 0) {
 			throw new AlreadyAllUdpPortSet();
 		}
@@ -213,12 +224,10 @@ public class Serv implements Communication {
 	 * @param idTCP
 	 *            port TCP of serv
 	 * @throws IOException
+	 * @throws DOWNmessageException 
 	 */
 	private void servTCP() throws IOException {
-
 		synchronized (sockServerTCP) {
-
-			this.sockServerTCP = new ServerSocket(this.numberPortTcp);
 
 			Socket socket = sockServerTCP.accept();
 
@@ -244,11 +253,12 @@ public class Serv implements Communication {
 				System.out.println("TCP : message RECEVE : " + m2);
 			}
 
-			pw.print("ACKC\n");
+			String m3="ACKC\n";
+			pw.print(m3);
 			pw.flush();
 
 			if (verboseMode) {
-				System.out.println("TCP : message SEND: ");
+				System.out.println("TCP : message SEND: "+m3);
 			}
 
 			pw.close();
@@ -263,7 +273,7 @@ public class Serv implements Communication {
 
 	public String lire() throws DOWNmessageException {
 
-		communicationIsDown();
+		isclose();
 		synchronized (listForApply) {
 
 			while (listForApply.isEmpty()) {
@@ -283,7 +293,7 @@ public class Serv implements Communication {
 	}
 	
 	private void envoyer(Message msg) throws DOWNmessageException, SizeException{
-		communicationIsDown();
+		
 		if (msg.getContenu().length() > 250) {
 			throw new SizeException();
 		}
@@ -296,12 +306,12 @@ public class Serv implements Communication {
 	}
 
 	private void receveMessage() throws IOException {
-
+		
 		if (verboseMode) {
 			System.out.println("dans thread receve");
 		}
 
-		this.dataToReceve = new byte[100];
+		byte[] dataToReceve = new byte[100];
 		DatagramPacket paquet = new DatagramPacket(dataToReceve, dataToReceve.length);
 		if (verboseMode) {
 			System.out.println("j'attends de recevoir un message dans RECEVE");
@@ -342,7 +352,8 @@ public class Serv implements Communication {
 		}
 	}
 
-	private void sendMessage() throws InterruptedException, IOException {
+	private void sendMessage() throws IOException, InterruptedException {
+		
 		String tmp;
 		Message msg;
 		synchronized (listToSend) {
@@ -394,7 +405,7 @@ public class Serv implements Communication {
 
 	}
 
-	public Serv(boolean verboseMode, Integer numberLICENPortUDP,Integer numberPortTcp) throws IOException {
+	public Serv( boolean verbose, Integer numberLICENPortUDP,Integer numberPortTcp) throws IOException {
 
 		super();
 		this.ipMULTI = "225.1.2.4";
@@ -406,12 +417,14 @@ public class Serv implements Communication {
 		this.sockRecever = new DatagramSocket(numberLICENPortUDP);
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
-		this.verboseMode = verboseMode;
+		this.verboseMode = verbose;
 		
 		this.ipPortUDP1="localhost";
 		this.ipPortUDP2="localhost";
 		this.numberPortUDP1=10;
 		this.numberPortUDP2=11;
+		
+		this.boolClose=false;
 		
 		/*******************************************************************
 		 * Creation des 4 thread anonyme : d'envoi UDP | reception UDP | serv
@@ -420,57 +433,61 @@ public class Serv implements Communication {
 		 */
 		this.runRecev = new Runnable() {
 			public void run() {
-				while (true) {
+				boolean erreur=false;
+				while (!erreur) {
 					try {
 						receveMessage();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						erreur=true;
 					}
 				}
+				if(verboseMode){System.out.println("fin thread RECEV");}
 			}
+			
 		};
 
 		this.runMULTIRecev = new Runnable() {
 			public void run() {
-				boolean isDown = false;
-				while (!isDown) {
+				boolean erreur = false;
+				while (!erreur) {
 					try {
 						receveMULTI();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						erreur=true;			
 					} catch (DOWNmessageException e) {
-						isDown = true;
+						erreur = true;
 					}
 				}
+				if(verboseMode){System.out.println("fin thread MULTI");}
 			}
 
 		};
 
 		this.runSend1 = new Runnable() {
 			public void run() {
-				while (true) {
+				boolean erreur=false;
+				while (!erreur) {
 					try {
 						sendMessage();
 					} catch ( InterruptedException | IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						erreur=true;
 					}
 				}
+				if(verboseMode){System.out.println("fin thread SEND");}
 			}
 		};
 
 		this.runServTCP = new Runnable() {
 			public void run() {
-				while (true) {
+				boolean erreur=false;
+				while (!erreur) {
 					try {
 						servTCP();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						erreur=true;
 					}
 				}
+				if(verboseMode){System.out.println("fin thread TCP");}
 			}
 
 		};
@@ -482,12 +499,8 @@ public class Serv implements Communication {
 
 		this.ThRecev.start();
 		this.ThSend1.start();
-		//this.ThServTCP.start();
-		//this.ThMULTIrecev.start();
-
-		// this.ThServTCP.join();
-		// this.ThRecev.join();
-		// this.ThSend1.join();
+		this.ThServTCP.start();
+		this.ThMULTIrecev.start();
 
 	}
 
@@ -501,7 +514,8 @@ public class Serv implements Communication {
 
 			this.runSend2 = new Runnable() {
 				public void run() {
-					while (true) {
+					boolean erreur=false;
+					while (!erreur) {
 						try {
 							receveMessage();
 						} catch (IOException e) {
@@ -513,7 +527,7 @@ public class Serv implements Communication {
 			};
 			this.ThSend2 = new Thread(runSend2);
 			this.ThSend2.start();
-			this.ThSend2.join();
+
 
 		} else if (this.numberPortUDP1 != 0) {
 			this.numberPortUDP1 = udpNew;
@@ -529,4 +543,5 @@ public class Serv implements Communication {
 	public void setId(int id) {
 		this.id = id;
 	}
+
 }
