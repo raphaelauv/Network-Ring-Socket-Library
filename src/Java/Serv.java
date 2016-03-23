@@ -60,11 +60,26 @@ public class Serv implements Communication {
 	private Thread ThServTCP;
 	private Thread ThSend1;
 	private Thread ThSend2;
+	
+	private Boolean EYBGisArrive;
 
 	
 	public void quitter() {
 		
 		String quit="GBYE"+" "+idMessage+" "+this.ip+" "+this.numberLICENPortUDP+" "+this.ipPortUDP1+" "+this.numberPortUDP1;
+		
+		Message q=new Message(8, quit);
+		EYBGisArrive=false;
+		synchronized (listToSend) {
+			listToSend.add(q);
+		}
+		
+		synchronized (EYBGisArrive) {
+			while(!EYBGisArrive){
+				EYBGisArrive.wait();
+			}
+		}
+		//TODO deconnect;
 		
 	}
 	
@@ -191,7 +206,7 @@ public class Serv implements Communication {
 			System.out.println("j'attends de recevoir un message dans RECEVE");
 		}
 
-		this.sockRecever.receive(paquet);//attente passive 
+		this.sockRecever.receive(paquet);// attente passive
 
 		String st = new String(paquet.getData(), 0, paquet.getLength());
 
@@ -199,20 +214,26 @@ public class Serv implements Communication {
 		if (verboseMode) {
 			System.out.println("Message Recu : " + st);
 		}
-		
-		if(st.startsWith("GBYE")){
-			String m="EYBG"+" "+idm;
-			
-		}
-		else if(){
-			
+
+		if (st.startsWith("GBYE")) {
+			String m = "EYBG" + " " + idm;
+
 		}
 
-		synchronized (this.listToSend) {
-			this.listToSend.add(tmp);
-			this.listToSend.notify();
-		}
+		else if (st.startsWith("EYBG")) {
 
+			synchronized (EYBGisArrive) {
+				EYBGisArrive = true;
+				EYBGisArrive.notifyAll();
+			}
+			
+			
+		} else {
+			synchronized (this.listToSend) {
+				this.listToSend.add(tmp);
+				this.listToSend.notifyAll();
+			}
+		}
 	}
 
 	private void sendMessage() throws UnknownHostException, InterruptedException {
@@ -324,6 +345,7 @@ public class Serv implements Communication {
 		this.ThSend1.start();
 		this.ThServTCP.start();
 
+	
 		//this.ThServTCP.join();
 		//this.ThRecev.join();
 		//this.ThSend1.join();
