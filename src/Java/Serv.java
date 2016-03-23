@@ -18,14 +18,11 @@ class SizeException extends Exception {
 }
 
 class AlreadyAllUdpPortSet extends Exception {
-
 }
 
 public class Serv implements Communication {
 	public boolean verboseMode;
-
 	private int ip;
-	
 	private int id;
 	private int portTcp;
 	private Integer numberPortUDP1;
@@ -34,6 +31,9 @@ public class Serv implements Communication {
 	private Integer ipPortUDP2;
 	private Integer numberLICENPortUDP;
 
+	private Integer ipMULTI;
+	private Integer numberPortMULTI;
+	
 	private DatagramSocket sockSender;
 	private DatagramSocket sockRecever;
 
@@ -62,7 +62,36 @@ public class Serv implements Communication {
 	private Thread ThSend2;
 	
 	private Boolean EYBGisArrive;
+	
+	private Boolean TESTisComeBack;
+	private Integer ValTEST;
 
+	public void test() throws InterruptedException{
+		
+		Integer idMessage=100;
+		String test="TEST"+" "+idMessage+" "+this.ipMULTI+" "+this.numberPortMULTI;
+		
+		Message q=new Message(8, test);
+		
+		
+		this.ValTEST=idMessage;
+		
+		
+		this.TESTisComeBack=false;
+		
+		synchronized (listToSend) {
+			listToSend.add(q);
+		}
+		
+		wait(2000);
+		
+		if(!TESTisComeBack){
+			if(verboseMode){System.out.println("message TEST is comeback");}
+			//TODO
+		}
+		if(verboseMode){System.out.println("message TEST is NOT comeback");}
+		
+	}
 	
 	public void quitter() {
 		
@@ -220,6 +249,11 @@ public class Serv implements Communication {
 
 		}
 
+		else if (st.startsWith("TEST")) {
+			if(st.substring(4).startsWith(ValTEST.toString())){				
+				this.TESTisComeBack=true;
+			}
+		}
 		else if (st.startsWith("EYBG")) {
 
 			synchronized (EYBGisArrive) {
@@ -283,6 +317,8 @@ public class Serv implements Communication {
 	public Serv(boolean verboseMode,Integer numberLICENPortUDP) throws InterruptedException, IOException {
 
 		super();
+		this.ipMULTI=
+		this.numberPortMULTI=
 		this.sockSender = new DatagramSocket();
 		this.numberLICENPortUDP=numberLICENPortUDP;
 		this.sockRecever = new DatagramSocket(numberLICENPortUDP);
