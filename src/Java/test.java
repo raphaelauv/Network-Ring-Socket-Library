@@ -4,7 +4,7 @@ public class test {
 	public static void main(String[] args) {
 		Serv premier;
 		try {
-			premier = new Serv(true);
+			premier = new Serv(true,5555);
 			
 			while (true) {
 					Thread.sleep(4000);

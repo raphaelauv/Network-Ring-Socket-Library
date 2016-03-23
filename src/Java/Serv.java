@@ -24,11 +24,15 @@ class AlreadyAllUdpPortSet extends Exception {
 public class Serv implements Communication {
 	public boolean verboseMode;
 
+	private int ip;
+	
 	private int id;
-	private int idTCP;
-	private int numberPortUDP1;
-	private int numberPortUDP2;
 	private int portTcp;
+	private Integer numberPortUDP1;
+	private Integer ipPortUDP1;
+	private Integer numberPortUDP2;
+	private Integer ipPortUDP2;
+	private Integer numberLICENPortUDP;
 
 	private DatagramSocket sockSender;
 	private DatagramSocket sockRecever;
@@ -58,6 +62,11 @@ public class Serv implements Communication {
 	private Thread ThSend2;
 
 	
+	public void quitter() {
+		
+		String quit="GBYE"+" "+idMessage+" "+this.ip+" "+this.numberLICENPortUDP+" "+this.ipPortUDP1+" "+this.numberPortUDP1;
+		
+	}
 	
 	public void connectTo(String adresse, int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException {
 		
@@ -68,23 +77,22 @@ public class Serv implements Communication {
 		synchronized (sockServerTCP) {//pas d'acceptation de connection pendant une connection
 			
 			Socket socket=new Socket(adresse,idTCP);
-			if(verboseMode){System.out.println("conecter en TCP a :"+adresse+" sur port : "+idTCP);
+			if(verboseMode){System.out.println("conecter en TCP a :"+adresse+" sur port : "+idTCP);}
 			
-			}
 			BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			PrintWriter pw=new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 			String m1=br.readLine();
 			
-			if(verboseMode){System.out.println("message recu "+m1);}
+			if(verboseMode){System.out.println("message RECEVE "+m1);}
 			
-
-			String m1="NEWC"+" "+ip+" "+this.numberPortUDP1+"\n";
+			String m2="NEWC"+" "+this.ip+" "+this.numberPortUDP1+"\n";
 			
-			pw.print(m1);
+			pw.print(m2);
 			pw.flush();
+			if(verboseMode){System.out.println("message SEND "+m2);}
 			
-			String m2=br.readLine();
-			if(verboseMode){System.out.println("message recu "+m1);}
+			String m3=br.readLine();
+			if(verboseMode){System.out.println("message RECEVE "+m3);}
 			pw.close();
 			br.close();
 			socket.close();
@@ -93,18 +101,17 @@ public class Serv implements Communication {
 			}
 		}
 		
-	}
 	
 	/**
 	 * Serv in TCP to accept an entrance TCP connection
 	 * @param idTCP port TCP of serv
 	 * @throws IOException
 	 */
-	private void servTCP(int idTCP) throws IOException {
+	private void servTCP() throws IOException {
 		
 		synchronized (sockServerTCP) {
 		
-			this.sockServerTCP=new ServerSocket(idTCP);
+			this.sockServerTCP=new ServerSocket(this.portTcp);
 			
 			Socket socket=sockServerTCP.accept();
 			
@@ -120,20 +127,23 @@ public class Serv implements Communication {
 			pw.print(m1);
 			pw.flush(); 
 			
-			if(verboseMode){System.out.println("TCP : message WELC envoyé: "+m1);}
+			if(verboseMode){System.out.println("TCP : message SEND: "+m1);}
 			String m2=br.readLine();
 			
-			if(verboseMode){System.out.println("TCP : message recu : "+m2);}
+			if(verboseMode){System.out.println("TCP : message RECEVE : "+m2);}
 			
 			pw.print("ACKC\n");
 			pw.flush();
 			
-			if(verboseMode){System.out.println("TCP : message ACKC envoyé: ");}
+			if(verboseMode){System.out.println("TCP : message SEND: ");}
 			
 			pw.close();
 			br.close();
 			socket.close();
 			
+			synchronized (numberPortUDP1) {
+				
+			}
 		}
 	}
 	
@@ -181,13 +191,21 @@ public class Serv implements Communication {
 			System.out.println("j'attends de recevoir un message dans RECEVE");
 		}
 
-		this.sockRecever.receive(paquet);
+		this.sockRecever.receive(paquet);//attente passive 
 
 		String st = new String(paquet.getData(), 0, paquet.getLength());
 
 		Message tmp = new Message(10, st);
 		if (verboseMode) {
 			System.out.println("Message Recu : " + st);
+		}
+		
+		if(st.startsWith("GBYE")){
+			String m="EYBG"+" "+idm;
+			
+		}
+		else if(){
+			
 		}
 
 		synchronized (this.listToSend) {
@@ -217,7 +235,7 @@ public class Serv implements Communication {
 
 		if (numberPortUDP1 != 0) {
 			DatagramPacket paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
-					InetAddress.getByName("localhost"), numberPortUDP1);
+					InetAddress.getByName(this.ipPortUDP1.toString()), numberPortUDP1);
 			try {
 				this.sockSender.send(paquet1);
 			} catch (IOException e) {
@@ -227,7 +245,7 @@ public class Serv implements Communication {
 		}
 		if (numberPortUDP2 != 0) {
 			DatagramPacket paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
-					InetAddress.getByName("localhost"), numberPortUDP2);
+					InetAddress.getByName(this.ipPortUDP2.toString()), numberPortUDP2);
 			try {
 				this.sockSender.send(paquet2);
 			} catch (IOException e) {
@@ -241,11 +259,12 @@ public class Serv implements Communication {
 
 	}
 
-	public Serv(boolean verboseMode) throws InterruptedException, IOException {
+	public Serv(boolean verboseMode,Integer numberLICENPortUDP) throws InterruptedException, IOException {
 
 		super();
 		this.sockSender = new DatagramSocket();
-		this.sockRecever = new DatagramSocket(5555);
+		this.numberLICENPortUDP=numberLICENPortUDP;
+		this.sockRecever = new DatagramSocket(numberLICENPortUDP);
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
 		this.verboseMode = verboseMode;
@@ -287,7 +306,7 @@ public class Serv implements Communication {
 			public void run() {
 				while (true) {
 					try {
-						servTCP(idTCP);
+						servTCP();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -350,5 +369,4 @@ public class Serv implements Communication {
 	public void setId(int id) {
 		this.id = id;
 	}
-
 }
