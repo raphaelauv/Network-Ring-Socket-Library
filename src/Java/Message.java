@@ -11,7 +11,6 @@ public class Message {
 		this.contenu = contenu;
 	}
 
-
 	public String getContenu() {
 		return contenu;
 	}
