@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -20,25 +21,35 @@ class SizeException extends Exception {
 class AlreadyAllUdpPortSet extends Exception {
 }
 
+class DOWNmessageException extends Exception{
+	
+}
 public class Serv implements Communication {
 	public boolean verboseMode;
-	private int ip;
+	private String ip;
+	
 	private int id;
+	
 	private int portTcp;
-	private Integer numberPortUDP1;
-	private Integer ipPortUDP1;
-	private Integer numberPortUDP2;
-	private Integer ipPortUDP2;
-	private Integer numberLICENPortUDP;
-
-	private Integer ipMULTI;
-	private Integer numberPortMULTI;
+	private ServerSocket sockServerTCP;
+	
 	
 	private DatagramSocket sockSender;
+	private Integer numberPortUDP1;
+	private String ipPortUDP1;
+	
+	private Integer numberPortUDP2;
+	private String ipPortUDP2;
+	
+	
 	private DatagramSocket sockRecever;
+	private Integer numberLICENPortUDP;
 
-	private ServerSocket sockServerTCP;
-
+	private String ipMULTI;
+	private Integer numberPortMULTI;
+	private MulticastSocket sockMultiRECEP;
+	
+	
 	private byte[] dataTosend;
 	private byte[] dataToReceve;
 
@@ -52,19 +63,43 @@ public class Serv implements Communication {
 	private LinkedList<Message> listToSend;// liste des message a envoyé
 
 	private Runnable runRecev;
+	private Runnable runMULTIRecev;
 	private Runnable runServTCP;
 	private Runnable runSend1;
 	private Runnable runSend2;
 
 	private Thread ThRecev;
+	private Thread ThMULTIrecev;
 	private Thread ThServTCP;
 	private Thread ThSend1;
 	private Thread ThSend2;
+	
 	
 	private Boolean EYBGisArrive;
 	
 	private Boolean TESTisComeBack;
 	private Integer ValTEST;
+	
+	private boolean IsDOWN;
+	
+	private void receveMULTI() throws IOException, DOWNmessageException {
+		this.sockMultiRECEP = new MulticastSocket(this.numberPortMULTI);
+		this.sockMultiRECEP.joinGroup(InetAddress.getByName(ipMULTI.toString()));
+
+		byte[] data = new byte[100];
+		DatagramPacket paquet = new DatagramPacket(data, data.length);
+
+		this.sockMultiRECEP.receive(paquet);
+		String st = new String(paquet.getData(), 0, paquet.getLength());
+		if (verboseMode) {
+			System.out.println("message MULTI RECEVE : " + st);
+		}
+
+		if (st.equals("DOWN")) {
+			this.IsDOWN = true;
+		}
+
+	}
 
 	public void test() throws InterruptedException{
 		
@@ -86,14 +121,15 @@ public class Serv implements Communication {
 		wait(2000);
 		
 		if(!TESTisComeBack){
-			if(verboseMode){System.out.println("message TEST is comeback");}
+			if(verboseMode){System.out.println("message TEST is NOT comeback");}
 			//TODO
 		}
-		if(verboseMode){System.out.println("message TEST is NOT comeback");}
+		if(verboseMode){System.out.println("message TEST is comeback");}
 		
 	}
 	
-	public void quitter() {
+	public void quitter() throws InterruptedException {
+		Integer idMessage=100;
 		
 		String quit="GBYE"+" "+idMessage+" "+this.ip+" "+this.numberLICENPortUDP+" "+this.ipPortUDP1+" "+this.numberPortUDP1;
 		
@@ -166,7 +202,7 @@ public class Serv implements Communication {
 			PrintWriter pw=new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 			
 			
-			String m1="WELC"+" "+ip+" "port+" "+ip-diff+" "+port-diff+"\n";
+			String m1="WELC"+" "+this.ip+" "+this.numberLICENPortUDP+" "+this.ipMULTI+" "+this.numberPortMULTI+"\n";
 			
 			pw.print(m1);
 			pw.flush(); 
@@ -244,6 +280,8 @@ public class Serv implements Communication {
 			System.out.println("Message Recu : " + st);
 		}
 
+		Integer idm=100;
+		
 		if (st.startsWith("GBYE")) {
 			String m = "EYBG" + " " + idm;
 
@@ -314,11 +352,11 @@ public class Serv implements Communication {
 
 	}
 
-	public Serv(boolean verboseMode,Integer numberLICENPortUDP) throws InterruptedException, IOException {
+	public Serv(boolean verboseMode,Integer numberLICENPortUDP) throws SocketException ,DOWNmessageException {
 
 		super();
-		this.ipMULTI=
-		this.numberPortMULTI=
+		this.ipMULTI="225.1.2.4";
+		this.numberPortMULTI=9999;
 		this.sockSender = new DatagramSocket();
 		this.numberLICENPortUDP=numberLICENPortUDP;
 		this.sockRecever = new DatagramSocket(numberLICENPortUDP);
@@ -330,7 +368,7 @@ public class Serv implements Communication {
 		// this.id = id;
 
 		/*******************************************************************
-		 * Creation des 2 class anonyme : thread d'envoi et de reception
+		 * Creation des 4 thread anonyme :  d'envoi UDP | reception UDP | serv tcp | reception multi
 		 * 
 		 */
 		this.runRecev = new Runnable() {
@@ -344,6 +382,20 @@ public class Serv implements Communication {
 					}
 				}
 			}
+		};
+		
+		this.runMULTIRecev = new Runnable() {
+			public void run() {
+				while (true) {
+					try {
+						receveMULTI();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+
 		};
 
 		this.runSend1 = new Runnable() {

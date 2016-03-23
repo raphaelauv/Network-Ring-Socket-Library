@@ -17,7 +17,7 @@ public interface Communication {
 	/**
 	 * Permet de quitter un anneau
 	 */
-	public void quitter();
+	public void quitter() throws InterruptedException;
 	
 	/**
 	 * Pour s'inserer dans un anneau
