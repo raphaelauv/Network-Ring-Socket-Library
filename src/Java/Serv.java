@@ -26,7 +26,9 @@ class DOWNmessageException extends Exception {
 }
 
 public class Serv implements Communication {
+
 	public boolean verboseMode;
+
 	private String ip;
 
 	private int id;
@@ -76,7 +78,7 @@ public class Serv implements Communication {
 
 	private boolean boolClose;
 	
-	public void close() {
+	private void close() {
 		this.sockRecever.close();
 		this.sockMultiRECEP.close();
 		this.sockSender.close();
@@ -172,6 +174,7 @@ public class Serv implements Communication {
 				EYBGisArrive.wait();
 			}
 		}
+		this.close();
 		// TODO deconnect;
 
 	}
@@ -405,10 +408,10 @@ public class Serv implements Communication {
 
 	}
 
-	public Serv( boolean verbose, Integer numberLICENPortUDP,Integer numberPortTcp) throws IOException {
+	public Serv(Integer numberLICENPortUDP,Integer numberPortTcp) throws IOException {
 
 		super();
-		this.ipMULTI = "225.1.2.4";
+		this.ipMULTI = "225.1.2.4	";
 		this.numberPortMULTI = 9999;
 		this.numberPortTcp=numberPortTcp;
 		this.sockServerTCP=new ServerSocket(numberPortTcp);
@@ -417,7 +420,7 @@ public class Serv implements Communication {
 		this.sockRecever = new DatagramSocket(numberLICENPortUDP);
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
-		this.verboseMode = verbose;
+		this.verboseMode=false;
 		
 		this.ipPortUDP1="localhost";
 		this.ipPortUDP2="localhost";
@@ -538,10 +541,6 @@ public class Serv implements Communication {
 
 	public int getId() {
 		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 }

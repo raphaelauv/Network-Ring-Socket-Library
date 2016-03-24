@@ -4,7 +4,10 @@ public class test {
 	public static void main(String[] args) {
 		Serv premier;
 		try {
-			premier = new Serv(true,5555,4242);
+			System.out.println("arg0 : "+args[0]); //4242
+			System.out.println("arg1 : "+args[1]); //5555
+			premier = new Serv(Integer.parseInt(args[0]),Integer.parseInt(args[1]));
+			premier.verboseMode=true;
 			
 			while (true) {
 					Thread.sleep(4000);

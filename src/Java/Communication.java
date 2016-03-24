@@ -9,8 +9,6 @@ import java.net.UnknownHostException;
 public interface Communication {
 
 	
-	public void close();
-	
 	/**
 	 * Demande une test de l'anneau
 	 * @throws InterruptedException
