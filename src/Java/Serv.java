@@ -135,8 +135,8 @@ public class Serv implements Communication {
 
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
 		isclose();
-		Integer idMessage = 100;
-		String test = "TEST" + " " + idMessage + " " + this.ipMULTI + " " + this.numberPortMULTI;
+		String idMessage = "0000100";
+		byte[] test = "TEST" + " " + idMessage + " " + this.ipMULTI + " " + this.numberPortMULTI;
 
 		Message q = new Message(8, test);
 		this.ValTEST = idMessage;
@@ -295,15 +295,15 @@ public class Serv implements Communication {
 
 	public void send(String message) throws DOWNmessageException, SizeMessageException{
 		isclose();
-		//TODO ID of the new message
-		envoyer(new Message(15, message));
-	}
-	
-	private void envoyer(Message msg) throws DOWNmessageException, SizeMessageException{
 		
-		if (msg.getContenu().length() > 250) {
+		if (message.length() > 250) {
 			throw new SizeMessageException();
 		}
+		//TODO ID of the new message
+		envoyer(new Message(message));
+	}
+	
+	private void envoyer(Message msg) throws DOWNmessageException{
 
 		synchronized (listToSend) {
 			// TODO mettre en forme le message avant d'ajouter dans liste
@@ -343,9 +343,10 @@ public class Serv implements Communication {
 
 		this.sockRecever.receive(paquet);// attente passive
 
+		
 		String st = new String(paquet.getData(), 0, paquet.getLength());
 
-		Message tmp = new Message(10, st);
+		Message tmp = new Message(paquet.getData());
 		if (verboseMode) {
 			System.out.println("Message Recu : " + st);
 		}

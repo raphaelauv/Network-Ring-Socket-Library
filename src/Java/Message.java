@@ -1,34 +1,52 @@
+import java.nio.ByteBuffer;
 
 public class Message {
 	
-	private int id;
 	private boolean multi; 
-	private String contenu;
+	private byte[] data;
 	
-	public Message(int id, String contenu) {
+	public Message(String msg){
+		
+	}
+	public Message(byte[] data) {
 		super();
 		this.setMulti(false);
-		this.setId(id);
-		this.contenu = contenu;
+		this.data = data;
 	}
 
-	public String getContenu() {
-		return contenu;
+	public byte[] getDataForApply() {
+		return data;
 	}
 
-
-	public void setContenu(String contenu) {
-		this.contenu = contenu;
+	public void setContenu(byte[] data) {
+		this.data = data;
 	}
 
 
 	public int getId() {
-		return id;
+		return Integer.parseInt (new String(data,4,9));
 	}
 
 
-	public void setId(int id) {
-		this.id = id;
+	public void setId(Integer id) {
+	
+		int numbOfZERO=8-(id.toString().length());
+		
+		byte[] zero = ByteBuffer.allocate(10).putInt(0).array();
+		
+		byte[] byteId = ByteBuffer.allocate(10).putInt(id).array();
+	
+		int conteur=0;
+		for(int i=5 ;i<13;i++){
+			if(numbOfZERO>0){
+				data[i]=zero[0];
+				numbOfZERO--;
+			}
+			else{
+				data[i]=byteId[conteur];
+				conteur++;
+			}
+		}
 	}
 
 	public boolean isMulti() {
@@ -38,7 +56,5 @@ public class Message {
 	public void setMulti(boolean multi) {
 		this.multi = multi;
 	}
-	
-	
 
 }
