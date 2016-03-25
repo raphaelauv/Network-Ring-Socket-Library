@@ -37,6 +37,7 @@ public class Serv implements Communication {
 	private ServerSocket sockServerTCP;
 
 	private DatagramSocket sockSender;
+	
 	private Integer numberPortUDP1;
 	private String ipPortUDP1;
 
@@ -164,12 +165,14 @@ public class Serv implements Communication {
 				+ " " + this.numberPortUDP1;
 
 		Message q = new Message(8, quit);
-		EYBGisArrive = false;
+		
 		synchronized (listToSend) {
 			listToSend.add(q);
 		}
 
+		if(verboseMode){System.out.println("WAITING for EYBG message");}
 		synchronized (EYBGisArrive) {
+			EYBGisArrive = false;
 			while (!EYBGisArrive) {
 				EYBGisArrive.wait();
 			}
@@ -335,7 +338,6 @@ public class Serv implements Communication {
 			String m = "EYBG" + " " + idm;
 
 		}
-
 		else if (st.startsWith("TEST")) {
 			if (st.substring(4).startsWith(ValTEST.toString())) {
 				this.TESTisComeBack = true;
@@ -376,7 +378,7 @@ public class Serv implements Communication {
 		}
 		tmp = msg.getContenu();
 		
-		System.out.println("contenu du message a envoyer : "+tmp);
+		if (verboseMode) {System.out.println("contenu du message a envoyer : "+tmp);}
 		byte[] dataTosend = tmp.getBytes();
 		if(msg.isMulti()){
 			DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
@@ -411,7 +413,7 @@ public class Serv implements Communication {
 	public Serv(Integer numberLICENPortUDP,Integer numberPortTcp) throws IOException {
 
 		super();
-		this.ipMULTI = "225.1.2.4	";
+		this.ipMULTI = "225.1.2.4";
 		this.numberPortMULTI = 9999;
 		this.numberPortTcp=numberPortTcp;
 		this.sockServerTCP=new ServerSocket(numberPortTcp);
@@ -426,7 +428,7 @@ public class Serv implements Communication {
 		this.ipPortUDP2="localhost";
 		this.numberPortUDP1=10;
 		this.numberPortUDP2=11;
-		
+		this.EYBGisArrive=false;
 		this.boolClose=false;
 		
 		/*******************************************************************
