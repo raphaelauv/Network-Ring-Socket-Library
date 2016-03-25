@@ -40,13 +40,13 @@ public interface Communication {
 	 * @param id
 	 * @throws SizeException
 	 */
-	public void envoyer(String message , int id) throws DOWNmessageException, SizeException;
+	public void send(String message) throws DOWNmessageException, SizeException;
 
 	/**
 	 * Demande un message en attente de lecture par l'apply
 	 * @return Contenu du message
 	 */
-	public String lire() throws DOWNmessageException;
+	public String receive() throws DOWNmessageException;
 		
 	
 }

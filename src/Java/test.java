@@ -10,11 +10,10 @@ public class test {
 			Serv premier = new Serv(Integer.parseInt(args[0]),Integer.parseInt(args[1]));
 			premier.verboseMode=true;
 			
-			
 					Thread.sleep(4000);
 					//System.out.println(premier.lire());	
 					
-					premier.envoyer("mamama", 10);
+					premier.send("mamama");
 					
 					premier.test(true);
 					

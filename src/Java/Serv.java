@@ -31,7 +31,7 @@ public class Serv implements Communication {
 
 	private String ip;
 
-	private int id;
+	private int idEntite;
 
 	private Integer numberPortTcp;
 	private ServerSocket sockServerTCP;
@@ -283,25 +283,12 @@ public class Serv implements Communication {
 		}
 	}
 
-	public String lire() throws DOWNmessageException {
 
+
+	public void send(String message) throws DOWNmessageException, SizeException{
 		isclose();
-		synchronized (listForApply) {
-
-			while (listForApply.isEmpty()) {
-				try {
-					listForApply.wait();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			return listForApply.pop().getContenu();
-		}
-	}
-
-	public void envoyer(String message, int id) throws DOWNmessageException, SizeException{
-		envoyer(new Message(id, message));
+		//TODO ID of the new message
+		envoyer(new Message(15, message));
 	}
 	
 	private void envoyer(Message msg) throws DOWNmessageException, SizeException{
@@ -317,6 +304,23 @@ public class Serv implements Communication {
 		}
 	}
 
+	public String receive() throws DOWNmessageException {
+
+		isclose();
+		synchronized (listForApply) {
+
+			while (listForApply.isEmpty()) {
+				try {
+					listForApply.wait();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			return listForApply.pop().getContenu();
+		}
+	}
+	
 	private void receveMessage() throws IOException {
 		
 		if (verboseMode) {
@@ -547,8 +551,8 @@ public class Serv implements Communication {
 		}
 	}
 
-	public int getId() {
-		return id;
+	public int getIdEntite() {
+		return idEntite;
 	}
 
 }
