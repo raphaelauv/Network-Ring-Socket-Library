@@ -77,9 +77,9 @@ public class Serv implements Communication {
 	private Boolean TESTisComeBack;
 	private Integer ValTEST;
 
-	private boolean boolClose;
+	private Boolean boolClose;
 	
-	private void close() {
+	private void closeServ() {
 		this.sockRecever.close();
 		this.sockMultiRECEP.close();
 		this.sockSender.close();
@@ -97,9 +97,11 @@ public class Serv implements Communication {
 		
 	}
 
-	private void isclose() throws DOWNmessageException {
-		if (boolClose) {
-			throw new DOWNmessageException();
+	private  void isclose() throws DOWNmessageException {
+		synchronized(boolClose){
+			if (boolClose) {
+				throw new DOWNmessageException();
+			}
 		}
 	}
 
@@ -117,13 +119,13 @@ public class Serv implements Communication {
 		}
 
 		if (st.equals("DOWN\n")) {
-			close();
+			closeServ();
 			throw new DOWNmessageException();
 		}
 
 	}
 
-	public void test() throws InterruptedException, DOWNmessageException {
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
 		isclose();
 		Integer idMessage = 100;
 		String test = "TEST" + " " + idMessage + " " + this.ipMULTI + " " + this.numberPortMULTI;
@@ -136,28 +138,34 @@ public class Serv implements Communication {
 			listToSend.add(q);
 		}
 
-		wait(2000);
+		Thread.sleep(2000);
 
 		if (!TESTisComeBack) {
 			if (verboseMode) {
 				System.out.println("message TEST is NOT comeback");
 			}
-			Message tmp=new Message(10,"Down");
-			tmp.setMulti(true);
-			try {
-				envoyer(tmp);
-			} catch (SizeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
+			if(sendDownIfBreak){
+				Message tmp=new Message(10,"Down");
+				tmp.setMulti(true);
+				try {
+					envoyer(tmp);
+				} catch (SizeException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+			
+			return false;
 		}
 		if (verboseMode) {
 			System.out.println("message TEST is comeback");
 		}
+		return true;
 
 	}
 
-	public void quitter() throws InterruptedException, DOWNmessageException {
+	public void close() throws InterruptedException, DOWNmessageException {
 		isclose();
 		Integer idMessage = 100;
 
@@ -171,15 +179,13 @@ public class Serv implements Communication {
 		}
 
 		if(verboseMode){System.out.println("WAITING for EYBG message");}
+		
 		synchronized (EYBGisArrive) {
 			EYBGisArrive = false;
-			while (!EYBGisArrive) {
-				EYBGisArrive.wait();
-			}
+			EYBGisArrive.wait(4000);
 		}
-		this.close();
-		// TODO deconnect;
-
+		test(true);
+		this.closeServ();
 	}
 
 	public void connectTo(String adresse, int idTCP)

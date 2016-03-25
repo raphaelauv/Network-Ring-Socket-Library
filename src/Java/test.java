@@ -15,7 +15,10 @@ public class test {
 					//System.out.println(premier.lire());	
 					
 					premier.envoyer("mamama", 10);
-					premier.quitter();
+					
+					premier.test(true);
+					
+					premier.close();
 			
 		} catch (InterruptedException | IOException e) {
 			// TODO Auto-generated catch block

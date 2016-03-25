@@ -11,16 +11,17 @@ public interface Communication {
 	
 	/**
 	 * Demande une test de l'anneau
+	 * @return 
 	 * @throws InterruptedException
 	 * @throws DOWNmessageException 
 	 */
-	public void test() throws InterruptedException, DOWNmessageException;
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException;
 	
 	/**
 	 * Permet de quitter un anneau
 	 * @throws DOWNmessageException 
 	 */
-	public void quitter() throws InterruptedException, DOWNmessageException;
+	public void close() throws InterruptedException, DOWNmessageException;
 	
 	/**
 	 * Pour s'inserer dans un anneau
