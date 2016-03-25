@@ -4,16 +4,17 @@ import java.net.UnknownHostException;
 /**
  * Cette interface defini les actions realisable par une applicationa avec son implementation reseaux
  * 
- *
  */
 public interface Communication {
 
+
 	
 	/**
-	 * Demande une test de l'anneau
-	 * @return 
+	 * 	Demande un test de l'anneau
+	 * @param sendDownIfBreak true -> si anneau casse alors averti sur multi diffusion | else -> pas d'alert
+	 * @return true -> anneau pas casse
 	 * @throws InterruptedException
-	 * @throws DOWNmessageException 
+	 * @throws DOWNmessageException
 	 */
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException;
 	
@@ -40,7 +41,7 @@ public interface Communication {
 	 * @param id
 	 * @throws SizeException
 	 */
-	public void send(String message) throws DOWNmessageException, SizeException;
+	public void send(String message) throws DOWNmessageException, SizeMessageException;
 
 	/**
 	 * Demande un message en attente de lecture par l'apply

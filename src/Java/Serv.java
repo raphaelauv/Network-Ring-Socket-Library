@@ -9,18 +9,26 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.lang.Runnable;
 
-class SizeException extends Exception {
+/*
+ * Le message est trop grand
+ */
+class SizeMessageException extends Exception {
 }
 
+/*
+ * L'entite est deja connecte
+ */
 class AlreadyAllUdpPortSet extends Exception {
 }
 
+/**
+ * Exception l'entite reseaux a recu un DOWN et donc est deconnecter
+ */
 class DOWNmessageException extends Exception {
 
 }
@@ -150,7 +158,7 @@ public class Serv implements Communication {
 				tmp.setMulti(true);
 				try {
 					envoyer(tmp);
-				} catch (SizeException e) {
+				} catch (SizeMessageException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -285,16 +293,16 @@ public class Serv implements Communication {
 
 
 
-	public void send(String message) throws DOWNmessageException, SizeException{
+	public void send(String message) throws DOWNmessageException, SizeMessageException{
 		isclose();
 		//TODO ID of the new message
 		envoyer(new Message(15, message));
 	}
 	
-	private void envoyer(Message msg) throws DOWNmessageException, SizeException{
+	private void envoyer(Message msg) throws DOWNmessageException, SizeMessageException{
 		
 		if (msg.getContenu().length() > 250) {
-			throw new SizeException();
+			throw new SizeMessageException();
 		}
 
 		synchronized (listToSend) {

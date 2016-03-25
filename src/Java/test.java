@@ -24,7 +24,7 @@ public class test {
 			e.printStackTrace();
 		} catch (DOWNmessageException e) {
 			System.out.println("DOWN recu dans main");
-		} catch (SizeException e) {
+		} catch (SizeMessageException e) {
 			e.printStackTrace();
 		}
 		System.out.println("fin main");
