@@ -87,10 +87,12 @@ public class Serv implements Communication {
 
 	private Boolean boolClose;
 	
-	private void closeServ() {
+	private void closeServ(boolean modeDOWN) {
+		
+		this.boolClose=true;
 		this.sockRecever.close();
 		this.sockMultiRECEP.close();
-		this.sockSender.close();
+		
 		try {
 			this.sockServerTCP.close();
 		} catch (IOException e) {
@@ -100,12 +102,62 @@ public class Serv implements Communication {
 		this.ThRecev.interrupt();
 		this.ThMULTIrecev.interrupt();
 		this.ThServTCP.interrupt();;
-		this.ThSend1.interrupt();
-		//this.ThSend2.interrupt();
+		
+		if(modeDOWN){
+			this.sockSender.close();
+			this.ThSend1.interrupt();
+			//this.ThSend2.interrupt();
+		}
+		else{
+		
+			synchronized (listToSend) {
+				while(!listToSend.isEmpty()){
+					System.out.println(threadToString()+"FILE NON VIDE : taille ->"+listToSend.size());
+					listToSend.notify();
+					try {
+						listToSend.wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				this.sockSender.close();
+				this.ThSend1.interrupt();
+				//this.ThSend2.interrupt();
+			}
+			
+		}
+		
 		
 	}
+	public void close() throws InterruptedException ,DOWNmessageException{
+		isclose();
+		Integer idMessage = 10000000;
 
-	private  void isclose() throws DOWNmessageException {
+		String quit = "GBYE" + " " + idMessage + " " + this.ip + " " + this.numberLICENPortUDP + " " + this.ipPortUDP1
+				+ " " + this.numberPortUDP1;
+
+		Message q = new Message(quit.getBytes());
+		
+		synchronized (listToSend) {
+			listToSend.add(q);
+		}
+
+		if(verboseMode){System.out.println(threadToString()+"WAITING for EYBG message");}
+		
+		synchronized (EYBGisArrive) {
+			EYBGisArrive = false;
+			EYBGisArrive.wait(4000);
+			if(EYBGisArrive){
+				
+			}
+		}
+		
+		test(false);
+		
+		closeServ(false);
+	}
+	private void isclose() throws DOWNmessageException {
 		synchronized(boolClose){
 			if (boolClose) {
 				throw new DOWNmessageException();
@@ -123,76 +175,51 @@ public class Serv implements Communication {
 		this.sockMultiRECEP.receive(paquet);
 		String st = new String(paquet.getData(), 0, paquet.getLength());
 		if (verboseMode) {
-			System.out.println("message MULTI RECEVE : " + st);
+			System.out.println(threadToString()+"message MULTI RECEVE : " + st);
 		}
 
-		if (st.equals("DOWN\n")) {
-			closeServ();
+		if (st.equals("DOWN")) {
+			closeServ(true);
 		}
 
 	}
 
+	private String threadToString(){
+		return "THREAD: "+Thread.currentThread().getName()+" | ";
+	}
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
 		isclose();
 		int idMessage = 20;
-		byte[] test = "TEST" + " " + idMessage + " " + this.ipMULTI + " " + this.numberPortMULTI;
+		String test = "TEST" + " " + idMessage + " " + this.ipMULTI + " " + this.numberPortMULTI;
 
-		Message q = new Message(test);
+		Message q = new Message(test.getBytes());
 		this.ValTEST = idMessage;
 		this.TESTisComeBack = false;
 		
 		synchronized (listToSend) {
 			listToSend.add(q);
 		}
-
 		Thread.sleep(2000);
 
 		if (!TESTisComeBack) {
 			if (verboseMode) {
-				System.out.println("message TEST is NOT comeback");
+				System.out.println(threadToString()+"message TEST is NOT comeback");
 			}
 			
 			if(sendDownIfBreak){
-				Message tmp=new Message("Down");
+				Message tmp=new Message("DOWN".getBytes());
 				tmp.setMulti(true);
-				try {
-					envoyer(tmp);
-				} catch (SizeMessageException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				addToListToSend(tmp);
+				
 			}
 			
 			return false;
 		}
 		if (verboseMode) {
-			System.out.println("message TEST is comeback");
+			System.out.println(threadToString()+"message TEST is comeback");
 		}
 		return true;
 
-	}
-
-	public void close() throws InterruptedException, DOWNmessageException {
-		isclose();
-		Integer idMessage = 100;
-
-		String quit = "GBYE" + " " + idMessage + " " + this.ip + " " + this.numberLICENPortUDP + " " + this.ipPortUDP1
-				+ " " + this.numberPortUDP1;
-
-		Message q = new Message(quit);
-		
-		synchronized (listToSend) {
-			listToSend.add(q);
-		}
-
-		if(verboseMode){System.out.println("WAITING for EYBG message");}
-		
-		synchronized (EYBGisArrive) {
-			EYBGisArrive = false;
-			EYBGisArrive.wait(4000);
-		}
-		test(true);
-		this.closeServ();
 	}
 
 	public void connectTo(String adresse, int idTCP)
@@ -207,7 +234,7 @@ public class Serv implements Communication {
 
 			Socket socket = new Socket(adresse, idTCP);
 			if (verboseMode) {
-				System.out.println("conecter en TCP a :" + adresse + " sur port : " + idTCP);
+				System.out.println(threadToString()+"conecter en TCP a :" + adresse + " sur port : " + idTCP);
 			}
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -215,7 +242,7 @@ public class Serv implements Communication {
 			String m1 = br.readLine();
 
 			if (verboseMode) {
-				System.out.println("message RECEVE " + m1);
+				System.out.println(threadToString()+"message RECEVE " + m1);
 			}
 
 			String m2 = "NEWC" + " " + this.ip + " " + this.numberPortUDP1 + "\n";
@@ -223,12 +250,12 @@ public class Serv implements Communication {
 			pw.print(m2);
 			pw.flush();
 			if (verboseMode) {
-				System.out.println("message SEND " + m2);
+				System.out.println(threadToString()+"message SEND " + m2);
 			}
 
 			String m3 = br.readLine();
 			if (verboseMode) {
-				System.out.println("message RECEVE " + m3);
+				System.out.println(threadToString()+"message RECEVE " + m3);
 			}
 			pw.close();
 			br.close();
@@ -251,7 +278,7 @@ public class Serv implements Communication {
 			Socket socket = sockServerTCP.accept();
 
 			if (verboseMode) {
-				System.out.println("TCP connect");
+				System.out.println(threadToString()+"TCP connect");
 
 			}
 			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -264,12 +291,12 @@ public class Serv implements Communication {
 			pw.flush();
 
 			if (verboseMode) {
-				System.out.println("TCP : message SEND: " + m1);
+				System.out.println(threadToString()+"TCP : message SEND: " + m1);
 			}
 			String m2 = br.readLine();
 
 			if (verboseMode) {
-				System.out.println("TCP : message RECEVE : " + m2);
+				System.out.println(threadToString()+"TCP : message RECEVE : " + m2);
 			}
 
 			String m3="ACKC\n";
@@ -277,7 +304,7 @@ public class Serv implements Communication {
 			pw.flush();
 
 			if (verboseMode) {
-				System.out.println("TCP : message SEND: "+m3);
+				System.out.println(threadToString()+"TCP : message SEND: "+m3);
 			}
 
 			pw.close();
@@ -299,11 +326,10 @@ public class Serv implements Communication {
 			throw new SizeMessageException();
 		}
 		//TODO ID of the new message
-		envoyer(new Message(paquet));
+		addToListToSend(new Message(paquet));
 	}
 	
-	private void envoyer(Message msg) throws DOWNmessageException{
-
+	private void addToListToSend(Message msg){
 		synchronized (listToSend) {
 			// TODO mettre en forme le message avant d'ajouter dans liste
 			this.listToSend.add(msg);
@@ -331,13 +357,13 @@ public class Serv implements Communication {
 	private void receveMessage() throws IOException {
 		
 		if (verboseMode) {
-			System.out.println("dans thread receve");
+			//System.out.println(threadToString()+"dans thread receve");
 		}
 
 		byte[] dataToReceve = new byte[100];
 		DatagramPacket paquet = new DatagramPacket(dataToReceve, dataToReceve.length);
 		if (verboseMode) {
-			System.out.println("j'attends de recevoir un message dans RECEVE");
+			System.out.println(threadToString()+"j'attends de recevoir un message dans RECEVE");
 		}
 
 		this.sockRecever.receive(paquet);// attente passive
@@ -347,7 +373,7 @@ public class Serv implements Communication {
 
 		Message tmp = new Message(paquet.getData());
 		if (verboseMode) {
-			System.out.println("Message Recu : " + st);
+			System.out.println(threadToString()+"Message Recu : " + st);
 		}
 
 		Integer idm = 100;
@@ -379,18 +405,22 @@ public class Serv implements Communication {
 
 		Message msg;
 		if (verboseMode) {
-			System.out.println("dans thread send");
+			//System.out.println(threadToString()+"dans thread send");
 		}
 		synchronized (listToSend) {
 
 			while (listToSend.isEmpty()) {
-				if (verboseMode) {
-					System.out.println("j'attends d'avoir un message a envoyer dans SEND");
-				}
-				this.listToSend.wait();
 				
+				listToSend.notifyAll(); // pour le wait de closeServ
+				
+				if (verboseMode) {
+					System.out.println(threadToString()+"j'attends d'avoir un message a envoyer dans SEND");
+				}
+				System.out.println(threadToString()+"FILE VIDE WAIT SEND methode");
+				this.listToSend.wait();
 			}
 			msg=this.listToSend.pop();
+			
 		}
 		
 		byte[] dataTosend = msg.getData();
@@ -420,7 +450,7 @@ public class Serv implements Communication {
 			
 		}
 		if (verboseMode) {
-			if (verboseMode) {System.out.println("Message envoyer : "+msg.getData().toString());}
+			if (verboseMode) {System.out.println(threadToString()+"Message envoyer : "+new String(msg.getData()));}
 		}
 
 	}
@@ -461,7 +491,7 @@ public class Serv implements Communication {
 						erreur=true;
 					}
 				}
-				if(verboseMode){System.out.println("fin thread RECEV");}
+				if(verboseMode){System.out.println(threadToString()+"fin thread RECEV");}
 			}
 			
 		};
@@ -476,7 +506,7 @@ public class Serv implements Communication {
 						erreur=true;			
 					}
 				}
-				if(verboseMode){System.out.println("fin thread MULTI");}
+				if(verboseMode){System.out.println(threadToString()+"fin thread MULTI");}
 			}
 
 		};
@@ -491,7 +521,7 @@ public class Serv implements Communication {
 						erreur=true;
 					}
 				}
-				if(verboseMode){System.out.println("fin thread SEND");}
+				if(verboseMode){System.out.println(threadToString()+"fin thread SEND");}
 			}
 		};
 
@@ -505,7 +535,7 @@ public class Serv implements Communication {
 						erreur=true;
 					}
 				}
-				if(verboseMode){System.out.println("fin thread TCP");}
+				if(verboseMode){System.out.println(threadToString()+"fin thread TCP");}
 			}
 
 		};
@@ -515,6 +545,13 @@ public class Serv implements Communication {
 		this.ThServTCP = new Thread(runServTCP);
 		this.ThMULTIrecev = new Thread(runMULTIRecev);
 
+		this.ThRecev.setName("Receve UDP");
+		this.ThSend1.setName("Send UDP 1");
+		this.ThServTCP.setName("server TCP");
+		this.ThMULTIrecev.setName("MULTI-DIFF");
+		
+		//this.ThSend2.setName("Send UDP 2");
+		
 		this.ThRecev.start();
 		this.ThSend1.start();
 		this.ThServTCP.start();

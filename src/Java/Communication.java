@@ -7,8 +7,6 @@ import java.net.UnknownHostException;
  */
 public interface Communication {
 
-
-	
 	/**
 	 * 	Demande un test de l'anneau
 	 * @param sendDownIfBreak true -> si anneau casse alors averti sur multi diffusion | else -> pas d'alert
