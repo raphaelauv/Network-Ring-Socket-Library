@@ -1,0 +1,14 @@
+Etat :
+
+finir formatage des messages
+
+deployer algo pour unicité des ID de messages
+
+integrer les hashmap pour tester les ID de messages
+
+faire un audit des thread et des situation d'interblocage et famine 
+
+ecrire les deux applications attendu par le sujet
+
+
+traduire en C le code Java

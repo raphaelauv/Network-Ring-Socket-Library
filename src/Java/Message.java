@@ -1,9 +1,8 @@
 import java.nio.ByteBuffer;
-
+import java.nio.ByteOrder;
 class IpException extends Exception{
 }
 class numberOfBytesException extends Exception{
-	
 }
 public class Message {
 	
@@ -61,6 +60,22 @@ public class Message {
 		}
 		return tmp.getBytes();
 	}
+	
+	/**
+	 * 
+	 * 
+	 * @param value Unsigned Long : max  2^64-1
+	 * @param numberOfByte nombre de byte sur lequel est stocker la valeur
+	 * @param ENDIAN 
+	 * @return
+	 */
+	public static byte[] intToByteArrayLittle_indian_8(long value,int numberOfByte,ByteOrder ENDIAN){
+		if(value<0){
+			
+		}
+		//long values = Long.parseUnsignedLong("18446744073709551615");
+		    return ByteBuffer.allocate(numberOfByte).order(ENDIAN).putLong(value).array();
+		}
 	
 	/**
 	 * Converti une ip 192.0.0.1 -> 192.000.000.001

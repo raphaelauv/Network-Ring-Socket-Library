@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.nio.ByteOrder;
 
 public class test {
 	public static void main(String[] args) throws UnknownHostException, IpException {
@@ -7,9 +8,15 @@ public class test {
 		
 		Message a =new Message("XXXX 12345678".getBytes());
 		
+		
 		try {
 			Message.convertIP("192.0.0.1");
 			Message.intToCharBytes(100, 8);
+			byte[]bytes=Message.intToByteArrayLittle_indian_8(0,8,ByteOrder.LITTLE_ENDIAN);
+			
+			for (byte b : bytes) {
+				   System.out.format("0x%x ", b);
+				}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
