@@ -491,7 +491,7 @@ public class Serv implements Communication {
 						erreur=true;
 					}
 				}
-				if(verboseMode){System.out.println(threadToString()+"fin thread RECEV");}
+				if(verboseMode){System.out.println(threadToString()+"END thread RECEV");}
 			}
 			
 		};
@@ -506,7 +506,7 @@ public class Serv implements Communication {
 						erreur=true;			
 					}
 				}
-				if(verboseMode){System.out.println(threadToString()+"fin thread MULTI");}
+				if(verboseMode){System.out.println(threadToString()+"END thread MULTI");}
 			}
 
 		};
@@ -521,7 +521,7 @@ public class Serv implements Communication {
 						erreur=true;
 					}
 				}
-				if(verboseMode){System.out.println(threadToString()+"fin thread SEND");}
+				if(verboseMode){System.out.println(threadToString()+"END thread SEND");}
 			}
 		};
 
@@ -535,7 +535,7 @@ public class Serv implements Communication {
 						erreur=true;
 					}
 				}
-				if(verboseMode){System.out.println(threadToString()+"fin thread TCP");}
+				if(verboseMode){System.out.println(threadToString()+"END thread TCP");}
 			}
 
 		};

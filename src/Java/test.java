@@ -19,8 +19,10 @@ public class test {
 					//System.out.println(premier.lire());	
 					for(int i=0 ; i<10 ;i++){
 						premier.send(new String("mamama"+i).getBytes());
-						premier.test(false);
-					}		
+						
+					}
+					//premier.test(false);
+					premier.close();
 					premier.close();
 			
 		} catch (DOWNmessageException e) {
