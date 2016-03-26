@@ -1,11 +1,22 @@
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 public class test {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnknownHostException, IpException {
 		Thread.currentThread().setName("SOFT -APPL");
 		
 		Message a =new Message("XXXX 12345678".getBytes());
+		
+		try {
+			Message.convertIP("192.0.0.1");
+			Message.intToCharBytes(100, 8);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		//a.setId(421);
+		/*
 		System.out.println(new String(a.getData()));
 		
 		try {
@@ -39,6 +50,7 @@ public class test {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		*/
 		System.out.println("fin main");
 	}
 }
