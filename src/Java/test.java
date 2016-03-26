@@ -1,9 +1,5 @@
-import java.io.IOException;
-
 public class test {
 	public static void main(String[] args) {
-		
-	
 		
 		
 		Message a =new Message("XXXX 12345678".getBytes());

@@ -41,13 +41,13 @@ public interface Communication {
 	 * @param id
 	 * @throws SizeException
 	 */
-	public void send(String message) throws DOWNmessageException, SizeMessageException;
+	public void send(byte[] paquet) throws DOWNmessageException, SizeMessageException;
 
 	/**
 	 * Demande un message en attente de lecture par l'apply
 	 * @return Contenu du message
 	 */
-	public String receive() throws DOWNmessageException;
+	public void receive(byte[] paquet) throws DOWNmessageException;
 		
 	
 }

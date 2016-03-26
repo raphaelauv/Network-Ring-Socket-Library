@@ -113,7 +113,7 @@ public class Serv implements Communication {
 		}
 	}
 
-	private void receveMULTI() throws IOException, DOWNmessageException {
+	private void receveMULTI() throws IOException {
 		this.sockMultiRECEP = new MulticastSocket(this.numberPortMULTI);
 		this.sockMultiRECEP.joinGroup(InetAddress.getByName(ipMULTI.toString()));
 
@@ -128,17 +128,16 @@ public class Serv implements Communication {
 
 		if (st.equals("DOWN\n")) {
 			closeServ();
-			throw new DOWNmessageException();
 		}
 
 	}
 
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
 		isclose();
-		String idMessage = "0000100";
+		int idMessage = 20;
 		byte[] test = "TEST" + " " + idMessage + " " + this.ipMULTI + " " + this.numberPortMULTI;
 
-		Message q = new Message(8, test);
+		Message q = new Message(test);
 		this.ValTEST = idMessage;
 		this.TESTisComeBack = false;
 		
@@ -154,7 +153,7 @@ public class Serv implements Communication {
 			}
 			
 			if(sendDownIfBreak){
-				Message tmp=new Message(10,"Down");
+				Message tmp=new Message("Down");
 				tmp.setMulti(true);
 				try {
 					envoyer(tmp);
@@ -180,7 +179,7 @@ public class Serv implements Communication {
 		String quit = "GBYE" + " " + idMessage + " " + this.ip + " " + this.numberLICENPortUDP + " " + this.ipPortUDP1
 				+ " " + this.numberPortUDP1;
 
-		Message q = new Message(8, quit);
+		Message q = new Message(quit);
 		
 		synchronized (listToSend) {
 			listToSend.add(q);
@@ -293,14 +292,14 @@ public class Serv implements Communication {
 
 
 
-	public void send(String message) throws DOWNmessageException, SizeMessageException{
+	public void send(byte[] paquet) throws DOWNmessageException, SizeMessageException{
 		isclose();
 		
-		if (message.length() > 250) {
+		if (paquet.length > 250) {
 			throw new SizeMessageException();
 		}
 		//TODO ID of the new message
-		envoyer(new Message(message));
+		envoyer(new Message(paquet));
 	}
 	
 	private void envoyer(Message msg) throws DOWNmessageException{
@@ -312,7 +311,7 @@ public class Serv implements Communication {
 		}
 	}
 
-	public String receive() throws DOWNmessageException {
+	public void receive(byte[] paquet) throws DOWNmessageException {
 
 		isclose();
 		synchronized (listForApply) {
@@ -325,7 +324,7 @@ public class Serv implements Communication {
 					e.printStackTrace();
 				}
 			}
-			return listForApply.pop().getContenu();
+			paquet = listForApply.pop().getDataForApply();
 		}
 	}
 	
@@ -377,14 +376,12 @@ public class Serv implements Communication {
 	}
 
 	private void sendMessage() throws IOException, InterruptedException {
-		
-		String tmp;
-		Message msg;
-		synchronized (listToSend) {
 
-			if (verboseMode) {
-				System.out.println("dans thread send");
-			}
+		Message msg;
+		if (verboseMode) {
+			System.out.println("dans thread send");
+		}
+		synchronized (listToSend) {
 
 			while (listToSend.isEmpty()) {
 				if (verboseMode) {
@@ -395,10 +392,9 @@ public class Serv implements Communication {
 			}
 			msg=this.listToSend.pop();
 		}
-		tmp = msg.getContenu();
 		
-		if (verboseMode) {System.out.println("contenu du message a envoyer : "+tmp);}
-		byte[] dataTosend = tmp.getBytes();
+		byte[] dataTosend = msg.getData();
+		
 		if(msg.isMulti()){
 			DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
 					InetAddress.getByName(this.ipMULTI.toString()), numberPortMULTI);
@@ -424,7 +420,7 @@ public class Serv implements Communication {
 			
 		}
 		if (verboseMode) {
-			System.out.println("message envoyer : " + tmp);
+			if (verboseMode) {System.out.println("Message envoyer : "+msg.getData().toString());}
 		}
 
 	}
@@ -478,8 +474,6 @@ public class Serv implements Communication {
 						receveMULTI();
 					} catch (IOException e) {
 						erreur=true;			
-					} catch (DOWNmessageException e) {
-						erreur = true;
 					}
 				}
 				if(verboseMode){System.out.println("fin thread MULTI");}

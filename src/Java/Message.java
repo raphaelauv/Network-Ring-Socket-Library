@@ -5,15 +5,15 @@ public class Message {
 	private boolean multi; 
 	private byte[] data;
 	
-	public Message(String msg){
-		
-	}
 	public Message(byte[] data) {
 		super();
 		this.setMulti(false);
 		this.data = data;
 	}
 
+	public byte[] getData() {
+		return data;
+	}
 	public byte[] getDataForApply() {
 		return data;
 	}
