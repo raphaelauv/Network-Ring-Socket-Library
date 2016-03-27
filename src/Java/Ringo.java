@@ -7,11 +7,10 @@ import java.net.UnknownHostException;
  */
 public interface Ringo {
 
-	public static int maxSizeMsg=512;
-	public static int octalSizeIdm=8;
-	public static int octalSizeIP=15;
-	public static int octalSizePort=4;
-	
+	public final static int maxSizeMsg=512;
+	public final static int octalSizeIdm=8;
+	public final static int octalSizeIP=15;
+	public final static int octalSizePort=4;
 	
 	/**
 	 * 	Demande un test de l'anneau
