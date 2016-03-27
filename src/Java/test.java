@@ -23,7 +23,7 @@ public class test {
 		}
 		
 		//a.setId(421);
-		/*
+		
 		System.out.println(new String(a.getData()));
 		
 		try {
@@ -57,7 +57,7 @@ public class test {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		*/
+		
 		System.out.println("fin main");
 	}
 }

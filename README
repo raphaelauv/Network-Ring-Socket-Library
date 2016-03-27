@@ -12,3 +12,5 @@ ecrire les deux applications attendu par le sujet
 
 
 traduire en C le code Java
+
+essayer de maitriser JNI pour appeler le protocole du c dans du java et inversement
