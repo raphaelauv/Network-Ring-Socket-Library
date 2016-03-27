@@ -30,6 +30,8 @@ public class Message {
 	
 	private byte[] size_content;
 
+	public static int sizeIp=Ringo.octalSizeIP;
+	public static int sizePort=Ringo.octalSizePort;
 	/**
 	 * 
 	 * Converti la valeur int :562 en 6 char dans un byte[]-> 000562
@@ -39,6 +41,83 @@ public class Message {
 	 * @return byte[numberOfBytes]=value
 	 * @throws Exception
 	 */
+	
+	public static byte[] WELC(String ip, int numberLICENPortUDP, String ip_diff ,int port_diff) {
+
+		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];//4+1+8+1+4+1+8+1+4+1 = 33
+		return WELC;
+
+	}
+	
+	public static byte[] NEWC(String ip ,int numberPortUDP1) {
+		byte[] NEWC = new byte[4+1+sizeIp+sizePort+1];
+
+		return NEWC;
+	}
+	
+	public static byte[] MEMB(String ip ,int numberPortUDP1) {
+		byte[] MEMB = new byte[4+1+sizeIp+1+sizePort];
+
+		return MEMB;
+	}
+	
+	public static byte[] GBYE(int idm, String ip, int numberLICENPortUDP, String ip_succ, int port_succ) {
+		byte[] GBYE = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+
+		return GBYE;
+	}
+	
+	public static byte[] DUPL(int idm, String ip, int numberLICENPortUDP, String ip_diff ,int port_diff) {
+		byte[] DUPL = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+
+		return DUPL;
+	}
+	public static byte[] EYBG() {
+		byte[] EYBG = new byte[5+Ringo.octalSizeIdm];
+
+		return EYBG;
+	}
+	public static byte[] WHOS(int idm) {
+		byte[] WHOS = new byte[4+1+Ringo.octalSizeIdm];//[5+8]=13
+
+		return WHOS;
+	}
+	
+	public static byte[] APPL(int idm , int id_app , byte[] message_app) {
+		byte[] APPL = new byte[Ringo.maxSizeMsg];
+
+		return APPL;
+	}
+	
+	public static byte[] TEST(int idm, String ip_diff ,int port_diff) {
+		byte[] TEST = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort];
+
+		return TEST;
+	}
+	
+	public static byte[] ACKC() {
+		byte[] ACKC = new byte[4+1];
+
+		return ACKC;
+	}
+	public static byte[] ACKD() {
+		byte[] ACKD = new byte[4+1];
+
+		return ACKD;
+	}
+	
+	public static byte[] DOWN() {
+		byte[] DOWN = new byte[4];
+
+		return DOWN;
+	}
+	public static byte[] NOTC() {
+		byte[] NOTC = new byte[4+1];
+
+		return NOTC;
+	}
+	
+	
 	public static byte[] intToCharBytes(int value,int numberOfBytes) throws Exception{
 		if(value<0){
 			throw new numberOfBytesException();

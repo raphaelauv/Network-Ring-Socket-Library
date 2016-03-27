@@ -401,6 +401,7 @@ public class Serv implements Ringo {
 
 		if (st.startsWith("GBYE")) {
 			String m = "EYBG" + " " + idm;
+			//TODO
 
 		}
 		else if (st.startsWith("TEST")) {

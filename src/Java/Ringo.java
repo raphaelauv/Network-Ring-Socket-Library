@@ -8,6 +8,9 @@ import java.net.UnknownHostException;
 public interface Ringo {
 
 	public static int maxSizeMsg=512;
+	public static int octalSizeIdm=8;
+	public static int octalSizeIP=15;
+	public static int octalSizePort=4;
 	
 	
 	/**
