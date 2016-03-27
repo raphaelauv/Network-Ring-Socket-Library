@@ -5,8 +5,11 @@ import java.net.UnknownHostException;
  * Cette interface defini les actions realisable par une applicationa avec son implementation reseaux
  * 
  */
-public interface Communication {
+public interface Ringo {
 
+	public static int maxSizeMsg=512;
+	
+	
 	/**
 	 * 	Demande un test de l'anneau
 	 * @param sendDownIfBreak true -> si anneau casse alors averti sur multi diffusion | else -> pas d'alert

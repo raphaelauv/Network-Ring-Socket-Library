@@ -12,7 +12,7 @@ public class test {
 		try {
 			Message.convertIP("192.0.0.1");
 			Message.intToCharBytes(100, 8);
-			byte[]bytes=Message.intToByteArrayLittle_indian_8(0,8,ByteOrder.LITTLE_ENDIAN);
+			byte[]bytes=Message.intToByteArrayLittle_indian_8(new UnsignedLong("100"),8,ByteOrder.LITTLE_ENDIAN);
 			
 			for (byte b : bytes) {
 				   System.out.format("0x%x ", b);

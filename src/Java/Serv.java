@@ -1,6 +1,12 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
@@ -10,8 +16,8 @@ import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.lang.Runnable;
 
 /*
@@ -33,7 +39,7 @@ class DOWNmessageException extends Exception {
 
 }
 
-public class Serv implements Communication {
+public class Serv implements Ringo {
 
 	public boolean verboseMode;
 
@@ -59,10 +65,10 @@ public class Serv implements Communication {
 	private Integer numberPortMULTI;
 	private MulticastSocket sockMultiRECEP;
 
-	private HashMap<Integer, Boolean> IdAlreadyReceveUDP1;// hashmap contenant
+	private ConcurrentHashMap<UnsignedLong, Boolean> IdAlreadyReceveUDP1;// hashmap contenant
 															// les
 															// id deja croisé
-	private HashMap<Integer, Boolean> IdAlreadyReceveUDP2;
+	private ConcurrentHashMap<UnsignedLong, Boolean> IdAlreadyReceveUDP2;
 
 	private LinkedList<Message> listForApply; // liste des message recu qui sont
 												// pour cette ID
@@ -281,34 +287,49 @@ public class Serv implements Communication {
 				System.out.println(threadToString()+"TCP connect");
 
 			}
-			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-
+			
+			InputStream in = socket.getInputStream();
+	        OutputStream out = socket.getOutputStream();
+	        
+	        BufferedOutputStream buffOut = new BufferedOutputStream(out);
+	        BufferedInputStream buffIn = new BufferedInputStream(in);
+			
+			//BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			//PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+	        Message msg1 =new Message(null);
+	        
 			String m1 = "WELC" + " " + this.ip + " " + this.numberLICENPortUDP + " " + this.ipMULTI + " "
 					+ this.numberPortMULTI + "\n";
 
-			pw.print(m1);
-			pw.flush();
+			buffOut.write(msg1.getData());;
+			buffOut.flush();
 
 			if (verboseMode) {
 				System.out.println(threadToString()+"TCP : message SEND: " + m1);
 			}
-			String m2 = br.readLine();
+			
+			Message msg2 =new Message(null);
+			
+			byte[] tmp=new byte[Ringo.maxSizeMsg];
+			buffIn.read(tmp);
+			msg2.setData(tmp);
 
 			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message RECEVE : " + m2);
+				System.out.println(threadToString()+"TCP : message RECEVE : " + msg2.toString());
 			}
 
+			Message msg3 =new Message(null);
 			String m3="ACKC\n";
-			pw.print(m3);
-			pw.flush();
+			
+			buffOut.write(msg3.getData());;
+			buffOut.flush();
 
 			if (verboseMode) {
 				System.out.println(threadToString()+"TCP : message SEND: "+m3);
 			}
 
-			pw.close();
-			br.close();
+			buffOut.close();
+			buffIn.close();
 			socket.close();
 
 			synchronized (numberPortUDP1) {

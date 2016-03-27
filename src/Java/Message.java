@@ -69,12 +69,12 @@ public class Message {
 	 * @param ENDIAN 
 	 * @return
 	 */
-	public static byte[] intToByteArrayLittle_indian_8(long value,int numberOfByte,ByteOrder ENDIAN){
-		if(value<0){
+	public static byte[] intToByteArrayLittle_indian_8(UnsignedLong val,int numberOfByte,ByteOrder ENDIAN){
+		if(val.getValue()<0){
 			
 		}
 		//long values = Long.parseUnsignedLong("18446744073709551615");
-		    return ByteBuffer.allocate(numberOfByte).order(ENDIAN).putLong(value).array();
+		    return ByteBuffer.allocate(numberOfByte).order(ENDIAN).putLong(val.getValue()).array();
 		}
 	
 	/**
@@ -121,7 +121,7 @@ public class Message {
 		return data;
 	}
 
-	public void setContenu(byte[] data) {
+	public void setData(byte[] data) {
 		this.data = data;
 	}
 
@@ -130,6 +130,9 @@ public class Message {
 		return Integer.parseInt (new String(data,4,9));
 	}
 
+	public String toString(){
+		return new String(this.data);
+	}
 
 	public void setId(Integer id) {
 	
