@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 
 /**
- * Cette interface defini les actions realisable par une applicationa avec son implementation reseaux
+ * Cette interface defini les actions realisable par une applicationa avec cette implementation reseaux
  * 
  */
 public interface Ringo {
@@ -51,6 +51,5 @@ public interface Ringo {
 	 * @return Contenu du message
 	 */
 	public void receive(Message msg) throws DOWNmessageException;
-		
 	
 }

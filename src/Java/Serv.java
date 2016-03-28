@@ -609,5 +609,4 @@ public class Serv implements Ringo {
 	public int getIdEntite() {
 		return idEntite;
 	}
-
 }
