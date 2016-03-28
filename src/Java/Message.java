@@ -35,6 +35,23 @@ public class Message {
 	}
 	
 	
+	private static void convertALL(Message msg){
+		try {
+			if(msg.ip!=null){
+				msg.ip=convertIP(msg.ip);
+			}
+			if(msg.ip_diff!=null){
+				msg.ip_diff=convertIP(msg.ip_diff);
+			}
+			if(msg.ip_succ!=null){
+				msg.ip_succ=convertIP(msg.ip_succ);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public String toString(){
 		
 		String str =this.type;
@@ -94,7 +111,7 @@ public class Message {
 		tmp.port=listenPortUDP;
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
-
+		convertALL(tmp);
 		return tmp;
 
 	}
@@ -104,6 +121,7 @@ public class Message {
 		Message tmp=new Message(NEWC,"NEWC");
 		tmp.ip=ip;
 		tmp.port=portUDP1;
+		convertALL(tmp);
 		return tmp;
 	}
 	
@@ -112,6 +130,7 @@ public class Message {
 		Message tmp=new Message(MEMB,"MEMB");
 		tmp.ip=ip;
 		tmp.port=portUDP1;
+		convertALL(tmp);
 		return tmp;
 	}
 	
@@ -119,9 +138,12 @@ public class Message {
 		byte[] GBYE = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
 		Message tmp=new Message(GBYE,"GBYE");
 		tmp.idm=idm;
+		tmp.ip=ip;
 		tmp.port=listenPortUDP;
 		tmp.ip_succ=ip_succ;
 		tmp.port_succ=port_succ;
+		
+		convertALL(tmp);
 		return tmp;
 	}
 	
@@ -134,13 +156,14 @@ public class Message {
 		tmp.port=listenPortUDP;
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
-
+		convertALL(tmp);
 		return tmp;
 	}
 	public static Message EYBG(long idm) {
 		byte[] EYBG = new byte[5+Ringo.octalSizeIdm];
 		Message tmp=new Message(EYBG,"EYBG");
 		tmp.idm=idm;
+		convertALL(tmp);
 		return tmp;
 	}
 	public static Message WHOS(long idm) {
@@ -148,6 +171,7 @@ public class Message {
 
 		Message tmp=new Message(WHOS,"WHOS");
 		tmp.idm=idm;
+		convertALL(tmp);
 		return tmp;
 	}
 	
@@ -156,6 +180,7 @@ public class Message {
 		Message tmp=new Message(APPL,"APPL");
 		tmp.idm=idm;
 		tmp.id_app=id_app;
+		convertALL(tmp);
 		return tmp;
 	}
 	
@@ -166,6 +191,7 @@ public class Message {
 		tmp.idm=idm;
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
+		convertALL(tmp);
 		return tmp;
 	}
 	
@@ -173,6 +199,7 @@ public class Message {
 		byte[] ACKC = new byte[4+1];
 		ACKC=new String("ACKC\n").getBytes();
 		Message tmp=new Message(ACKC,"ACKC");
+		convertALL(tmp);
 		return tmp;
 	}
 	public static Message ACKD() {
@@ -180,6 +207,7 @@ public class Message {
 		byte[] ACKD = new byte[4+1];
 		ACKD=new String("ACKD\n").getBytes();
 		Message tmp=new Message(ACKD,"ACKD");
+		convertALL(tmp);
 		return tmp;
 	}
 	
@@ -188,6 +216,7 @@ public class Message {
 		DOWN=new String("DOWN").getBytes();
 		Message tmp=new Message(DOWN,"DOWN");
 		tmp.multi=true;
+		convertALL(tmp);
 		return tmp;
 	}
 	public static Message NOTC() {
@@ -195,6 +224,7 @@ public class Message {
 		NOTC=new String("NOTC\n").getBytes();
 
 		Message tmp=new Message(NOTC,"NOTC");
+		convertALL(tmp);
 		return tmp;
 	}
 	
@@ -252,8 +282,12 @@ public class Message {
 	 * @return byte[15]
 	 * @throws Exception
 	 */
-	public static byte[] convertIP(String ip) throws Exception{
+	public static String convertIP(String ip) throws Exception{
 		
+		if(ip=="localhost"){
+			//TODO pour TEST
+			return ip;
+		}
 		String[]tmp=ip.split("\\.");
 		
 		if(tmp.length!=4){
@@ -270,11 +304,14 @@ public class Message {
 			}
 		}
 		String tmp2=tmp[0]+"."+tmp[1]+"."+tmp[2]+"."+tmp[3];
+		
+		//TODO pour test
 		if(tmp2.length()!=15){
+			
 			System.out.println("pas 15");
 			throw new Exception();
 		}
-		return tmp2.getBytes();
+		return tmp2;
 	}
 	
 

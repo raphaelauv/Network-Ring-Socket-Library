@@ -131,18 +131,11 @@ public class Serv implements Ringo {
 				this.ThSend1.interrupt();
 				//this.ThSend2.interrupt();
 			}
-			
 		}
-		
-		
 	}
 	public void close() throws InterruptedException ,DOWNmessageException{
 		isclose();
 		Integer idm = 10000000;
-
-		String quit = "GBYE" + " " + idm + " " + this.ip + " " + this.listenPortUDP + " " + this.ipPortUDP1
-				+ " " + this.portUDP1;
-
 		Message q = Message.GBYE(idm, this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
 		
 		synchronized (listToSend) {
@@ -197,13 +190,12 @@ public class Serv implements Ringo {
 		isclose();
 		int idm = 20;
 
-		Message q = Message.TEST(idm,this.ip_diff, this.port_diff);
+		Message test = Message.TEST(idm,this.ip_diff, this.port_diff);
 		this.ValTEST = idm;
 		this.TESTisComeBack = false;
 		
-		synchronized (listToSend) {
-			listToSend.add(q);
-		}
+		addToListToSend(test);
+		
 		Thread.sleep(2000);
 
 		if (!TESTisComeBack) {
@@ -213,7 +205,6 @@ public class Serv implements Ringo {
 			
 			if(sendDownIfBreak){
 				addToListToSend(Message.DOWN());
-				
 			}
 			
 			return false;
@@ -344,7 +335,6 @@ public class Serv implements Ringo {
 	
 	private void addToListToSend(Message msg){
 		synchronized (listToSend) {
-			// TODO mettre en forme le message avant d'ajouter dans liste
 			this.listToSend.add(msg);
 			this.listToSend.notifyAll();
 		}
@@ -464,7 +454,9 @@ public class Serv implements Ringo {
 			
 		}
 		if (verboseMode) {
-			if (verboseMode) {System.out.println(threadToString()+"Message envoyer : "+new String(msg.getData()));}
+			if (verboseMode) {
+				System.out.println(threadToString()+"Message envoyer : "+msg.toString() );
+			}
 		}
 
 	}
@@ -472,6 +464,7 @@ public class Serv implements Ringo {
 	public Serv(Integer numberLICENPortUDP,Integer numberPortTcp) throws IOException {
 
 		super();
+		this.ip="192.0.0.1";
 		this.ip_diff = "225.1.2.4";
 		this.port_diff = 9999;
 		this.numberPortTcp=numberPortTcp;
