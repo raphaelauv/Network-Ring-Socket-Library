@@ -6,9 +6,7 @@ public class test {
 	public static void main(String[] args) throws UnknownHostException, IpException {
 		Thread.currentThread().setName("SOFT -APPL");
 		
-		Message a =new Message("XXXX 12345678".getBytes());
-		
-		
+		/*
 		try {
 			Message.convertIP("192.0.0.1");
 			Message.intToCharBytes(100, 8);
@@ -21,11 +19,7 @@ public class test {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		//a.setId(421);
-		
-		System.out.println(new String(a.getData()));
-		
+		*/
 		try {
 			System.out.println("arg0 : "+args[0]); //4242
 			System.out.println("arg1 : "+args[1]); //5555
@@ -35,18 +29,18 @@ public class test {
 			
 					Thread.sleep(4000);
 					//System.out.println(premier.lire());	
+				
+					/*
 					for(int i=0 ; i<10 ;i++){
-						premier.send(new Message(new String("mamama"+i).getBytes()));
-						
+						premier.send(new Message(new String("mamama"+i).getBytes(),"noType"));
 					}
+					*/
 					//premier.test(false);
 					premier.close();
 					premier.close();
 			
 		} catch (DOWNmessageException e) {
 			System.out.println("DOWN recu dans main");
-		} catch (SizeMessageException e) {
-			e.printStackTrace();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

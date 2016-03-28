@@ -138,12 +138,12 @@ public class Serv implements Ringo {
 	}
 	public void close() throws InterruptedException ,DOWNmessageException{
 		isclose();
-		Integer idMessage = 10000000;
+		Integer idm = 10000000;
 
-		String quit = "GBYE" + " " + idMessage + " " + this.ip + " " + this.listenPortUDP + " " + this.ipPortUDP1
+		String quit = "GBYE" + " " + idm + " " + this.ip + " " + this.listenPortUDP + " " + this.ipPortUDP1
 				+ " " + this.portUDP1;
 
-		Message q = new Message(quit.getBytes());
+		Message q = Message.GBYE(idm, this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
 		
 		synchronized (listToSend) {
 			listToSend.add(q);
@@ -195,11 +195,10 @@ public class Serv implements Ringo {
 	}
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
 		isclose();
-		int idMessage = 20;
-		String test = "TEST" + " " + idMessage + " " + this.ip_diff + " " + this.port_diff;
+		int idm = 20;
 
-		Message q = new Message(test.getBytes());
-		this.ValTEST = idMessage;
+		Message q = Message.TEST(idm,this.ip_diff, this.port_diff);
+		this.ValTEST = idm;
 		this.TESTisComeBack = false;
 		
 		synchronized (listToSend) {
@@ -213,9 +212,7 @@ public class Serv implements Ringo {
 			}
 			
 			if(sendDownIfBreak){
-				Message tmp=new Message("DOWN".getBytes());
-				tmp.setMulti(true);
-				addToListToSend(tmp);
+				addToListToSend(Message.DOWN());
 				
 			}
 			
@@ -248,23 +245,24 @@ public class Serv implements Ringo {
 			
 			byte[] tmp=new byte[Ringo.maxSizeMsg];
 			buffIn.read(tmp);
-			Message msg1 =new Message(tmp);
+			Message msg1 =new Message(tmp,null);
 			
 			if (verboseMode) {
-				System.out.println(threadToString()+"message RECEVE " + m1);
+				System.out.println(threadToString()+"message RECEVE " + msg1.toString());
 			}
 
-			buffOut.write(Message.NEWC(this.ip, this.portUDP1).getData());
+			Message msg2=Message.NEWC(this.ip, this.portUDP1);
+			buffOut.write(msg2.getData());
 			buffOut.flush();
 			
 			if (verboseMode) {
-				String m2 = "NEWC" + " " + this.ip + " " + this.portUDP1 + "\n";
-				System.out.println(threadToString()+"message SEND " + m2);
+				System.out.println(threadToString()+"message SEND " + msg2.toString());
 			}
 
 			buffIn.read(tmp);
+			Message msg3 =new Message(tmp,null);
 			if (verboseMode) {
-				System.out.println(threadToString()+"message RECEVE " + m3);
+				System.out.println(threadToString()+"message RECEVE " + msg3.toString());
 			}
 			buffOut.close();
 			buffIn.close();
@@ -304,14 +302,15 @@ public class Serv implements Ringo {
 				System.out.println(threadToString()+"TCP : message SEND: " + m1);
 			}
 			
-			Message msg2 =new Message(null);
+			
 			
 			byte[] tmp=new byte[Ringo.maxSizeMsg];
+			
 			buffIn.read(tmp);
-			msg2.setData(tmp);
+			Message msg2 =new Message(tmp,null);
 
 			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message RECEVE : " + m2);
+				System.out.println(threadToString()+"TCP : message RECEVE : " + msg2.toString());
 			}
 
 			buffOut.write(Message.ACKC().getData());
@@ -385,7 +384,7 @@ public class Serv implements Ringo {
 		
 		String st = new String(paquet.getData(), 0, paquet.getLength());
 
-		Message tmp = new Message(paquet.getData());
+		Message tmp = new Message(paquet.getData(),null);
 		if (verboseMode) {
 			System.out.println(threadToString()+"Message Recu : " + st);
 		}

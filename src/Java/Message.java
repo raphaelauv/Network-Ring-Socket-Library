@@ -6,37 +6,196 @@ class numberOfBytesException extends Exception{
 }
 public class Message {
 	
-	private boolean multi; 
+	private String type;
+	private boolean multi;
 	private byte[] data;
 	
 	private String ip;
 	private String ip_diff;
 	private String ip_succ;
 	
-	private int port;
-	private int port_diff;
-	private int port_succ;
+	private Integer port;
+	private Integer port_diff;
+	private Integer port_succ;
 	
-	private byte[] idm;
+	private long idm;
 	
-	private byte[] id_app;
-	private byte[] id;
+	private String id_app;
+	private byte[] message_app;
 	
-	private int size_mess;
-	private int size_nom;
+	public static Integer sizeIp=Ringo.octalSizeIP;
+	public static Integer sizePort=Ringo.octalSizePort;
 	
-	private byte[] num_mess;
-	private byte[] no_mess;
 	
-	private int size_content;
-
-	public static int sizeIp=Ringo.octalSizeIP;
-	public static int sizePort=Ringo.octalSizePort;
-	
-	public Message(byte[] data) {
+	public Message(byte[] data,String type) {
 		super();
 		this.setMulti(false);
 		this.data = data;
+		this.type=type;
+	}
+	
+	
+	public String toString(){
+		
+		String str =this.type;
+		
+		if(type=="DOWN"){
+			return str;
+		}
+		if(type=="ACKC" || type=="ACKD" || type=="NOTC"){
+			return str+"\\n";
+		}
+		
+		if(type=="NEWC" || type=="MEMB"){
+			return str+" "+this.ip+" "+this.port;
+		}
+	
+		if(type=="WELC"){
+			return str+" "+this.ip+" "+this.port+" "+this.ip_diff+" "+this.port_diff;
+		}
+		
+		str=str+" "+Long.toUnsignedString(idm);
+		
+		if(type=="WHOS" || type=="EYBG"){
+			return str;
+		}
+		if(type=="TEST"){
+			return str+" "+this.ip_diff +" "+this.port_diff;
+		}
+		if(type=="APPL"){
+			return str+" "+this.id_app+" "+new String(this.message_app);
+		}
+		
+		str=str+" "+this.ip+" "+this.port;
+		if(type=="DUPL"){
+			str=str+" "+this.ip_diff+" "+this.port_diff;
+		}
+		if(type=="GBYE"){
+			str=str+" "+this.ip_succ+" "+this.port_succ;
+		}
+		//TODO POURT TESTS
+		else{
+			try {
+				throw new Exception("NAME ERROR IN TYPE");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return str;
+	}
+	
+	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
+		
+		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];//4+1+8+1+4+1+8+1+4+1 = 33
+		Message tmp=new Message(WELC,"WELC");
+		
+		tmp.ip=ip;
+		tmp.port=listenPortUDP;
+		tmp.ip_diff=ip_diff;
+		tmp.port_diff=port_diff;
+
+		return tmp;
+
+	}
+	
+	public static Message NEWC(String ip ,int portUDP1) {
+		byte[] NEWC = new byte[4+1+sizeIp+sizePort+1];
+		Message tmp=new Message(NEWC,"NEWC");
+		tmp.ip=ip;
+		tmp.port=portUDP1;
+		return tmp;
+	}
+	
+	public static Message MEMB(String ip ,int portUDP1) {
+		byte[] MEMB = new byte[4+1+sizeIp+1+sizePort];
+		Message tmp=new Message(MEMB,"MEMB");
+		tmp.ip=ip;
+		tmp.port=portUDP1;
+		return tmp;
+	}
+	
+	public static Message GBYE(long idm, String ip, int listenPortUDP, String ip_succ, int port_succ) {
+		byte[] GBYE = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+		Message tmp=new Message(GBYE,"GBYE");
+		tmp.idm=idm;
+		tmp.port=listenPortUDP;
+		tmp.ip_succ=ip_succ;
+		tmp.port_succ=port_succ;
+		return tmp;
+	}
+	
+	public static Message DUPL(long idm, String ip, int listenPortUDP, String ip_diff ,int port_diff) {
+		byte[] DUPL = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+		
+		Message tmp=new Message(DUPL,"DUPL");
+		tmp.idm=idm;
+		tmp.ip=ip;
+		tmp.port=listenPortUDP;
+		tmp.ip_diff=ip_diff;
+		tmp.port_diff=port_diff;
+
+		return tmp;
+	}
+	public static Message EYBG(long idm) {
+		byte[] EYBG = new byte[5+Ringo.octalSizeIdm];
+		Message tmp=new Message(EYBG,"EYBG");
+		tmp.idm=idm;
+		return tmp;
+	}
+	public static Message WHOS(long idm) {
+		byte[] WHOS = new byte[4+1+Ringo.octalSizeIdm];//[5+8]=13
+
+		Message tmp=new Message(WHOS,"WHOS");
+		tmp.idm=idm;
+		return tmp;
+	}
+	
+	public static Message APPL(long idm , String id_app , byte[] message_app) {
+		byte[] APPL = new byte[Ringo.maxSizeMsg];
+		Message tmp=new Message(APPL,"APPL");
+		tmp.idm=idm;
+		tmp.id_app=id_app;
+		return tmp;
+	}
+	
+	public static Message TEST(long idm, String ip_diff ,int port_diff) {
+		byte[] TEST = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort];
+
+		Message tmp=new Message(TEST,"TEST");
+		tmp.idm=idm;
+		tmp.ip_diff=ip_diff;
+		tmp.port_diff=port_diff;
+		return tmp;
+	}
+	
+	public static Message ACKC() {
+		byte[] ACKC = new byte[4+1];
+		ACKC=new String("ACKC\n").getBytes();
+		Message tmp=new Message(ACKC,"ACKC");
+		return tmp;
+	}
+	public static Message ACKD() {
+		
+		byte[] ACKD = new byte[4+1];
+		ACKD=new String("ACKD\n").getBytes();
+		Message tmp=new Message(ACKD,"ACKD");
+		return tmp;
+	}
+	
+	public static Message DOWN() {
+		byte[] DOWN = new byte[4];
+		DOWN=new String("DOWN").getBytes();
+		Message tmp=new Message(DOWN,"DOWN");
+		tmp.multi=true;
+		return tmp;
+	}
+	public static Message NOTC() {
+		byte[] NOTC = new byte[4+1];
+		NOTC=new String("NOTC\n").getBytes();
+
+		Message tmp=new Message(NOTC,"NOTC");
+		return tmp;
 	}
 	
 	
@@ -49,114 +208,6 @@ public class Message {
 	 * @return byte[numberOfBytes]=value
 	 * @throws Exception
 	 */
-	
-	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
-
-		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];//4+1+8+1+4+1+8+1+4+1 = 33
-		Message tmp=new Message(WELC);
-		tmp.ip=ip;
-		tmp.port=listenPortUDP;
-		tmp.ip_diff=ip_diff;
-		tmp.port_diff=port_diff;
-
-		return tmp;
-
-	}
-	
-	public static Message NEWC(String ip ,int portUDP1) {
-		byte[] NEWC = new byte[4+1+sizeIp+sizePort+1];
-		Message tmp=new Message(NEWC);
-		tmp.ip=ip;
-		tmp.port=portUDP1;
-		return tmp;
-	}
-	
-	public static Message MEMB(String ip ,int portUDP1) {
-		byte[] MEMB = new byte[4+1+sizeIp+1+sizePort];
-		Message tmp=new Message(MEMB);
-		tmp.ip=ip;
-		tmp.port=portUDP1;
-		return tmp;
-	}
-	
-	public static Message GBYE(int idm, String ip, int listenPortUDP, String ip_succ, int port_succ) {
-		byte[] GBYE = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
-		Message tmp=new Message(GBYE);
-		//tmp.idm=idm;
-		tmp.ip_succ=ip_succ;
-		tmp.port_succ=port_succ;
-		return tmp;
-	}
-	
-	public static Message DUPL(int idm, String ip, int listenPortUDP, String ip_diff ,int port_diff) {
-		byte[] DUPL = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
-		
-		Message tmp=new Message(DUPL);
-		//TODO  idm
-		tmp.ip=ip;
-		tmp.port=listenPortUDP;
-		tmp.ip_diff=ip_diff;
-		tmp.port_diff=port_diff;
-
-		return tmp;
-	}
-	public static Message EYBG(int idm) {
-		byte[] EYBG = new byte[5+Ringo.octalSizeIdm];
-		Message tmp=new Message(EYBG);
-		return tmp;
-	}
-	public static Message WHOS(int idm) {
-		byte[] WHOS = new byte[4+1+Ringo.octalSizeIdm];//[5+8]=13
-
-		Message tmp=new Message(WHOS);
-		return tmp;
-	}
-	
-	public static Message APPL(int idm , int id_app , byte[] message_app) {
-		byte[] APPL = new byte[Ringo.maxSizeMsg];
-		Message tmp=new Message(APPL);
-		return tmp;
-	}
-	
-	public static Message TEST(int idm, String ip_diff ,int port_diff) {
-		byte[] TEST = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort];
-
-		Message tmp=new Message(TEST);
-
-		tmp.ip_diff=ip_diff;
-		tmp.port_diff=port_diff;
-		return tmp;
-	}
-	
-	public static Message ACKC() {
-		byte[] ACKC = new byte[4+1];
-		ACKC=new String("ACKC\n").getBytes();
-		Message tmp=new Message(ACKC);
-		return tmp;
-	}
-	public static Message ACKD() {
-		
-		byte[] ACKD = new byte[4+1];
-		ACKD=new String("ACKD\n").getBytes();
-		Message tmp=new Message(ACKD);
-		return tmp;
-	}
-	
-	public static Message DOWN() {
-		byte[] DOWN = new byte[4];
-		DOWN=new String("DOWN").getBytes();
-		Message tmp=new Message(DOWN);
-		return tmp;
-	}
-	public static Message NOTC() {
-		byte[] NOTC = new byte[4+1];
-		NOTC=new String("NOTC\n").getBytes();
-
-		Message tmp=new Message(NOTC);
-		return tmp;
-	}
-	
-	
 	public static byte[] intToCharBytes(int value,int numberOfBytes) throws Exception{
 		if(value<0){
 			throw new numberOfBytesException();
@@ -241,10 +292,6 @@ public class Message {
 
 	public int getId() {
 		return Integer.parseInt (new String(data,4,9));
-	}
-
-	public String toString(){
-		return new String(this.data);
 	}
 
 	public void setId(Integer id) {
