@@ -52,17 +52,17 @@ public class Serv implements Ringo {
 
 	private DatagramSocket sockSender;
 	
-	private Integer numberPortUDP1;
+	private Integer portUDP1;
 	private String ipPortUDP1;
 
-	private Integer numberPortUDP2;
+	private Integer portUDP2;
 	private String ipPortUDP2;
 
 	private DatagramSocket sockRecever;
-	private Integer numberLICENPortUDP;
+	private Integer listenPortUDP;
 
-	private String ipMULTI;
-	private Integer numberPortMULTI;
+	private String ip_diff;
+	private Integer port_diff;
 	private MulticastSocket sockMultiRECEP;
 
 	private ConcurrentHashMap<UnsignedLong, Boolean> IdAlreadyReceveUDP1;// hashmap contenant
@@ -140,8 +140,8 @@ public class Serv implements Ringo {
 		isclose();
 		Integer idMessage = 10000000;
 
-		String quit = "GBYE" + " " + idMessage + " " + this.ip + " " + this.numberLICENPortUDP + " " + this.ipPortUDP1
-				+ " " + this.numberPortUDP1;
+		String quit = "GBYE" + " " + idMessage + " " + this.ip + " " + this.listenPortUDP + " " + this.ipPortUDP1
+				+ " " + this.portUDP1;
 
 		Message q = new Message(quit.getBytes());
 		
@@ -172,8 +172,8 @@ public class Serv implements Ringo {
 	}
 
 	private void receveMULTI() throws IOException {
-		this.sockMultiRECEP = new MulticastSocket(this.numberPortMULTI);
-		this.sockMultiRECEP.joinGroup(InetAddress.getByName(ipMULTI.toString()));
+		this.sockMultiRECEP = new MulticastSocket(this.port_diff);
+		this.sockMultiRECEP.joinGroup(InetAddress.getByName(ip_diff.toString()));
 
 		byte[] data = new byte[100];
 		DatagramPacket paquet = new DatagramPacket(data, data.length);
@@ -196,7 +196,7 @@ public class Serv implements Ringo {
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
 		isclose();
 		int idMessage = 20;
-		String test = "TEST" + " " + idMessage + " " + this.ipMULTI + " " + this.numberPortMULTI;
+		String test = "TEST" + " " + idMessage + " " + this.ip_diff + " " + this.port_diff;
 
 		Message q = new Message(test.getBytes());
 		this.ValTEST = idMessage;
@@ -231,7 +231,7 @@ public class Serv implements Ringo {
 	public void connectTo(String adresse, int idTCP)
 			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException {
 		isclose();
-		if (numberPortUDP1 != 0) {
+		if (portUDP1 != 0) {
 			throw new AlreadyAllUdpPortSet();
 		}
 
@@ -242,29 +242,32 @@ public class Serv implements Ringo {
 			if (verboseMode) {
 				System.out.println(threadToString()+"conecter en TCP a :" + adresse + " sur port : " + idTCP);
 			}
-
-			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-			String m1 = br.readLine();
-
+			BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
+	        BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
+			
+			
+			byte[] tmp=new byte[Ringo.maxSizeMsg];
+			buffIn.read(tmp);
+			Message msg1 =new Message(tmp);
+			
 			if (verboseMode) {
 				System.out.println(threadToString()+"message RECEVE " + m1);
 			}
 
-			String m2 = "NEWC" + " " + this.ip + " " + this.numberPortUDP1 + "\n";
-
-			pw.print(m2);
-			pw.flush();
+			buffOut.write(Message.NEWC(this.ip, this.portUDP1).getData());
+			buffOut.flush();
+			
 			if (verboseMode) {
+				String m2 = "NEWC" + " " + this.ip + " " + this.portUDP1 + "\n";
 				System.out.println(threadToString()+"message SEND " + m2);
 			}
 
-			String m3 = br.readLine();
+			buffIn.read(tmp);
 			if (verboseMode) {
 				System.out.println(threadToString()+"message RECEVE " + m3);
 			}
-			pw.close();
-			br.close();
+			buffOut.close();
+			buffIn.close();
 			socket.close();
 
 		}
@@ -288,23 +291,16 @@ public class Serv implements Ringo {
 
 			}
 			
-			InputStream in = socket.getInputStream();
-	        OutputStream out = socket.getOutputStream();
-	        
-	        BufferedOutputStream buffOut = new BufferedOutputStream(out);
-	        BufferedInputStream buffIn = new BufferedInputStream(in);
+	        BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
+	        BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
 			
-			//BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			//PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-	        Message msg1 =new Message(null);
-	        
-			String m1 = "WELC" + " " + this.ip + " " + this.numberLICENPortUDP + " " + this.ipMULTI + " "
-					+ this.numberPortMULTI + "\n";
 
-			buffOut.write(msg1.getData());;
+			buffOut.write(Message.WELC(this.ip, this.listenPortUDP, this.ip_diff, this.port_diff).getData());
 			buffOut.flush();
 
 			if (verboseMode) {
+				String m1 = "WELC" + " " + this.ip + " " + this.listenPortUDP + " " + this.ip_diff + " "
+						+ this.port_diff + "\n";
 				System.out.println(threadToString()+"TCP : message SEND: " + m1);
 			}
 			
@@ -315,24 +311,21 @@ public class Serv implements Ringo {
 			msg2.setData(tmp);
 
 			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message RECEVE : " + msg2.toString());
+				System.out.println(threadToString()+"TCP : message RECEVE : " + m2);
 			}
 
-			Message msg3 =new Message(null);
-			String m3="ACKC\n";
-			
-			buffOut.write(msg3.getData());;
+			buffOut.write(Message.ACKC().getData());
 			buffOut.flush();
 
 			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message SEND: "+m3);
+				System.out.println(threadToString()+"TCP : message SEND: ACKC\\n");
 			}
 
 			buffOut.close();
 			buffIn.close();
 			socket.close();
 
-			synchronized (numberPortUDP1) {
+			synchronized (portUDP1) {
 
 			}
 		}
@@ -340,14 +333,14 @@ public class Serv implements Ringo {
 
 
 
-	public void send(byte[] paquet) throws DOWNmessageException, SizeMessageException{
+	public void send(Message msg) throws DOWNmessageException, SizeMessageException{
 		isclose();
 		
-		if (paquet.length > 250) {
+		if (msg.getData().length > Ringo.maxSizeMsg) {
 			throw new SizeMessageException();
 		}
 		//TODO ID of the new message
-		addToListToSend(new Message(paquet));
+		addToListToSend(msg);
 	}
 	
 	private void addToListToSend(Message msg){
@@ -358,7 +351,7 @@ public class Serv implements Ringo {
 		}
 	}
 
-	public void receive(byte[] paquet) throws DOWNmessageException {
+	public void receive(Message msg) throws DOWNmessageException {
 
 		isclose();
 		synchronized (listForApply) {
@@ -371,7 +364,7 @@ public class Serv implements Ringo {
 					e.printStackTrace();
 				}
 			}
-			paquet = listForApply.pop().getDataForApply();
+			msg.setData(listForApply.pop().getDataForApply());
 		}
 	}
 	
@@ -449,22 +442,22 @@ public class Serv implements Ringo {
 		
 		if(msg.isMulti()){
 			DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
-					InetAddress.getByName(this.ipMULTI.toString()), numberPortMULTI);
+					InetAddress.getByName(this.ip_diff.toString()), port_diff);
 			this.sockSender.send(paquetMulti);
 		}
 		else{
 			
-			if (numberPortUDP1 != 0) {
+			if (portUDP1 != 0) {
 				
 				DatagramPacket paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
-						InetAddress.getByName(this.ipPortUDP1.toString()), numberPortUDP1);
+						InetAddress.getByName(this.ipPortUDP1.toString()), portUDP1);
 				
 					this.sockSender.send(paquet1);
 			
 			}
-			if (numberPortUDP2 != 0) {
+			if (portUDP2 != 0) {
 				DatagramPacket paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
-						InetAddress.getByName(this.ipPortUDP2.toString()), numberPortUDP2);
+						InetAddress.getByName(this.ipPortUDP2.toString()), portUDP2);
 				
 					this.sockSender.send(paquet2);
 				
@@ -480,12 +473,12 @@ public class Serv implements Ringo {
 	public Serv(Integer numberLICENPortUDP,Integer numberPortTcp) throws IOException {
 
 		super();
-		this.ipMULTI = "225.1.2.4";
-		this.numberPortMULTI = 9999;
+		this.ip_diff = "225.1.2.4";
+		this.port_diff = 9999;
 		this.numberPortTcp=numberPortTcp;
 		this.sockServerTCP=new ServerSocket(numberPortTcp);
 		this.sockSender = new DatagramSocket();
-		this.numberLICENPortUDP = numberLICENPortUDP;
+		this.listenPortUDP = numberLICENPortUDP;
 		this.sockRecever = new DatagramSocket(numberLICENPortUDP);
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
@@ -493,8 +486,8 @@ public class Serv implements Ringo {
 		
 		this.ipPortUDP1="localhost";
 		this.ipPortUDP2="localhost";
-		this.numberPortUDP1=10;
-		this.numberPortUDP2=11;
+		this.portUDP1=10;
+		this.portUDP2=11;
 		this.EYBGisArrive=false;
 		this.boolClose=false;
 		
@@ -583,11 +576,11 @@ public class Serv implements Ringo {
 
 	public void dedoubler(int udpNew) throws AlreadyAllUdpPortSet, InterruptedException {
 
-		if (this.numberPortUDP1 != 0 && this.numberPortUDP2 != 0) {
+		if (this.portUDP1 != 0 && this.portUDP2 != 0) {
 			throw new AlreadyAllUdpPortSet();
 
-		} else if (this.numberPortUDP2 == 0) {
-			this.numberPortUDP2 = udpNew;
+		} else if (this.portUDP2 == 0) {
+			this.portUDP2 = udpNew;
 
 			this.runSend2 = new Runnable() {
 				public void run() {
@@ -606,8 +599,8 @@ public class Serv implements Ringo {
 			this.ThSend2.start();
 
 
-		} else if (this.numberPortUDP1 != 0) {
-			this.numberPortUDP1 = udpNew;
+		} else if (this.portUDP1 != 0) {
+			this.portUDP1 = udpNew;
 
 			// todo same que le else if, ameliorer synthaxe du code
 		}

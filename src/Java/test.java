@@ -36,7 +36,7 @@ public class test {
 					Thread.sleep(4000);
 					//System.out.println(premier.lire());	
 					for(int i=0 ; i<10 ;i++){
-						premier.send(new String("mamama"+i).getBytes());
+						premier.send(new Message(new String("mamama"+i).getBytes()));
 						
 					}
 					//premier.test(false);

@@ -9,29 +9,37 @@ public class Message {
 	private boolean multi; 
 	private byte[] data;
 	
-	private byte[] ip;
-	private byte[] ip_diff;
-	private byte[] ip_succ;
+	private String ip;
+	private String ip_diff;
+	private String ip_succ;
 	
-	private byte[] port;
-	private byte[] port_diff;
-	private byte[] port_succ;
+	private int port;
+	private int port_diff;
+	private int port_succ;
 	
 	private byte[] idm;
 	
 	private byte[] id_app;
 	private byte[] id;
 	
-	private byte[] size_mess;
-	private byte[] size_nom;
+	private int size_mess;
+	private int size_nom;
 	
 	private byte[] num_mess;
 	private byte[] no_mess;
 	
-	private byte[] size_content;
+	private int size_content;
 
 	public static int sizeIp=Ringo.octalSizeIP;
 	public static int sizePort=Ringo.octalSizePort;
+	
+	public Message(byte[] data) {
+		super();
+		this.setMulti(false);
+		this.data = data;
+	}
+	
+	
 	/**
 	 * 
 	 * Converti la valeur int :562 en 6 char dans un byte[]-> 000562
@@ -42,79 +50,110 @@ public class Message {
 	 * @throws Exception
 	 */
 	
-	public static byte[] WELC(String ip, int numberLICENPortUDP, String ip_diff ,int port_diff) {
+	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
 
 		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];//4+1+8+1+4+1+8+1+4+1 = 33
-		return WELC;
+		Message tmp=new Message(WELC);
+		tmp.ip=ip;
+		tmp.port=listenPortUDP;
+		tmp.ip_diff=ip_diff;
+		tmp.port_diff=port_diff;
+
+		return tmp;
 
 	}
 	
-	public static byte[] NEWC(String ip ,int numberPortUDP1) {
+	public static Message NEWC(String ip ,int portUDP1) {
 		byte[] NEWC = new byte[4+1+sizeIp+sizePort+1];
-
-		return NEWC;
+		Message tmp=new Message(NEWC);
+		tmp.ip=ip;
+		tmp.port=portUDP1;
+		return tmp;
 	}
 	
-	public static byte[] MEMB(String ip ,int numberPortUDP1) {
+	public static Message MEMB(String ip ,int portUDP1) {
 		byte[] MEMB = new byte[4+1+sizeIp+1+sizePort];
-
-		return MEMB;
+		Message tmp=new Message(MEMB);
+		tmp.ip=ip;
+		tmp.port=portUDP1;
+		return tmp;
 	}
 	
-	public static byte[] GBYE(int idm, String ip, int numberLICENPortUDP, String ip_succ, int port_succ) {
+	public static Message GBYE(int idm, String ip, int listenPortUDP, String ip_succ, int port_succ) {
 		byte[] GBYE = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
-
-		return GBYE;
+		Message tmp=new Message(GBYE);
+		//tmp.idm=idm;
+		tmp.ip_succ=ip_succ;
+		tmp.port_succ=port_succ;
+		return tmp;
 	}
 	
-	public static byte[] DUPL(int idm, String ip, int numberLICENPortUDP, String ip_diff ,int port_diff) {
+	public static Message DUPL(int idm, String ip, int listenPortUDP, String ip_diff ,int port_diff) {
 		byte[] DUPL = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+		
+		Message tmp=new Message(DUPL);
+		//TODO  idm
+		tmp.ip=ip;
+		tmp.port=listenPortUDP;
+		tmp.ip_diff=ip_diff;
+		tmp.port_diff=port_diff;
 
-		return DUPL;
+		return tmp;
 	}
-	public static byte[] EYBG() {
+	public static Message EYBG(int idm) {
 		byte[] EYBG = new byte[5+Ringo.octalSizeIdm];
-
-		return EYBG;
+		Message tmp=new Message(EYBG);
+		return tmp;
 	}
-	public static byte[] WHOS(int idm) {
+	public static Message WHOS(int idm) {
 		byte[] WHOS = new byte[4+1+Ringo.octalSizeIdm];//[5+8]=13
 
-		return WHOS;
+		Message tmp=new Message(WHOS);
+		return tmp;
 	}
 	
-	public static byte[] APPL(int idm , int id_app , byte[] message_app) {
+	public static Message APPL(int idm , int id_app , byte[] message_app) {
 		byte[] APPL = new byte[Ringo.maxSizeMsg];
-
-		return APPL;
+		Message tmp=new Message(APPL);
+		return tmp;
 	}
 	
-	public static byte[] TEST(int idm, String ip_diff ,int port_diff) {
+	public static Message TEST(int idm, String ip_diff ,int port_diff) {
 		byte[] TEST = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort];
 
-		return TEST;
+		Message tmp=new Message(TEST);
+
+		tmp.ip_diff=ip_diff;
+		tmp.port_diff=port_diff;
+		return tmp;
 	}
 	
-	public static byte[] ACKC() {
+	public static Message ACKC() {
 		byte[] ACKC = new byte[4+1];
-
-		return ACKC;
+		ACKC=new String("ACKC\n").getBytes();
+		Message tmp=new Message(ACKC);
+		return tmp;
 	}
-	public static byte[] ACKD() {
+	public static Message ACKD() {
+		
 		byte[] ACKD = new byte[4+1];
-
-		return ACKD;
+		ACKD=new String("ACKD\n").getBytes();
+		Message tmp=new Message(ACKD);
+		return tmp;
 	}
 	
-	public static byte[] DOWN() {
+	public static Message DOWN() {
 		byte[] DOWN = new byte[4];
-
-		return DOWN;
+		DOWN=new String("DOWN").getBytes();
+		Message tmp=new Message(DOWN);
+		return tmp;
 	}
-	public static byte[] NOTC() {
+	public static Message NOTC() {
 		byte[] NOTC = new byte[4+1];
+		NOTC=new String("NOTC\n").getBytes();
 
-		return NOTC;
+		Message tmp=new Message(NOTC);
+		return tmp;
 	}
 	
 	
@@ -187,11 +226,6 @@ public class Message {
 		return tmp2.getBytes();
 	}
 	
-	public Message(byte[] data) {
-		super();
-		this.setMulti(false);
-		this.data = data;
-	}
 
 	public byte[] getData() {
 		return data;

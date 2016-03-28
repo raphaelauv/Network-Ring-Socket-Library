@@ -44,13 +44,13 @@ public interface Ringo {
 	 * @param id
 	 * @throws SizeException
 	 */
-	public void send(byte[] paquet) throws DOWNmessageException, SizeMessageException;
+	public void send(Message msg) throws DOWNmessageException, SizeMessageException;
 
 	/**
 	 * Demande un message en attente de lecture par l'apply
 	 * @return Contenu du message
 	 */
-	public void receive(byte[] paquet) throws DOWNmessageException;
+	public void receive(Message msg) throws DOWNmessageException;
 		
 	
 }
