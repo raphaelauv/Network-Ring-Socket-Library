@@ -24,10 +24,11 @@ public class test {
 			System.out.println("arg0 : "+args[0]); //4242
 			System.out.println("arg1 : "+args[1]); //5555
 
-			Serv premier = new Serv(Integer.parseInt(args[0]),Integer.parseInt(args[1]));
-			premier.verboseMode=true;
-			
-					Thread.sleep(4000);
+			Serv premier = new Serv(Integer.parseInt(args[0]),Integer.parseInt(args[1]),true);
+			while(true){
+				Message a=new Message(null,null);
+				premier.receive(a);
+			}
 					//System.out.println(premier.lire());	
 				
 					/*
@@ -36,14 +37,11 @@ public class test {
 					}
 					*/
 					//premier.test(false);
-					premier.close();
+					//premier.close();
 					//premier.close();
 			
 		} catch (DOWNmessageException e) {
 			System.out.println("DOWN recu dans main");
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

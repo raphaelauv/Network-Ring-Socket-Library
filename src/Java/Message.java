@@ -92,12 +92,7 @@ public class Message {
 		}
 		//TODO POURT TESTS
 		else{
-			try {
-				throw new Exception("NAME ERROR IN TYPE");
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			str=new String(this.data);
 		}
 		return str;
 	}

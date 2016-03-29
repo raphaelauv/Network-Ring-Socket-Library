@@ -41,7 +41,7 @@ class DOWNmessageException extends Exception {
 
 public class Serv implements Ringo {
 
-	public boolean verboseMode;
+	private boolean verboseMode;
 
 	private String ip;
 
@@ -299,7 +299,7 @@ public class Serv implements Ringo {
 			
 			buffIn.read(tmp);
 			Message msg2 =new Message(tmp,null);
-
+			
 			if (verboseMode) {
 				System.out.println(threadToString()+"TCP : message RECEVE : " + msg2.toString());
 			}
@@ -461,7 +461,7 @@ public class Serv implements Ringo {
 
 	}
 
-	public Serv(Integer numberLICENPortUDP,Integer numberPortTcp) throws IOException {
+	public Serv(Integer numberLICENPortUDP,Integer numberPortTcp,boolean verboseMode) throws IOException {
 
 		super();
 		this.ip="192.0.0.1";
@@ -475,6 +475,7 @@ public class Serv implements Ringo {
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
 		this.verboseMode=false;
+		this.verboseMode=verboseMode;
 		
 		this.ipPortUDP1="localhost";
 		this.ipPortUDP2="localhost";
