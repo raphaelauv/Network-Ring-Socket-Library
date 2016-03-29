@@ -310,7 +310,7 @@ public class Serv implements Ringo {
 			if (verboseMode) {
 				System.out.println(threadToString()+"TCP : message SEND: ACKC\\n");
 			}
-
+			
 			buffOut.close();
 			buffIn.close();
 			socket.close();
