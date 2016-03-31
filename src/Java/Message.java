@@ -19,6 +19,7 @@ public class Message {
 	private Integer port_succ;
 	
 	private long idm;
+	private String idmS;
 	
 	private String id_app;
 	private byte[] message_app;
@@ -46,6 +47,9 @@ public class Message {
 			if(msg.ip_succ!=null){
 				msg.ip_succ=convertIP(msg.ip_succ);
 			}
+			if(msg.idm!=0){
+				msg.idmS=longToCharBytes(msg.idm, 8);
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -71,7 +75,7 @@ public class Message {
 			return str+" "+this.ip+" "+this.port+" "+this.ip_diff+" "+this.port_diff;
 		}
 		
-		str=str+" "+Long.toUnsignedString(idm);
+		str=str+" "+idmS;
 		
 		if(type=="WHOS" || type=="EYBG"){
 			return str;
@@ -233,11 +237,11 @@ public class Message {
 	 * @return byte[numberOfBytes]=value
 	 * @throws Exception
 	 */
-	public static byte[] intToCharBytes(int value,int numberOfBytes) throws Exception{
+	public static String longToCharBytes(long value,int numberOfBytes) throws Exception{
 		if(value<0){
 			throw new numberOfBytesException();
 		}
-		int numberOfZERO = numberOfBytes - Integer.toString(value).length();
+		int numberOfZERO = numberOfBytes - (Long.toString(value)).length();
 		if(numberOfZERO<0){
 			throw new numberOfBytesException();
 		}
@@ -245,14 +249,14 @@ public class Message {
 		for(int i=0;i<numberOfZERO;i++){
 			tmp=tmp+"0";
 		}
-		tmp=tmp+Integer.toString(value);
+		tmp=tmp+value;
 		
 		System.out.println(tmp);
 		if(tmp.length()!=numberOfBytes){
 			System.out.println("pas bonne taille");
 			throw new Exception();
 		}
-		return tmp.getBytes();
+		return tmp;
 	}
 	
 	/**

@@ -19,6 +19,11 @@ public class test {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println();
+		if(args.length==0|| args[0]==null || args[1]==null){
+			System.out.println("ATTENTION ILMANQUE ARGUMENT");
+			return ;
+		}
 		
 		try {
 			System.out.println("arg0 : "+args[0]); //4242
