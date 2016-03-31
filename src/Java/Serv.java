@@ -106,7 +106,7 @@ public class Serv implements Ringo {
 			//e.printStackTrace();
 		}
 		this.ThRecev.interrupt();
-		this.ThMULTIrecev.interrupt();
+		
 		this.ThServTCP.interrupt();;
 		
 		if(modeDOWN){
@@ -134,6 +134,7 @@ public class Serv implements Ringo {
 				this.ThSend1.interrupt();
 				//this.ThSend2.interrupt();
 			}
+			this.ThMULTIrecev.interrupt();
 		}
 	}
 	public void close() throws InterruptedException ,DOWNmessageException{
@@ -182,7 +183,7 @@ public class Serv implements Ringo {
 
 		if (st.equals("DOWN\n")) {
 			closeServ(true);
-			throw new DOWNmessageException();
+			throw new DOWNmessageException(); // to  the thread MULTI
 		}
 
 	}

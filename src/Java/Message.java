@@ -19,13 +19,15 @@ public class Message {
 	private Integer port_succ;
 	
 	private long idm;
-	private String idmS;
+	private byte [] idmLITTLE_ENDIAN_8;
 	
 	private String id_app;
 	private byte[] message_app;
 	
 	public static Integer sizeIp=Ringo.octalSizeIP;
 	public static Integer sizePort=Ringo.octalSizePort;
+	
+	
 	
 	
 	public Message(byte[] data,String type) {
@@ -48,7 +50,7 @@ public class Message {
 				msg.ip_succ=convertIP(msg.ip_succ);
 			}
 			if(msg.idm!=0){
-				msg.idmS=longToCharBytes(msg.idm, 8);
+				msg.idmLITTLE_ENDIAN_8=Message.longToByteArrayLittle_indian_8(msg.idm,8, ByteOrder.LITTLE_ENDIAN);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -75,7 +77,12 @@ public class Message {
 			return str+" "+this.ip+" "+this.port+" "+this.ip_diff+" "+this.port_diff;
 		}
 		
-		str=str+" "+idmS;
+		try {
+			str=str+" "+longToStringRepresentation(this.idm, 8);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		};
 		
 		if(type=="WHOS" || type=="EYBG"){
 			return str;
@@ -237,7 +244,7 @@ public class Message {
 	 * @return byte[numberOfBytes]=value
 	 * @throws Exception
 	 */
-	public static String longToCharBytes(long value,int numberOfBytes) throws Exception{
+	public static String longToStringRepresentation(long value,int numberOfBytes) throws Exception{
 		if(value<0){
 			throw new numberOfBytesException();
 		}
@@ -251,7 +258,6 @@ public class Message {
 		}
 		tmp=tmp+value;
 		
-		System.out.println(tmp);
 		if(tmp.length()!=numberOfBytes){
 			System.out.println("pas bonne taille");
 			throw new Exception();
@@ -267,13 +273,19 @@ public class Message {
 	 * @param ENDIAN 
 	 * @return
 	 */
-	public static byte[] longToByteArrayLittle_indian_8(UnsignedLong val,int numberOfByte,ByteOrder ENDIAN){
-		if(val.getValue()<0){
-			
+	public static byte[] longToByteArrayLittle_indian_8(Long val,int numberOfByte,ByteOrder ENDIAN){
+		if(val<0){		
 		}
 		//long values = Long.parseUnsignedLong("18446744073709551615");
-		    return ByteBuffer.allocate(numberOfByte).order(ENDIAN).putLong(val.getValue()).array();
-		}
+		return ByteBuffer.allocate(numberOfByte).order(ENDIAN).putLong(val).array();
+	}
+	
+	public static Long byteArray_Little_indian_8ToLongToLong(byte[] bytes ,int numberOfByte,ByteOrder ENDIAN){
+		ByteBuffer buffer = ByteBuffer.allocate(8).order(ENDIAN);
+		buffer.put(bytes);
+		buffer.flip();//need flip 
+		return buffer.getLong();
+	}
 	
 	/**
 	 * Converti une ip 192.0.0.1 -> 192.000.000.001
