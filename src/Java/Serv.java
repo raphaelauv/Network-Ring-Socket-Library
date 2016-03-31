@@ -112,6 +112,9 @@ public class Serv implements Ringo {
 		if(modeDOWN){
 			this.sockSender.close();
 			this.ThSend1.interrupt();
+			synchronized (listForApply) {
+				this.listForApply.notifyAll();
+			}
 			//this.ThSend2.interrupt();
 		}
 		else{
@@ -164,7 +167,7 @@ public class Serv implements Ringo {
 		}
 	}
 
-	private void receveMULTI() throws IOException {
+	private void receveMULTI() throws IOException, DOWNmessageException {
 		this.sockMultiRECEP = new MulticastSocket(this.port_diff);
 		this.sockMultiRECEP.joinGroup(InetAddress.getByName(ip_diff.toString()));
 
@@ -177,8 +180,9 @@ public class Serv implements Ringo {
 			System.out.println(threadToString()+"message MULTI RECEVE : " + st);
 		}
 
-		if (st.equals("DOWN")) {
+		if (st.equals("DOWN\n")) {
 			closeServ(true);
+			throw new DOWNmessageException();
 		}
 
 	}
@@ -346,6 +350,7 @@ public class Serv implements Ringo {
 		synchronized (listForApply) {
 
 			while (listForApply.isEmpty()) {
+				isclose();// en cas de down durant l'attente
 				try {
 					listForApply.wait();
 				} catch (InterruptedException e) {
@@ -353,6 +358,7 @@ public class Serv implements Ringo {
 					e.printStackTrace();
 				}
 			}
+			
 			msg.setData(listForApply.pop().getDataForApply());
 		}
 	}
@@ -512,6 +518,9 @@ public class Serv implements Ringo {
 						receveMULTI();
 					} catch (IOException e) {
 						erreur=true;			
+					} catch (DOWNmessageException e) {
+						erreur=true;
+						
 					}
 				}
 				if(verboseMode){System.out.println(threadToString()+"END thread MULTI");}
