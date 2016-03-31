@@ -267,7 +267,7 @@ public class Message {
 	 * @param ENDIAN 
 	 * @return
 	 */
-	public static byte[] intToByteArrayLittle_indian_8(UnsignedLong val,int numberOfByte,ByteOrder ENDIAN){
+	public static byte[] longToByteArrayLittle_indian_8(UnsignedLong val,int numberOfByte,ByteOrder ENDIAN){
 		if(val.getValue()<0){
 			
 		}
