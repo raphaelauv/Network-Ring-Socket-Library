@@ -35,7 +35,7 @@ public class test {
 			System.out.println("arg0 : "+args[0]); //4242
 			System.out.println("arg1 : "+args[1]); //5555
 
-			Serv premier = new Serv(Integer.parseInt(args[0]),Integer.parseInt(args[1]),true);
+			RingoSocket premier = new RingoSocket(Integer.parseInt(args[0]),Integer.parseInt(args[1]),true);
 			while(true){
 				Message a=new Message("ACKC".getBytes());
 				premier.receive(a);

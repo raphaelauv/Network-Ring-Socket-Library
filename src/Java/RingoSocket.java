@@ -31,7 +31,7 @@ class DOWNmessageException extends Exception {
 
 }
 
-public class Serv implements Ringo {
+public class RingoSocket implements Ringo {
 
 	private boolean verboseMode;
 
@@ -458,7 +458,7 @@ public class Serv implements Ringo {
 
 	}
 
-	public Serv(Integer numberLICENPortUDP,Integer numberPortTcp,boolean verboseMode) throws IOException {
+	public RingoSocket(Integer numberLICENPortUDP,Integer numberPortTcp,boolean verboseMode) throws IOException {
 
 		super();
 		this.ip="192.0.0.1";
