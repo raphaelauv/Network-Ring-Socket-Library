@@ -37,7 +37,7 @@ public class test {
 
 			Serv premier = new Serv(Integer.parseInt(args[0]),Integer.parseInt(args[1]),true);
 			while(true){
-				Message a=new Message(null,null);
+				Message a=new Message("ACKC".getBytes());
 				premier.receive(a);
 			}
 					//System.out.println(premier.lire());	
@@ -57,6 +57,9 @@ public class test {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (unknownTypeMesssage e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

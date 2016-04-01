@@ -1,14 +1,6 @@
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -289,16 +281,13 @@ public class Serv implements Ringo {
 	        BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
 			
 
-			buffOut.write(Message.WELC(this.ip, this.listenPortUDP, this.ip_diff, this.port_diff).getData());
+	        Message msg1=Message.WELC(this.ip, this.listenPortUDP, this.ip_diff, this.port_diff);
+			buffOut.write(msg1.getData());
 			buffOut.flush();
 
 			if (verboseMode) {
-				String m1 = "WELC" + " " + this.ip + " " + this.listenPortUDP + " " + this.ip_diff + " "
-						+ this.port_diff + "\n";
-				System.out.println(threadToString()+"TCP : message SEND: " + m1);
+				System.out.println(threadToString()+"TCP : message SEND: " + msg1.toString());
 			}
-			
-			
 			
 			byte[] tmp=new byte[Ringo.maxSizeMsg];
 			
@@ -309,11 +298,12 @@ public class Serv implements Ringo {
 				System.out.println(threadToString()+"TCP : message RECEVE : " + msg2.toString());
 			}
 
-			buffOut.write(Message.ACKC().getData());
+			Message msg3 =Message.ACKC();
+			buffOut.write(msg3.getData());
 			buffOut.flush();
 
 			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message SEND: ACKC\\n");
+				System.out.println(threadToString()+"TCP : message SEND: "+msg3.toString());
 			}
 			
 			buffOut.close();

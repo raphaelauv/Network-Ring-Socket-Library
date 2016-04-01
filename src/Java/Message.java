@@ -4,12 +4,15 @@ class IpException extends Exception{
 }
 class numberOfBytesException extends Exception{
 }
+class unknownTypeMesssage extends Exception{
+	
+}
 public class Message {
 	
-	private String type;
+	//private String type;
 	private boolean multi;
 	private byte[] data;
-	
+	private TypeMessage type;
 	private String ip;
 	private String ip_diff;
 	private String ip_succ;
@@ -28,9 +31,28 @@ public class Message {
 	public static Integer sizePort=Ringo.octalSizePort;
 	
 	
+	public Message(byte [] data) throws unknownTypeMesssage{
+		super();
+		this.data = data;
+		
+		String typeMSG=new String(ByteBuffer.wrap(data, 0, 4).slice().array());
+		TypeMessage tmp;
+		try{
+			tmp=TypeMessage.valueOf(typeMSG);	
+		}catch(IllegalArgumentException e){
+			throw new unknownTypeMesssage();
+		}
+		this.type=tmp;
+		
+		/*
+		String space=new String(ByteBuffer.wrap(data, 5, 1).slice().array());
+		if(!space.equals(" ")){
+			System.out.println("ERREUR ESPACE");
+		}
+		*/
+	}
 	
-	
-	public Message(byte[] data,String type) {
+	public Message(byte[] data,TypeMessage type) {
 		super();
 		this.setMulti(false);
 		this.data = data;
@@ -44,6 +66,7 @@ public class Message {
 				msg.ip=convertIP(msg.ip);
 			}
 			if(msg.ip_diff!=null){
+				System.out.println("convert IP DIFF");
 				msg.ip_diff=convertIP(msg.ip_diff);
 			}
 			if(msg.ip_succ!=null){
@@ -60,20 +83,21 @@ public class Message {
 	
 	public String toString(){
 		
-		String str =this.type;
+		String str =this.type.toString();
 		
-		if(type=="DOWN"){
+		if(type==TypeMessage.DOWN){
 			return str;
 		}
-		if(type=="ACKC" || type=="ACKD" || type=="NOTC"){
+		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
 			return str+"\\n";
 		}
 		
-		if(type=="NEWC" || type=="MEMB"){
+		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB){
+			
 			return str+" "+this.ip+" "+this.port;
 		}
 	
-		if(type=="WELC"){
+		if(type==TypeMessage.WELC){
 			return str+" "+this.ip+" "+this.port+" "+this.ip_diff+" "+this.port_diff;
 		}
 		
@@ -84,21 +108,21 @@ public class Message {
 			e.printStackTrace();
 		};
 		
-		if(type=="WHOS" || type=="EYBG"){
+		if(type==TypeMessage.WHOS || type==TypeMessage.EYBG){
 			return str;
 		}
-		if(type=="TEST"){
+		if(type==TypeMessage.TEST){
 			return str+" "+this.ip_diff +" "+this.port_diff;
 		}
-		if(type=="APPL"){
+		if(type==TypeMessage.APPL){
 			return str+" "+this.id_app+" "+new String(this.message_app);
 		}
 		
 		str=str+" "+this.ip+" "+this.port;
-		if(type=="DUPL"){
+		if(type==TypeMessage.DUPL){
 			str=str+" "+this.ip_diff+" "+this.port_diff;
 		}
-		if(type=="GBYE"){
+		if(type==TypeMessage.GBYE){
 			str=str+" "+this.ip_succ+" "+this.port_succ;
 		}
 		//TODO POURT TESTS
@@ -111,7 +135,7 @@ public class Message {
 	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
 		
 		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];//4+1+8+1+4+1+8+1+4+1 = 33
-		Message tmp=new Message(WELC,"WELC");
+		Message tmp=new Message(WELC,TypeMessage.WELC);
 		
 		tmp.ip=ip;
 		tmp.port=listenPortUDP;
@@ -124,7 +148,7 @@ public class Message {
 	
 	public static Message NEWC(String ip ,int portUDP1) {
 		byte[] NEWC = new byte[4+1+sizeIp+sizePort+1];
-		Message tmp=new Message(NEWC,"NEWC");
+		Message tmp=new Message(NEWC,TypeMessage.NEWC);
 		tmp.ip=ip;
 		tmp.port=portUDP1;
 		convertALL(tmp);
@@ -133,7 +157,7 @@ public class Message {
 	
 	public static Message MEMB(String ip ,int portUDP1) {
 		byte[] MEMB = new byte[4+1+sizeIp+1+sizePort];
-		Message tmp=new Message(MEMB,"MEMB");
+		Message tmp=new Message(MEMB,TypeMessage.MEMB);
 		tmp.ip=ip;
 		tmp.port=portUDP1;
 		convertALL(tmp);
@@ -142,7 +166,7 @@ public class Message {
 	
 	public static Message GBYE(long idm, String ip, int listenPortUDP, String ip_succ, int port_succ) {
 		byte[] GBYE = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
-		Message tmp=new Message(GBYE,"GBYE");
+		Message tmp=new Message(GBYE,TypeMessage.GBYE);
 		tmp.idm=idm;
 		tmp.ip=ip;
 		tmp.port=listenPortUDP;
@@ -156,7 +180,7 @@ public class Message {
 	public static Message DUPL(long idm, String ip, int listenPortUDP, String ip_diff ,int port_diff) {
 		byte[] DUPL = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
 		
-		Message tmp=new Message(DUPL,"DUPL");
+		Message tmp=new Message(DUPL,TypeMessage.DUPL);
 		tmp.idm=idm;
 		tmp.ip=ip;
 		tmp.port=listenPortUDP;
@@ -167,7 +191,7 @@ public class Message {
 	}
 	public static Message EYBG(long idm) {
 		byte[] EYBG = new byte[5+Ringo.octalSizeIdm];
-		Message tmp=new Message(EYBG,"EYBG");
+		Message tmp=new Message(EYBG,TypeMessage.EYBG);
 		tmp.idm=idm;
 		convertALL(tmp);
 		return tmp;
@@ -175,7 +199,7 @@ public class Message {
 	public static Message WHOS(long idm) {
 		byte[] WHOS = new byte[4+1+Ringo.octalSizeIdm];//[5+8]=13
 
-		Message tmp=new Message(WHOS,"WHOS");
+		Message tmp=new Message(WHOS,TypeMessage.WHOS);
 		tmp.idm=idm;
 		convertALL(tmp);
 		return tmp;
@@ -183,7 +207,7 @@ public class Message {
 	
 	public static Message APPL(long idm , String id_app , byte[] message_app) {
 		byte[] APPL = new byte[Ringo.maxSizeMsg];
-		Message tmp=new Message(APPL,"APPL");
+		Message tmp=new Message(APPL,TypeMessage.APPL);
 		tmp.idm=idm;
 		tmp.id_app=id_app;
 		convertALL(tmp);
@@ -193,7 +217,7 @@ public class Message {
 	public static Message TEST(long idm, String ip_diff ,int port_diff) {
 		byte[] TEST = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort];
 
-		Message tmp=new Message(TEST,"TEST");
+		Message tmp=new Message(TEST,TypeMessage.TEST);
 		tmp.idm=idm;
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
@@ -204,7 +228,7 @@ public class Message {
 	public static Message ACKC() {
 		byte[] ACKC = new byte[4+1];
 		ACKC=new String("ACKC\n").getBytes();
-		Message tmp=new Message(ACKC,"ACKC");
+		Message tmp=new Message(ACKC,TypeMessage.ACKC);
 		convertALL(tmp);
 		return tmp;
 	}
@@ -212,7 +236,7 @@ public class Message {
 		
 		byte[] ACKD = new byte[4+1];
 		ACKD=new String("ACKD\n").getBytes();
-		Message tmp=new Message(ACKD,"ACKD");
+		Message tmp=new Message(ACKD,TypeMessage.ACKD);
 		convertALL(tmp);
 		return tmp;
 	}
@@ -220,7 +244,7 @@ public class Message {
 	public static Message DOWN() {
 		byte[] DOWN = new byte[4];
 		DOWN=new String("DOWN").getBytes();
-		Message tmp=new Message(DOWN,"DOWN");
+		Message tmp=new Message(DOWN,TypeMessage.DOWN);
 		tmp.multi=true;
 		convertALL(tmp);
 		return tmp;
@@ -229,7 +253,7 @@ public class Message {
 		byte[] NOTC = new byte[4+1];
 		NOTC=new String("NOTC\n").getBytes();
 
-		Message tmp=new Message(NOTC,"NOTC");
+		Message tmp=new Message(NOTC,TypeMessage.NOTC);
 		convertALL(tmp);
 		return tmp;
 	}
