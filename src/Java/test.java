@@ -37,8 +37,15 @@ public class test {
 
 			RingoSocket premier = new RingoSocket(Integer.parseInt(args[0]),Integer.parseInt(args[1]),true);
 			while(true){
-				Message a=new Message("ACKC".getBytes());
-				premier.receive(a);
+				Message a;
+				try {
+					a = new Message("ACKCcvcvcv".getBytes());
+					premier.receive(a);
+				} catch (parseMessageException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 			}
 					//System.out.println(premier.lire());	
 				

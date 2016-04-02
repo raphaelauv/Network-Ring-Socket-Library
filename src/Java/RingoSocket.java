@@ -233,7 +233,16 @@ public class RingoSocket implements Ringo {
 			
 			byte[] tmp=new byte[Ringo.maxSizeMsg];
 			buffIn.read(tmp);
-			Message msg1 =new Message(tmp,null);
+			Message msg1=null;
+			try {
+				msg1 = new Message(tmp);
+			} catch (unknownTypeMesssage e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (parseMessageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			if (verboseMode) {
 				System.out.println(threadToString()+"message RECEVE " + msg1.toString());
@@ -248,7 +257,16 @@ public class RingoSocket implements Ringo {
 			}
 
 			buffIn.read(tmp);
-			Message msg3 =new Message(tmp,null);
+			Message msg3=null;
+			try {
+				msg3 = new Message(tmp);
+			} catch (unknownTypeMesssage e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (parseMessageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			if (verboseMode) {
 				System.out.println(threadToString()+"message RECEVE " + msg3.toString());
 			}
@@ -292,7 +310,16 @@ public class RingoSocket implements Ringo {
 			byte[] tmp=new byte[Ringo.maxSizeMsg];
 			
 			buffIn.read(tmp);
-			Message msg2 =new Message(tmp,null);
+			Message msg2=null;
+			try {
+				msg2 = new Message(tmp);
+			} catch (unknownTypeMesssage e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (parseMessageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			if (verboseMode) {
 				System.out.println(threadToString()+"TCP : message RECEVE : " + msg2.toString());
@@ -371,7 +398,16 @@ public class RingoSocket implements Ringo {
 		
 		String st = new String(paquet.getData(), 0, paquet.getLength());
 
-		Message tmp = new Message(paquet.getData(),null);
+		Message tmp=null;
+		try {
+			tmp = new Message(paquet.getData());
+		} catch (unknownTypeMesssage e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+		} catch (parseMessageException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		if (verboseMode) {
 			System.out.println(threadToString()+"Message Recu : " + st);
 		}

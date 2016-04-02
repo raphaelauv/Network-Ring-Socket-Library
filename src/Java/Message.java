@@ -7,6 +7,9 @@ class numberOfBytesException extends Exception{
 class unknownTypeMesssage extends Exception{
 	
 }
+class parseMessageException extends Exception{
+	
+}
 public class Message {
 	
 	//private String type;
@@ -31,28 +34,17 @@ public class Message {
 	public static Integer sizePort=Ringo.octalSizePort;
 	
 	
-	public Message(byte [] data) throws unknownTypeMesssage{
+	public Message(byte [] data) throws unknownTypeMesssage, parseMessageException{
 		super();
 		this.data = data;
-		
-		String typeMSG=new String(ByteBuffer.wrap(data, 0, 4).slice().array());
-		TypeMessage tmp;
 		try{
-			tmp=TypeMessage.valueOf(typeMSG);	
-		}catch(IllegalArgumentException e){
+		this.parse();
+		}catch(IndexOutOfBoundsException e){
 			throw new unknownTypeMesssage();
 		}
-		this.type=tmp;
-		
-		/*
-		String space=new String(ByteBuffer.wrap(data, 5, 1).slice().array());
-		if(!space.equals(" ")){
-			System.out.println("ERREUR ESPACE");
-		}
-		*/
 	}
 	
-	public Message(byte[] data,TypeMessage type) {
+	private Message(byte[] data,TypeMessage type) {
 		super();
 		this.setMulti(false);
 		this.data = data;
@@ -60,6 +52,10 @@ public class Message {
 	}
 	
 	
+	/**
+	 * Convertir les chiffres dans la representation attendu par RINGO
+	 * @param msg
+	 */
 	private static void convertALL(Message msg){
 		try {
 			if(msg.ip!=null){
@@ -81,6 +77,101 @@ public class Message {
 		}
 	}
 	
+	
+	private String getDataFromNtoV(int n , int v){
+		//TODO !!!
+		return new String(ByteBuffer.wrap(data, n, v).array());
+	}
+	
+	/**
+	 * Parcer le contenu d'un nouveau message
+	 * 
+	 * @throws unknownTypeMesssage
+	 * @throws IndexOutOfBoundsException
+	 * @throws parseMessageException
+	 */
+	private void parse() throws unknownTypeMesssage ,IndexOutOfBoundsException, parseMessageException{
+		String strParsed=getDataFromNtoV(0,4);
+		System.out.println("type reconnu : "+strParsed);
+		try{
+			this.type=TypeMessage.valueOf(strParsed);	
+		}catch(IllegalArgumentException e){
+			throw new unknownTypeMesssage();
+		}
+		
+		if(type==TypeMessage.DOWN){
+			parseTestEnd(5);
+			return;
+		}
+		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
+			strParsed=getDataFromNtoV(5,6);
+			if(!strParsed.equals("\n")){
+				System.out.println("erreur saut de ligne");
+				throw new parseMessageException();
+			}
+			parseTestEnd(6);
+			return;
+		}
+		
+		parseTestSpace(5);
+		
+		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB || type==TypeMessage.WELC){
+			strParsed=getDataFromNtoV(6,21);
+			this.ip=strParsed;
+			parseTestSpace(21);
+			strParsed=getDataFromNtoV(22,26);
+			this.port=Integer.parseInt(strParsed);
+			
+			if(!(type==TypeMessage.WELC)){
+				parseTestEnd(27);
+				return;
+					
+			}
+			parseTestSpace(27);
+			strParsed=getDataFromNtoV(27,42);
+			this.ip_diff=strParsed;
+			parseTestSpace(43);
+			strParsed=getDataFromNtoV(43,47);
+			this.port_diff=Integer.parseInt(strParsed);
+			parseTestEnd(47);
+			return;
+			
+		}
+		
+		
+	}
+	
+	/**
+	 * Pour parse
+	 * test si le message est fini
+	 * @param start
+	 * @throws parseMessageException souleve une erreur si message pas fini
+	 */
+	private void parseTestEnd(int start) throws parseMessageException{
+		try{
+		ByteBuffer.wrap(this.data, start, start+1).slice().array();
+		}
+		catch(IndexOutOfBoundsException e){
+			return;
+		}
+		throw new parseMessageException();
+	}
+	
+	/**
+	 * Pour parse
+	 * test si le caractere start est un caractere d'espace
+	 * @param start
+	 * @throws parseMessageException souleve une erreur si ce n'est pas un espace
+	 */
+	private void parseTestSpace(int start) throws parseMessageException{
+		String strParsed=new String(ByteBuffer.wrap(data, start, start+1).slice().array());
+		if(!strParsed.equals(" ")){
+			throw new parseMessageException();
+		}
+	}
+	/**
+	 * Afficher un message
+	 */
 	public String toString(){
 		
 		String str =this.type.toString();
@@ -92,15 +183,15 @@ public class Message {
 			return str+"\\n";
 		}
 		
-		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB){
+		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB || type==TypeMessage.WELC){
 			
-			return str+" "+this.ip+" "+this.port;
-		}
-	
-		if(type==TypeMessage.WELC){
-			return str+" "+this.ip+" "+this.port+" "+this.ip_diff+" "+this.port_diff;
-		}
-		
+			str=str+" "+this.ip+" "+this.port;
+			if(!(type==TypeMessage.WELC)){
+				return str;
+			}
+			return str+" "+this.ip_diff+" "+this.port_diff;
+			
+		}	
 		try {
 			str=str+" "+longToStringRepresentation(this.idm, 8);
 		} catch (Exception e) {
@@ -289,14 +380,7 @@ public class Message {
 		return tmp;
 	}
 	
-	/**
-	 * 
-	 * 
-	 * @param value Unsigned Long : max  2^64-1
-	 * @param numberOfByte nombre de byte sur lequel est stocker la valeur
-	 * @param ENDIAN 
-	 * @return
-	 */
+	
 	public static byte[] longToByteArrayLittle_indian_8(Long val,int numberOfByte,ByteOrder ENDIAN){
 		if(val<0){		
 		}
@@ -312,7 +396,7 @@ public class Message {
 	}
 	
 	/**
-	 * Converti une ip 192.0.0.1 -> 192.000.000.001
+	 * Convertir une ip 192.0.0.1 -> 192.000.000.001
 	 * @param ip
 	 * @return byte[15]
 	 * @throws Exception
@@ -340,7 +424,7 @@ public class Message {
 		}
 		String tmp2=tmp[0]+"."+tmp[1]+"."+tmp[2]+"."+tmp[3];
 		
-		//TODO pour test
+		//TODO pour test , a retirer
 		if(tmp2.length()!=15){
 			
 			System.out.println("pas 15");
@@ -350,22 +434,14 @@ public class Message {
 	}
 	
 
-	public byte[] getData() {
-		return data;
-	}
+	
 	public byte[] getDataForApply() {
 		return data;
 	}
-
-	public void setData(byte[] data) {
-		this.data = data;
-	}
-
-
 	public int getId() {
 		return Integer.parseInt (new String(data,4,9));
 	}
-
+	
 	public void setId(Integer id) {
 	
 		int numbOfZERO=8-(id.toString().length());
@@ -386,7 +462,7 @@ public class Message {
 			}
 		}
 	}
-
+	
 	public boolean isMulti() {
 		return multi;
 	}
@@ -395,4 +471,12 @@ public class Message {
 		this.multi = multi;
 	}
 
+	public byte[] getData() {
+		return data;
+	}
+	public void setData(byte[] data) {
+		this.data = data;
+	}
+	
+	
 }
