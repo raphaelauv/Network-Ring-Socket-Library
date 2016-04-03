@@ -34,6 +34,8 @@ class DOWNmessageException extends Exception {
 public class RingoSocket implements Ringo {
 
 	private boolean verboseMode;
+	
+	private String idApp;
 
 	private String ip;
 
@@ -345,14 +347,15 @@ public class RingoSocket implements Ringo {
 
 
 
-	public void send(Message msg) throws DOWNmessageException, SizeMessageException{
+	public void send(byte [] msg) throws DOWNmessageException, SizeMessageException{
 		isclose();
 		
-		if (msg.getData().length > Ringo.maxSizeMsg) {
+		if (msg.length > Ringo.maxSizeMsg) {
 			throw new SizeMessageException();
 		}
-		//TODO ID of the new message
-		addToListToSend(msg);
+		//TODO ID of the new message_ap
+		long idm=0;
+		addToListToSend(Message.APPL(idm,this.idApp,msg));
 	}
 	
 	private void addToListToSend(Message msg){
@@ -362,7 +365,7 @@ public class RingoSocket implements Ringo {
 		}
 	}
 
-	public void receive(Message msg) throws DOWNmessageException {
+	public void receive(byte [] msg) throws DOWNmessageException {
 
 		isclose();
 		synchronized (listForApply) {
@@ -376,8 +379,7 @@ public class RingoSocket implements Ringo {
 					e.printStackTrace();
 				}
 			}
-			
-			msg.setData(listForApply.pop().getDataForApply());
+			msg=listForApply.pop().getDataForApp();
 		}
 	}
 	
@@ -494,9 +496,10 @@ public class RingoSocket implements Ringo {
 
 	}
 
-	public RingoSocket(Integer numberLICENPortUDP,Integer numberPortTcp,boolean verboseMode) throws IOException {
+	public RingoSocket(String idApp,Integer numberLICENPortUDP,Integer numberPortTcp,boolean verboseMode) throws IOException {
 
 		super();
+		this.idApp=idApp;
 		this.ip="192.0.0.1";
 		this.ip_diff = "225.1.2.4";
 		this.port_diff = 9999;

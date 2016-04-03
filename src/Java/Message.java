@@ -1,5 +1,6 @@
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 		
 class IpException extends Exception{
 }
@@ -35,7 +36,7 @@ public class Message {
 	private byte [] idmLITTLE_ENDIAN_8;
 	
 	private String id_app;
-	private byte[] message_app;
+	private byte[] data_app;
 	
 	private final static Integer sizeIp=Ringo.octalSizeIP;
 	private final static Integer sizePort=Ringo.octalSizePort;
@@ -54,7 +55,6 @@ public class Message {
 			throw new unknownTypeMesssage();
 		}
 	}
-	
 	private Message(byte[] data, TypeMessage type) {
 		super();
 		this.setMulti(false);
@@ -174,8 +174,8 @@ public class Message {
 		if(type==TypeMessage.APPL){
 			strParsed=getDataFromNtoV(curseur,Ringo.octalSizeIdApp);
 			curseur=curseur+Ringo.octalSizeIdApp;
-			//TODO this.message_app
-			
+			this.data_app= Arrays.copyOfRange(this.data, curseur, data.length);
+			return;
 		}
 		
 		parse_IP_SPACE_Port(curseur,IP_NORMAL);
@@ -343,9 +343,8 @@ public class Message {
 			return str+" "+this.ip_diff +" "+this.port_diff;
 		}
 		if(type==TypeMessage.APPL){
-			return str+" "+this.id_app+" "+new String(this.message_app);
+			return str+" "+this.id_app+" "+new String(this.data_app);
 		}
-		
 		str=str+" "+this.ip+" "+this.port;
 		if(type==TypeMessage.DUPL){
 			str=str+" "+this.ip_diff+" "+this.port_diff;
@@ -433,11 +432,12 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message APPL(long idm , String id_app , byte[] message_app) {
+	public static Message APPL(long idm , String id_app , byte[] data_app) {
 		byte[] APPL = new byte[Ringo.maxSizeMsg];
 		Message tmp=new Message(APPL,TypeMessage.APPL);
 		tmp.idm=idm;
 		tmp.id_app=id_app;
+		tmp.data_app=data_app;
 		convertALL(tmp);
 		return tmp;
 	}
@@ -569,32 +569,8 @@ public class Message {
 		return tmp2;
 	}
 	
-	public byte[] getDataForApply() {
-		return data;
-	}
-	public int getId() {
-		return Integer.parseInt (new String(data,4,9));
-	}
-	
-	public void setId(Integer id) {
-	
-		int numbOfZERO=8-(id.toString().length());
-		
-		byte[] zero = ByteBuffer.allocate(10).putInt(0).array();
-		
-		byte[] byteId = ByteBuffer.allocate(10).putInt(id).array();
-	
-		int conteur=0;
-		for(int i=5 ;i<13;i++){
-			if(numbOfZERO>0){
-				data[i]=zero[0];
-				numbOfZERO--;
-			}
-			else{
-				data[i]=byteId[conteur];
-				conteur++;
-			}
-		}
+	public byte[] getDataForApp() {
+		return data_app;
 	}
 	
 	public boolean isMulti() {
@@ -607,8 +583,5 @@ public class Message {
 
 	public byte[] getData() {
 		return data;
-	}
-	public void setData(byte[] data) {
-		this.data = data;
 	}
 }

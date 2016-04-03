@@ -6,7 +6,6 @@ public class test {
 	public static void main(String[] args) throws UnknownHostException, IpException {
 		Thread.currentThread().setName("SOFT -APPL");
 		
-		
 		try {
 			//System.out.println(Message.convertIP("192.1.1.1"));
 			
@@ -34,18 +33,24 @@ public class test {
 			System.out.println("arg0 : "+args[0]); //4242
 			System.out.println("arg1 : "+args[1]); //5555
 
-			RingoSocket premier = new RingoSocket(Integer.parseInt(args[0]),Integer.parseInt(args[1]),true);
+			RingoSocket premier = new RingoSocket("DIFF####",Integer.parseInt(args[0]),Integer.parseInt(args[1]),true);
 			while(true){
 				Message a;
 				try {
 					//a = new Message("WELC 255.000.255.255 0900 255.000.255.255 0900".getBytes());
 					//a = new Message("WHOS 00000001".getBytes());
+					
 					a = new Message("DUPL 00000000 255.000.255.255 0900 255.000.255.255 0900".getBytes());
-					premier.receive(a);
+					byte[] b = "8 bonjour".getBytes();
+					premier.send(b);
+					premier.receive(b);
 				} catch (parseMessageException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 					break;
+				} catch (SizeMessageException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 				
 			}
