@@ -80,7 +80,10 @@ public class Message {
 	
 	private String getDataFromNtoV(int n , int v){
 		//TODO !!!
-		return new String(ByteBuffer.wrap(data, n, v).array());
+		String tmp=new String(this.data,n,v-n);
+		System.out.println("PARSER : "+tmp);
+		return tmp;
+		//return new String(ByteBuffer.wrap(data, n, v).array());
 	}
 	
 	/**
@@ -100,40 +103,43 @@ public class Message {
 		}
 		
 		if(type==TypeMessage.DOWN){
-			parseTestEnd(5);
+			parseTestEnd(4);
 			return;
 		}
 		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
-			strParsed=getDataFromNtoV(5,6);
+			strParsed=getDataFromNtoV(4,5);
 			if(!strParsed.equals("\n")){
-				System.out.println("erreur saut de ligne");
 				throw new parseMessageException();
 			}
-			parseTestEnd(6);
+			parseTestEnd(5);
 			return;
 		}
 		
-		parseTestSpace(5);
+		parseTestSpace(4);
 		
 		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB || type==TypeMessage.WELC){
-			strParsed=getDataFromNtoV(6,21);
+			strParsed=getDataFromNtoV(5,20);
+			parseTestIp(strParsed);
 			this.ip=strParsed;
-			parseTestSpace(21);
-			strParsed=getDataFromNtoV(22,26);
+			parseTestSpace(20);
+			strParsed=getDataFromNtoV(21,25);
+			parseTestPort(strParsed);
 			this.port=Integer.parseInt(strParsed);
 			
 			if(!(type==TypeMessage.WELC)){
-				parseTestEnd(27);
+				parseTestEnd(25);
 				return;
 					
 			}
-			parseTestSpace(27);
-			strParsed=getDataFromNtoV(27,42);
+			parseTestSpace(25);
+			strParsed=getDataFromNtoV(26,41);
+			parseTestIp(strParsed);
 			this.ip_diff=strParsed;
-			parseTestSpace(43);
-			strParsed=getDataFromNtoV(43,47);
+			parseTestSpace(41);
+			strParsed=getDataFromNtoV(42,46);
+			parseTestPort(strParsed);
 			this.port_diff=Integer.parseInt(strParsed);
-			parseTestEnd(47);
+			parseTestEnd(46);
 			return;
 			
 		}
@@ -144,17 +150,13 @@ public class Message {
 	/**
 	 * Pour parse
 	 * test si le message est fini
-	 * @param start
+	 * @param end
 	 * @throws parseMessageException souleve une erreur si message pas fini
 	 */
-	private void parseTestEnd(int start) throws parseMessageException{
-		try{
-		ByteBuffer.wrap(this.data, start, start+1).slice().array();
-		}
-		catch(IndexOutOfBoundsException e){
-			return;
-		}
-		throw new parseMessageException();
+	private void parseTestEnd(int end) throws parseMessageException{
+			if(this.data.length!=end){
+				throw new parseMessageException();
+			}
 	}
 	
 	/**
@@ -164,11 +166,45 @@ public class Message {
 	 * @throws parseMessageException souleve une erreur si ce n'est pas un espace
 	 */
 	private void parseTestSpace(int start) throws parseMessageException{
-		String strParsed=new String(ByteBuffer.wrap(data, start, start+1).slice().array());
-		if(!strParsed.equals(" ")){
+		if(! (new String(this.data,start,1).equals(" "))){
 			throw new parseMessageException();
 		}
 	}
+	
+	private void parseTestPort(String portTest)throws parseMessageException{
+		if(portTest.length()!=4){
+			throw new parseMessageException();
+		}
+		int tmp=Integer.parseInt(portTest.substring(0,4));
+		if(tmp<0 || tmp>9999){
+			throw new parseMessageException();
+		}
+	}
+	private void parseTestIp(String ipTest) throws parseMessageException{
+		if(ipTest.length()!=15){
+			throw new parseMessageException();
+		}
+		int tmp;
+		for(int i=0;i<15;i++){
+			if(i==3 || i==7 || i==11){
+				if(ipTest.charAt(i)!='.'){
+					throw new parseMessageException();
+				}
+			}
+			else{
+				try{
+					tmp=Integer.parseInt(ipTest.substring(i, i+3));
+					 if(tmp<0 || tmp>255){
+						 throw new parseMessageException();
+					 }
+					 i=i+2;
+				}catch(NumberFormatException e){
+					throw new parseMessageException();
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Afficher un message
 	 */

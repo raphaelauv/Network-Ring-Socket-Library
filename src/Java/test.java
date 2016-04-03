@@ -39,11 +39,12 @@ public class test {
 			while(true){
 				Message a;
 				try {
-					a = new Message("ACKCcvcvcv".getBytes());
+					a = new Message("WELC 255.000.255.255 0900 255.000.255.255 0900".getBytes());
 					premier.receive(a);
 				} catch (parseMessageException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+					break;
 				}
 				
 			}
