@@ -1,6 +1,6 @@
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
+		
 class IpException extends Exception{
 }
 class numberOfBytesException extends Exception{
@@ -489,14 +489,14 @@ public class Message {
 	
 	/**
 	 * 
-	 * Converti la valeur int :562 en 6 char dans un byte[]-> 000562
+	 * Crée un String de la valeur 562 sur 6 -> 000562
 	 * 
 	 * @param value
 	 * @param numberOfBytes
 	 * @return byte[numberOfBytes]=value
 	 * @throws Exception
 	 */
-	public static String longToStringRepresentation(long value,int numberOfBytes) throws Exception{
+	private static String longToStringRepresentation(long value,int numberOfBytes) throws Exception{
 		if(value<0){
 			throw new numberOfBytesException();
 		}
@@ -516,7 +516,6 @@ public class Message {
 		}
 		return tmp;
 	}
-	
 	
 	public static byte[] longToByteArray(Long val,int numberOfByte,ByteOrder ENDIAN){
 		if(val<0){		
@@ -538,7 +537,7 @@ public class Message {
 	 * @return byte[15]
 	 * @throws Exception
 	 */
-	public static String convertIP(String ip) throws Exception{
+	private static String convertIP(String ip) throws Exception{
 		
 		if(ip=="localhost"){
 			//TODO pour TEST
@@ -569,8 +568,6 @@ public class Message {
 		}
 		return tmp2;
 	}
-	
-
 	
 	public byte[] getDataForApply() {
 		return data;
