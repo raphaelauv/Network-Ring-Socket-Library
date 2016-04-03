@@ -9,8 +9,10 @@ public interface Ringo {
 
 	public final static int maxSizeMsg=512;
 	public final static int octalSizeIdm=8;
+	public final static int octalSizeIdApp=8;
 	public final static int octalSizeIP=15;
 	public final static int octalSizePort=4;
+	public final static int octalSizeTypeMSG=4;
 	
 	/**
 	 * 	Demande un test de l'anneau

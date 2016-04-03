@@ -9,17 +9,16 @@ public class test {
 		
 		try {
 			System.out.println(Message.convertIP("192.1.1.1"));
-			//Message.longToCharBytes(100, 8);
 			
 			new UnsignedLong("1234567891223123");
 			
-			byte[] a= Message.longToByteArrayLittle_indian_8(123456789122312L,8,ByteOrder.LITTLE_ENDIAN);
+			byte[] a= Message.longToByteArray(1L,8,ByteOrder.LITTLE_ENDIAN);
 			
 			for (byte b : a) {
 				   System.out.format("0x%x ", b);
 			}
-			Long re=Message.byteArray_Little_indian_8ToLongToLong(a,8,ByteOrder.LITTLE_ENDIAN);
-			System.out.println(re);
+			Long re=Message.byteArrayToLong(a,8,ByteOrder.LITTLE_ENDIAN);
+			System.out.println("\nretour : "+re);
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -39,7 +38,9 @@ public class test {
 			while(true){
 				Message a;
 				try {
-					a = new Message("WELC 255.000.255.255 0900 255.000.255.255 0900".getBytes());
+					//a = new Message("WELC 255.000.255.255 0900 255.000.255.255 0900".getBytes());
+					//a = new Message("WHOS 00000001".getBytes());
+					a = new Message("DUPL 00000000 255.000.255.255 0900 255.000.255.255 0900".getBytes());
 					premier.receive(a);
 				} catch (parseMessageException e) {
 					// TODO Auto-generated catch block

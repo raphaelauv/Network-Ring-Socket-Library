@@ -30,9 +30,13 @@ public class Message {
 	private String id_app;
 	private byte[] message_app;
 	
-	public static Integer sizeIp=Ringo.octalSizeIP;
-	public static Integer sizePort=Ringo.octalSizePort;
+	private final static Integer sizeIp=Ringo.octalSizeIP;
+	private final static Integer sizePort=Ringo.octalSizePort;
+	private final static Integer sizeTypeMSG=Ringo.octalSizeTypeMSG;
 	
+	public final static int IP_DIFF=1;
+	public final static int IP_NORMAL=2;
+	public final static int IP_SUCC=2;
 	
 	public Message(byte [] data) throws unknownTypeMesssage, parseMessageException{
 		super();
@@ -69,7 +73,7 @@ public class Message {
 				msg.ip_succ=convertIP(msg.ip_succ);
 			}
 			if(msg.idm!=0){
-				msg.idmLITTLE_ENDIAN_8=Message.longToByteArrayLittle_indian_8(msg.idm,8, ByteOrder.LITTLE_ENDIAN);
+				msg.idmLITTLE_ENDIAN_8=Message.longToByteArray(msg.idm,8, ByteOrder.LITTLE_ENDIAN);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -79,9 +83,8 @@ public class Message {
 	
 	
 	private String getDataFromNtoV(int n , int v){
-		//TODO !!!
 		String tmp=new String(this.data,n,v-n);
-		System.out.println("PARSER : "+tmp);
+		//System.out.println("PARSER : "+tmp);
 		return tmp;
 		//return new String(ByteBuffer.wrap(data, n, v).array());
 	}
@@ -94,8 +97,12 @@ public class Message {
 	 * @throws parseMessageException
 	 */
 	private void parse() throws unknownTypeMesssage ,IndexOutOfBoundsException, parseMessageException{
-		String strParsed=getDataFromNtoV(0,4);
+		int curseur=sizeTypeMSG;
+		int sizeIp_SPACE_PORT=sizeIp+1+sizePort;
+		String strParsed=getDataFromNtoV(0,curseur);
 		System.out.println("type reconnu : "+strParsed);
+		
+		
 		try{
 			this.type=TypeMessage.valueOf(strParsed);	
 		}catch(IllegalArgumentException e){
@@ -103,48 +110,122 @@ public class Message {
 		}
 		
 		if(type==TypeMessage.DOWN){
-			parseTestEnd(4);
+			parseTestEnd(curseur);
 			return;
 		}
 		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
-			strParsed=getDataFromNtoV(4,5);
+			strParsed=getDataFromNtoV(curseur,curseur+1);
 			if(!strParsed.equals("\n")){
 				throw new parseMessageException();
 			}
-			parseTestEnd(5);
+			parseTestEnd(curseur+1);
 			return;
 		}
 		
-		parseTestSpace(4);
+		parseTestSpace(curseur);
+		
 		
 		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB || type==TypeMessage.WELC){
-			strParsed=getDataFromNtoV(5,20);
-			parseTestIp(strParsed);
-			this.ip=strParsed;
-			parseTestSpace(20);
-			strParsed=getDataFromNtoV(21,25);
-			parseTestPort(strParsed);
-			this.port=Integer.parseInt(strParsed);
+			curseur++;
+			parse_IP_SPACE_Port(curseur,IP_NORMAL);
 			
+			curseur=curseur+sizeIp_SPACE_PORT;
 			if(!(type==TypeMessage.WELC)){
-				parseTestEnd(25);
+				
+				parseTestEnd(curseur);
 				return;
 					
 			}
-			parseTestSpace(25);
-			strParsed=getDataFromNtoV(26,41);
-			parseTestIp(strParsed);
-			this.ip_diff=strParsed;
-			parseTestSpace(41);
-			strParsed=getDataFromNtoV(42,46);
-			parseTestPort(strParsed);
-			this.port_diff=Integer.parseInt(strParsed);
-			parseTestEnd(46);
+			parseTestSpace(curseur);
+			curseur++;
+			parse_IP_SPACE_Port(curseur,IP_DIFF);
+			curseur=curseur+sizeIp_SPACE_PORT;
+			parseTestEnd(curseur);
 			return;
 			
 		}
 		
+		curseur++;
+		strParsed=getDataFromNtoV(curseur,curseur+Ringo.octalSizeIdm);
+		this.idm=byteArrayToLong(strParsed.getBytes(),Ringo.octalSizeIdm,ByteOrder.LITTLE_ENDIAN);
 		
+		curseur=curseur+Ringo.octalSizeIdm;
+		if(type==TypeMessage.WHOS || type==TypeMessage.EYBG){
+			parseTestEnd(curseur);
+			return;
+		}
+		
+		
+		parseTestSpace(curseur);
+		curseur++;
+		if(type==TypeMessage.TEST){
+			parse_IP_SPACE_Port(curseur,IP_DIFF);
+			curseur=curseur+sizeIp_SPACE_PORT;
+			parseTestEnd(curseur);
+			return;
+		}
+		if(type==TypeMessage.APPL){
+			strParsed=getDataFromNtoV(curseur,Ringo.octalSizeIdApp);
+			curseur=curseur+Ringo.octalSizeIdApp;
+			//TODO this.message_app
+			
+		}
+		
+		parse_IP_SPACE_Port(curseur,IP_NORMAL);
+		curseur=curseur+sizeIp_SPACE_PORT;
+		parseTestSpace(curseur);
+		curseur++;
+		
+		if(type==TypeMessage.DUPL){
+			parse_IP_SPACE_Port(curseur,IP_DIFF);
+			curseur=curseur+sizeIp_SPACE_PORT;
+			parseTestEnd(curseur);
+			return;
+		}
+		if(type==TypeMessage.GBYE){
+			parse_IP_SPACE_Port(curseur,IP_SUCC);
+			curseur=curseur+sizeIp_SPACE_PORT;
+			parseTestEnd(curseur);
+			return;
+		}
+		
+	}
+	
+	
+	/**
+	 * Permet de parser une adrese IP puis un espace puis un port
+	 * @param start position de debut
+	 * @param FLAG_IP = IP_NORMAL || IP_DIFF || IP_SUCC
+	 * @throws parseMessageException
+	 */
+	private void parse_IP_SPACE_Port(int start,int FLAG_IP) throws parseMessageException{
+		
+		String strParsed;
+		int valEndIP= start+Ringo.octalSizeIP;
+		strParsed=getDataFromNtoV(start,valEndIP);
+		parseTestIp(strParsed);
+		if(FLAG_IP==IP_DIFF){
+			this.ip_diff=strParsed;
+		}else if(FLAG_IP==IP_NORMAL){
+			this.ip=strParsed;
+		}
+		else{
+			this.ip_succ=strParsed;
+		}
+		parseTestSpace(valEndIP);
+		strParsed=getDataFromNtoV(valEndIP+1,valEndIP+1+Ringo.octalSizePort);
+		parseTestPort(strParsed);
+		
+		
+		int valPort=Integer.parseInt(strParsed);
+		if(FLAG_IP==IP_DIFF){
+			this.port_diff=valPort;
+		}else if(FLAG_IP==IP_NORMAL){
+			this.port=valPort;
+		}
+		else{
+			this.port_succ=valPort;
+		}
 	}
 	
 	/**
@@ -171,6 +252,12 @@ public class Message {
 		}
 	}
 	
+	/**
+	 * Pour parse
+	 * test si le parametre est un numero de port conventionel
+	 * @param portTest
+	 * @throws parseMessageException
+	 */
 	private void parseTestPort(String portTest)throws parseMessageException{
 		if(portTest.length()!=4){
 			throw new parseMessageException();
@@ -180,6 +267,13 @@ public class Message {
 			throw new parseMessageException();
 		}
 	}
+	
+	/**
+	 * pour parse
+	 * test si le parametre est un numero d'adresse Ip conventionnel
+	 * @param ipTest
+	 * @throws parseMessageException
+	 */
 	private void parseTestIp(String ipTest) throws parseMessageException{
 		if(ipTest.length()!=15){
 			throw new parseMessageException();
@@ -417,15 +511,15 @@ public class Message {
 	}
 	
 	
-	public static byte[] longToByteArrayLittle_indian_8(Long val,int numberOfByte,ByteOrder ENDIAN){
+	public static byte[] longToByteArray(Long val,int numberOfByte,ByteOrder ENDIAN){
 		if(val<0){		
 		}
 		//long values = Long.parseUnsignedLong("18446744073709551615");
 		return ByteBuffer.allocate(numberOfByte).order(ENDIAN).putLong(val).array();
 	}
 	
-	public static Long byteArray_Little_indian_8ToLongToLong(byte[] bytes ,int numberOfByte,ByteOrder ENDIAN){
-		ByteBuffer buffer = ByteBuffer.allocate(8).order(ENDIAN);
+	public static Long byteArrayToLong(byte[] bytes ,int numberOfByte,ByteOrder ENDIAN){
+		ByteBuffer buffer = ByteBuffer.allocate(numberOfByte).order(ENDIAN);
 		buffer.put(bytes);
 		buffer.flip();//need flip 
 		return buffer.getLong();
