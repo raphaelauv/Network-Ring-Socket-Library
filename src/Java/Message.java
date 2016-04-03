@@ -3,14 +3,20 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 		
 class IpException extends Exception{
+
+	private static final long serialVersionUID = 1L;
 }
 class numberOfBytesException extends Exception{
+
+	private static final long serialVersionUID = 1L;
 }
 class unknownTypeMesssage extends Exception{
-	
+
+	private static final long serialVersionUID = 1L;
 }
 class parseMessageException extends Exception{
-	
+
+	private static final long serialVersionUID = 1L;	
 }
 
 /**
@@ -38,14 +44,20 @@ public class Message {
 	private String id_app;
 	private byte[] data_app;
 	
-	private final static Integer sizeIp=Ringo.octalSizeIP;
-	private final static Integer sizePort=Ringo.octalSizePort;
-	private final static Integer sizeTypeMSG=Ringo.octalSizeTypeMSG;
+	private final static Integer sizeIp = Ringo.octalSizeIP;
+	private final static Integer sizePort = Ringo.octalSizePort;
+	private final static Integer sizeTypeMSG = Ringo.octalSizeTypeMSG;
 	
-	public final static int IP_DIFF=1;
-	public final static int IP_NORMAL=2;
-	public final static int IP_SUCC=2;
+	public final static int FLAG_IP_DIFF = 1;
+	public final static int FLAG_IP_NORMAL = 2;
+	public final static int FLAG_IP_SUCC = 2;
 	
+	/**
+	 * Create a new Message and Parse it from unknown DATA
+	 * @param data
+	 * @throws unknownTypeMesssage
+	 * @throws parseMessageException
+	 */
 	public Message(byte[] data) throws unknownTypeMesssage, parseMessageException {
 		super();
 		this.data = data;
@@ -55,14 +67,13 @@ public class Message {
 			throw new unknownTypeMesssage();
 		}
 	}
+	
 	private Message(byte[] data, TypeMessage type) {
 		super();
 		this.setMulti(false);
 		this.data = data;
 		this.type = type;
 	}
-	
-	
 	/**
 	 * Convertir les chiffres dans la representation attendu par RINGO
 	 * @param msg
@@ -134,7 +145,7 @@ public class Message {
 		
 		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB || type==TypeMessage.WELC){
 			curseur++;
-			parse_IP_SPACE_Port(curseur,IP_NORMAL);
+			parse_IP_SPACE_Port(curseur,FLAG_IP_NORMAL);
 			
 			curseur=curseur+sizeIp_SPACE_PORT;
 			if(!(type==TypeMessage.WELC)){
@@ -145,7 +156,7 @@ public class Message {
 			}
 			parseTestSpace(curseur);
 			curseur++;
-			parse_IP_SPACE_Port(curseur,IP_DIFF);
+			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
 			curseur=curseur+sizeIp_SPACE_PORT;
 			parseTestEnd(curseur);
 			return;
@@ -166,7 +177,7 @@ public class Message {
 		parseTestSpace(curseur);
 		curseur++;
 		if(type==TypeMessage.TEST){
-			parse_IP_SPACE_Port(curseur,IP_DIFF);
+			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
 			curseur=curseur+sizeIp_SPACE_PORT;
 			parseTestEnd(curseur);
 			return;
@@ -178,19 +189,19 @@ public class Message {
 			return;
 		}
 		
-		parse_IP_SPACE_Port(curseur,IP_NORMAL);
+		parse_IP_SPACE_Port(curseur,FLAG_IP_NORMAL);
 		curseur=curseur+sizeIp_SPACE_PORT;
 		parseTestSpace(curseur);
 		curseur++;
 		
 		if(type==TypeMessage.DUPL){
-			parse_IP_SPACE_Port(curseur,IP_DIFF);
+			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
 			curseur=curseur+sizeIp_SPACE_PORT;
 			parseTestEnd(curseur);
 			return;
 		}
 		if(type==TypeMessage.GBYE){
-			parse_IP_SPACE_Port(curseur,IP_SUCC);
+			parse_IP_SPACE_Port(curseur,FLAG_IP_SUCC);
 			curseur=curseur+sizeIp_SPACE_PORT;
 			parseTestEnd(curseur);
 			return;
@@ -211,9 +222,9 @@ public class Message {
 		int valEndIP= start+Ringo.octalSizeIP;
 		strParsed=getDataFromNtoV(start,valEndIP);
 		parseTestIp(strParsed);
-		if(FLAG_IP==IP_DIFF){
+		if(FLAG_IP==FLAG_IP_DIFF){
 			this.ip_diff=strParsed;
-		}else if(FLAG_IP==IP_NORMAL){
+		}else if(FLAG_IP==FLAG_IP_NORMAL){
 			this.ip=strParsed;
 		}
 		else{
@@ -225,9 +236,9 @@ public class Message {
 		
 		
 		int valPort=Integer.parseInt(strParsed);
-		if(FLAG_IP==IP_DIFF){
+		if(FLAG_IP==FLAG_IP_DIFF){
 			this.port_diff=valPort;
-		}else if(FLAG_IP==IP_NORMAL){
+		}else if(FLAG_IP==FLAG_IP_NORMAL){
 			this.port=valPort;
 		}
 		else{

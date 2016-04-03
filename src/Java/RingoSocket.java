@@ -16,18 +16,21 @@ import java.lang.Runnable;
  * Le message est trop grand
  */
 class SizeMessageException extends Exception {
+	private static final long serialVersionUID = 1L;
 }
 
 /*
  * L'entite est deja connecte
  */
 class AlreadyAllUdpPortSet extends Exception {
+	private static final long serialVersionUID = 1L;
 }
 
 /**
  * Exception l'entite reseaux a recu un DOWN et donc est deconnecter
  */
 class DOWNmessageException extends Exception {
+	private static final long serialVersionUID = 1L;
 
 }
 
