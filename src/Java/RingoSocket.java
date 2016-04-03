@@ -395,7 +395,7 @@ public class RingoSocket implements Ringo {
 		byte[] dataToReceve = new byte[100];
 		DatagramPacket paquet = new DatagramPacket(dataToReceve, dataToReceve.length);
 		if (verboseMode) {
-			System.out.println(threadToString()+"j'attends de recevoir un message dans RECEVE");
+			//System.out.println(threadToString()+"j'attends de recevoir un message dans RECEVE");
 		}
 
 		this.sockRecever.receive(paquet);// attente passive
@@ -456,9 +456,9 @@ public class RingoSocket implements Ringo {
 				listToSend.notifyAll(); // pour le wait de closeServ
 				
 				if (verboseMode) {
-					System.out.println(threadToString()+"j'attends d'avoir un message a envoyer dans SEND");
+					//System.out.println(threadToString()+"j'attends d'avoir un message a envoyer dans SEND");
 				}
-				System.out.println(threadToString()+"FILE VIDE WAIT SEND methode");
+				//System.out.println(threadToString()+"FILE VIDE WAIT SEND methode");
 				this.listToSend.wait();
 			}
 			msg=this.listToSend.pop();
