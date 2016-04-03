@@ -1,5 +1,6 @@
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
 class IpException extends Exception{
 }
 class numberOfBytesException extends Exception{
@@ -10,6 +11,12 @@ class unknownTypeMesssage extends Exception{
 class parseMessageException extends Exception{
 	
 }
+
+/**
+ * Stock et Parse les informations d'un message
+ * 
+ *
+ */
 public class Message {
 	
 	//private String type;
@@ -38,21 +45,21 @@ public class Message {
 	public final static int IP_NORMAL=2;
 	public final static int IP_SUCC=2;
 	
-	public Message(byte [] data) throws unknownTypeMesssage, parseMessageException{
+	public Message(byte[] data) throws unknownTypeMesssage, parseMessageException {
 		super();
 		this.data = data;
-		try{
-		this.parse();
-		}catch(IndexOutOfBoundsException e){
+		try {
+			this.parse();
+		} catch (IndexOutOfBoundsException e) {
 			throw new unknownTypeMesssage();
 		}
 	}
 	
-	private Message(byte[] data,TypeMessage type) {
+	private Message(byte[] data, TypeMessage type) {
 		super();
 		this.setMulti(false);
 		this.data = data;
-		this.type=type;
+		this.type = type;
 	}
 	
 	
@@ -82,11 +89,11 @@ public class Message {
 	}
 	
 	
-	private String getDataFromNtoV(int n , int v){
-		String tmp=new String(this.data,n,v-n);
-		//System.out.println("PARSER : "+tmp);
+	private String getDataFromNtoV(int n, int v) {
+		String tmp = new String(this.data, n, v - n);
+		// System.out.println("PARSER : "+tmp);
 		return tmp;
-		//return new String(ByteBuffer.wrap(data, n, v).array());
+		// return new String(ByteBuffer.wrap(data, n, v).array());
 	}
 	
 	/**
@@ -470,15 +477,15 @@ public class Message {
 		convertALL(tmp);
 		return tmp;
 	}
-	public static Message NOTC() {
-		byte[] NOTC = new byte[4+1];
-		NOTC=new String("NOTC\n").getBytes();
 
-		Message tmp=new Message(NOTC,TypeMessage.NOTC);
+	public static Message NOTC() {
+		byte[] NOTC = new byte[4 + 1];
+		NOTC = new String("NOTC\n").getBytes();
+
+		Message tmp = new Message(NOTC, TypeMessage.NOTC);
 		convertALL(tmp);
 		return tmp;
-	}
-	
+	}	
 	
 	/**
 	 * 
@@ -607,6 +614,4 @@ public class Message {
 	public void setData(byte[] data) {
 		this.data = data;
 	}
-	
-	
 }
