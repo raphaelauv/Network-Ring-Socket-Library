@@ -52,6 +52,13 @@ public class Message {
 	public final static int FLAG_IP_NORMAL = 2;
 	public final static int FLAG_IP_SUCC = 2;
 	
+	public String getIp(){
+		return this.ip;
+	}
+	public Integer getPort(){
+		return this.port;
+	}
+	
 	/**
 	 * Create a new Message and Parse it from unknown DATA
 	 * @param data
@@ -66,6 +73,11 @@ public class Message {
 		} catch (IndexOutOfBoundsException e) {
 			throw new unknownTypeMesssage();
 		}
+	}
+	
+	public Message(byte [] data,String NOPARSE){
+		super();
+		this.data=data;
 	}
 	
 	private Message(byte[] data, TypeMessage type) {
@@ -101,10 +113,12 @@ public class Message {
 	
 	
 	private String getDataFromNtoV(int n, int v) {
-		String tmp = new String(this.data, n, v - n);
-		// System.out.println("PARSER : "+tmp);
-		return tmp;
-		// return new String(ByteBuffer.wrap(data, n, v).array());
+		try{
+			String tmp = new String(this.data, n, v - n);
+			return tmp;
+		}catch(StringIndexOutOfBoundsException e){
+			return "";
+		}
 	}
 	
 	/**
@@ -216,7 +230,7 @@ public class Message {
 	 * @param FLAG_IP = IP_NORMAL || IP_DIFF || IP_SUCC
 	 * @throws parseMessageException
 	 */
-	private void parse_IP_SPACE_Port(int start,int FLAG_IP) throws parseMessageException{
+	public void parse_IP_SPACE_Port(int start,int FLAG_IP) throws parseMessageException{
 		
 		String strParsed;
 		int valEndIP= start+Ringo.octalSizeIP;
@@ -492,7 +506,6 @@ public class Message {
 	public static Message NOTC() {
 		byte[] NOTC = new byte[4 + 1];
 		NOTC = new String("NOTC\n").getBytes();
-
 		Message tmp = new Message(NOTC, TypeMessage.NOTC);
 		convertALL(tmp);
 		return tmp;

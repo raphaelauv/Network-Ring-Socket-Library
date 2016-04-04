@@ -379,7 +379,7 @@ public class RingoSocket implements Ringo {
 					listForApply.wait();
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 			}
 			msg=listForApply.pop().getDataForApp();
