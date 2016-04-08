@@ -1,15 +1,19 @@
 Etat :
 
-Ecrire DUPPLICATION
+* Finir Message() -> data
 
-deployer algo pour unicité des ID de messages
+* Recuperer Addresse IP automatiquement
 
-integrer les hashmap pour tester les ID de messages
+* Ecrire DUPPLICATION
 
-faire un audit des thread et des situation d'interblocage et famine 
+* Deployer algo pour unicité des ID de messages
 
-ecrire les deux applications attendu par le sujet
+* Integrer les hashmap pour tester les ID de messages
 
-traduire en C le code Java
+* Faire un audit des thread et des situation d'interblocage et famine 
 
-essayer de maitriser JNI pour appeler le protocole du c dans du java et inversement
+* Ecrire les deux applications attendu par le sujet
+
+* Traduire en C le code Java
+
+* Essayer de maitriser JNI pour appeler le protocole du c dans du java et inversement
