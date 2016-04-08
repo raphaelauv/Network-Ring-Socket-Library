@@ -35,8 +35,13 @@ public class Message {
 	private String ip_succ;
 	
 	private Integer port;
+	private String portString;
+	
 	private Integer port_diff;
+	private String port_diffString;
+	
 	private Integer port_succ;
+	private String port_succString;
 	
 	private long idm;
 	private byte [] idmLITTLE_ENDIAN_8;
@@ -95,6 +100,16 @@ public class Message {
 			if(msg.ip!=null){
 				msg.ip=convertIP(msg.ip);
 			}
+			if(msg.port!=null){
+				msg.portString=convertPort(msg.port);
+			}
+			if(msg.port_diff!=null){
+				msg.port_diffString=convertPort(msg.port_diff);
+			}
+			if(msg.port_succ!=null){
+				msg.port_succString=convertPort(msg.port_succ);
+			}
+			
 			if(msg.ip_diff!=null){
 				System.out.println("convert IP DIFF");
 				msg.ip_diff=convertIP(msg.ip_diff);
@@ -104,7 +119,7 @@ public class Message {
 			}
 			if(msg.idm!=0){
 				msg.idmLITTLE_ENDIAN_8=Message.longToByteArray(msg.idm,8, ByteOrder.LITTLE_ENDIAN);
-			}
+			} 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -219,11 +234,8 @@ public class Message {
 			curseur=curseur+sizeIp_SPACE_PORT;
 			parseTestEnd(curseur);
 			return;
-		}
-		
+		}	
 	}
-	
-	
 	/**
 	 * Permet de parser une adrese IP puis un espace puis un port
 	 * @param start position de debut
@@ -266,8 +278,9 @@ public class Message {
 	 * @param end
 	 * @throws parseMessageException souleve une erreur si message pas fini
 	 */
-	private void parseTestEnd(int end) throws parseMessageException{
-			if(this.data.length!=end){
+	private void parseTestEnd(int end) throws parseMessageException{	
+		if(this.data.length!=end){
+				System.out.println(this.data[end]);
 				throw new parseMessageException();
 			}
 	}
@@ -294,10 +307,16 @@ public class Message {
 		if(portTest.length()!=4){
 			throw new parseMessageException();
 		}
-		int tmp=Integer.parseInt(portTest.substring(0,4));
-		if(tmp<0 || tmp>9999){
+		try{
+			int tmp=Integer.parseInt(portTest.substring(0,4));
+			if(tmp<0 || tmp>9999){
+				throw new parseMessageException();
+			}
+		}catch(NumberFormatException e){
 			throw new parseMessageException();
 		}
+		
+		
 	}
 	
 	/**
@@ -347,11 +366,11 @@ public class Message {
 		
 		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB || type==TypeMessage.WELC){
 			
-			str=str+" "+this.ip+" "+this.port;
+			str=str+" "+this.ip+" "+this.portString;
 			if(!(type==TypeMessage.WELC)){
 				return str;
 			}
-			return str+" "+this.ip_diff+" "+this.port_diff;
+			return str+" "+this.ip_diff+" "+this.port_diffString;
 			
 		}	
 		try {
@@ -365,17 +384,17 @@ public class Message {
 			return str;
 		}
 		if(type==TypeMessage.TEST){
-			return str+" "+this.ip_diff +" "+this.port_diff;
+			return str+" "+this.ip_diff +" "+this.port_diffString;
 		}
 		if(type==TypeMessage.APPL){
 			return str+" "+this.id_app+" "+new String(this.data_app);
 		}
-		str=str+" "+this.ip+" "+this.port;
+		str=str+" "+this.ip+" "+this.port_diffString;
 		if(type==TypeMessage.DUPL){
-			str=str+" "+this.ip_diff+" "+this.port_diff;
+			str=str+" "+this.ip_diff+" "+this.port_diffString;
 		}
 		if(type==TypeMessage.GBYE){
-			str=str+" "+this.ip_succ+" "+this.port_succ;
+			str=str+" "+this.ip_succ+" "+this.port_succString;
 		}
 		//TODO POURT TESTS
 		else{
@@ -386,7 +405,7 @@ public class Message {
 	
 	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
 		
-		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];//4+1+8+1+4+1+8+1+4+1 = 33
+		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
 		Message tmp=new Message(WELC,TypeMessage.WELC);
 		
 		tmp.ip=ip;
@@ -394,16 +413,22 @@ public class Message {
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		convertALL(tmp);
+		tmp.remplirData("WELC".getBytes()," ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString+" ").getBytes(),
+				tmp.ip_diff.getBytes(),(" "+tmp.port_diffString).getBytes());
+		
 		return tmp;
 
 	}
 	
+	
+	
 	public static Message NEWC(String ip ,int portUDP1) {
-		byte[] NEWC = new byte[4+1+sizeIp+sizePort+1];
+		byte[] NEWC = new byte[4+1+sizeIp+1+sizePort];
 		Message tmp=new Message(NEWC,TypeMessage.NEWC);
 		tmp.ip=ip;
 		tmp.port=portUDP1;
 		convertALL(tmp);
+		tmp.remplirData("NEWC".getBytes()," ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString).getBytes());
 		return tmp;
 	}
 	
@@ -446,6 +471,8 @@ public class Message {
 		Message tmp=new Message(EYBG,TypeMessage.EYBG);
 		tmp.idm=idm;
 		convertALL(tmp);
+		byte[] idmByte=Message.longToByteArray(idm, 8, ByteOrder.LITTLE_ENDIAN);
+		tmp.remplirData("EYBG ".getBytes(),idmByte);
 		return tmp;
 	}
 	public static Message WHOS(long idm) {
@@ -469,12 +496,11 @@ public class Message {
 	
 	public static Message TEST(long idm, String ip_diff ,int port_diff) {
 		byte[] TEST = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort];
-
+		
 		Message tmp=new Message(TEST,TypeMessage.TEST);
 		tmp.idm=idm;
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
-		convertALL(tmp);
 		return tmp;
 	}
 	
@@ -489,6 +515,7 @@ public class Message {
 		
 		byte[] ACKD = new byte[4+1];
 		ACKD=new String("ACKD\n").getBytes();
+		
 		Message tmp=new Message(ACKD,TypeMessage.ACKD);
 		convertALL(tmp);
 		return tmp;
@@ -497,6 +524,7 @@ public class Message {
 	public static Message DOWN() {
 		byte[] DOWN = new byte[4];
 		DOWN=new String("DOWN").getBytes();
+		
 		Message tmp=new Message(DOWN,TypeMessage.DOWN);
 		tmp.multi=true;
 		convertALL(tmp);
@@ -511,6 +539,16 @@ public class Message {
 		return tmp;
 	}	
 	
+	private void remplirData(byte[] ...args){
+		int i=0;
+		for(byte[] arg1 : args){
+			for(byte arg2 : arg1){
+				this.data[i]=arg2;
+				i++;
+			}
+			
+		}
+	}
 	/**
 	 * 
 	 * Crée un String de la valeur 562 sur 6 -> 000562
@@ -553,6 +591,21 @@ public class Message {
 		buffer.put(bytes);
 		buffer.flip();//need flip 
 		return buffer.getLong();
+	}
+	
+	
+	private static String convertPort(int port) throws Exception{
+		
+		int size=(""+port).length();
+		if(size>4 || port<0){
+			throw new Exception();
+		}
+		int diff=4-size;
+		String result=(""+port);
+		for(int i=0;i<diff;i++){
+			result="0"+result;
+		}
+		return result;
 	}
 	
 	/**
