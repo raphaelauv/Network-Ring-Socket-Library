@@ -13,6 +13,13 @@ import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.Runnable;
 
+
+/*
+ * Mauvvais message recu
+ */
+class ProtocolException extends Exception {
+	private static final long serialVersionUID = 1L;
+}
 /*
  * Le message est trop grand
  */
@@ -220,7 +227,7 @@ public class RingoSocket implements Ringo {
 	}
 
 	public void connectTo(String adresse, int idTCP)
-			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException {
+			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException {
 		isclose();
 		/*if (portUDP1 != 0) {
 			throw new AlreadyAllUdpPortSet();
@@ -258,6 +265,10 @@ public class RingoSocket implements Ringo {
 				socket.close();
 				return;
 			}
+			if(msg1.getType()!=TypeMessage.WELC){
+				socket.close();
+				throw new ProtocolException();
+			}
 			
 			if (verboseMode) {
 				System.out.println(threadToString()+"TCP : message RECEVE : " + msg1.toString());
@@ -289,6 +300,10 @@ public class RingoSocket implements Ringo {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			if(msg3.getType()!=TypeMessage.ACKC){
+				socket.close();
+				throw new ProtocolException();
+			}
 			if (verboseMode) {
 				System.out.println(threadToString()+"TCP : message RECEVE : " + msg3.toString());
 			}
@@ -296,6 +311,10 @@ public class RingoSocket implements Ringo {
 			buffIn.close();
 			socket.close();
 
+			this.listenPortUDP=msg1.getPort();
+			this.ipPortUDP1=msg1.getIp();
+			this.ip_diff=msg1.getIp_diff();
+			this.port_diff=msg1.getPort_diff();
 		}
 	//}
 
@@ -305,9 +324,10 @@ public class RingoSocket implements Ringo {
 	 * @param idTCP
 	 *            port TCP of serv
 	 * @throws IOException
+	 * @throws ProtocolException 
 	 * @throws DOWNmessageException 
 	 */
-	private void servTCP() throws IOException {
+	private void servTCP() throws IOException, ProtocolException {
 		synchronized (sockServerTCP) {
 
 			Socket socket = sockServerTCP.accept();
@@ -343,6 +363,9 @@ public class RingoSocket implements Ringo {
 			Message msg2=null;
 			try {
 				msg2 = new Message(tmp);
+				if(msg2.getType()!=TypeMessage.NEWC){
+					throw new ProtocolException();
+				}
 			} catch (unknownTypeMesssage e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();				
@@ -384,7 +407,7 @@ public class RingoSocket implements Ringo {
 			throw new SizeMessageException();
 		}
 		//TODO ID of the new message_ap
-		long idm=0;
+		long idm=1;
 		addToListToSend(Message.APPL(idm,this.idApp,msg));
 	}
 	
@@ -501,7 +524,7 @@ public class RingoSocket implements Ringo {
 		}
 		else{
 			
-			if (portUDP1 != 0) {
+			if (portUDP1 != null) {
 				
 				DatagramPacket paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
 						InetAddress.getByName(this.ipPortUDP1.toString()), portUDP1);
@@ -509,7 +532,7 @@ public class RingoSocket implements Ringo {
 					this.sockSender.send(paquet1);
 			
 			}
-			if (portUDP2 != 0) {
+			if (portUDP2 != null) {
 				DatagramPacket paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
 						InetAddress.getByName(this.ipPortUDP2.toString()), portUDP2);
 				
@@ -545,8 +568,8 @@ public class RingoSocket implements Ringo {
 		
 		this.ipPortUDP1="127.000.000.001";
 		this.ipPortUDP2="127.000.000.001";
-		this.portUDP1=0;
-		this.portUDP2=11;
+		this.portUDP1=numberLICENPortUDP;
+		this.portUDP2=null;
 		this.EYBGisArrive=false;
 		this.boolClose=false;
 		
@@ -608,7 +631,7 @@ public class RingoSocket implements Ringo {
 				while (!erreur) {
 					try {
 						servTCP();
-					} catch (IOException e) {
+					} catch (ProtocolException |IOException e) {
 						try {
 							isclose();
 						} catch (DOWNmessageException e1) {

@@ -18,12 +18,12 @@ public class Diff {
 	
 	private byte[] output;
 	private RingoSocket diffSocket;
-	public Diff(Integer udp, Integer tcp) throws InterruptedException{
+	public Diff(Integer udpPort, Integer tcpPort) throws InterruptedException{
 		
 		this.scan = new Scanner(System.in);
 		
 		try {
-			this.diffSocket= new RingoSocket("DIFF####",udp,tcp ,true);
+			this.diffSocket= new RingoSocket("DIFF####",udpPort,tcpPort ,true);
 			
 			this.runRecev = new Runnable() {
 				public void run() {
@@ -54,9 +54,10 @@ public class Diff {
 							}
 							if(input.startsWith("connecTo ")){
 								
-								System.out.print("ASK FOR CONNECTION");
+								System.out.print("##### ASK FOR CONNECTION #####");
 								Message a=new Message(input.getBytes(),"Noparse");
 								a.parse_IP_SPACE_Port(9, Message.FLAG_IP_NORMAL);
+								System.out.println("parse succes");
 								System.out.println(" | TRY TO CONNECT "+a.getIp()+" "+a.getPort());
 								diffSocket.connectTo(a.getIp(), a.getPort());
 								
@@ -65,22 +66,25 @@ public class Diff {
 								diffSocket.send(input.getBytes());
 							}
 						} catch (SizeMessageException e) {
-							System.out.println("SizeMessageException !! the limit is : "+Ringo.maxSizeMsg);
+							System.out.println("\nERREUR SizeMessageException !! the limit is : "+Ringo.maxSizeMsg);
 						} catch (DOWNmessageException e) {
-							System.out.println("Thread APP SEND | DOWNmessageException , the socket is CLOSE");
+							System.out.println("\nERREUR Thread APP SEND | DOWNmessageException , the socket is CLOSE");
 							noError=false;
 						} catch (parseMessageException e) {
-							System.out.println("respect :connecTo ipAdresse port");
+							System.out.println("\nERREUR respect :connecTo ipAdresse port");
 						} catch (UnknownHostException e) {
-							System.out.println("connecTo : UnknownHost ");
+							System.out.println("\nERREUR connecTo : UnknownHost ");
 						} catch (AlreadyAllUdpPortSet e) {
 							e.printStackTrace();
-							System.out.println("connecTo : Already connect");
+							System.out.println("\nERREUR connecTo : Already connect");
 						} catch (IOException e) {
 							//e.printStackTrace();
 						} catch (InterruptedException e) {
 							//e.printStackTrace();
 						} catch (NoSuchElementException e) {
+							//e.printStackTrace();
+						} catch (ProtocolException e) {
+							System.out.println("\nERREUR connecTo : Erreur de protocol");
 							//e.printStackTrace();
 						} 
 					}

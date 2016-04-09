@@ -37,8 +37,9 @@ public interface Ringo {
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 * @throws DOWNmessageException 
+	 * @throws ProtocolException 
 	 */
-	public void connectTo(String adresse ,int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException;
+	public void connectTo(String adresse ,int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException;
 
 	/**
 	 * Pour demander l'envoi d'un message a l'entité id
