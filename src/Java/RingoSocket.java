@@ -9,7 +9,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.Runnable;
 
@@ -70,10 +72,8 @@ public class RingoSocket implements Ringo {
 	private Integer port_diff;
 	private MulticastSocket sockMultiRECEP;
 
-	private ConcurrentHashMap<Long, Boolean> IdAlreadyReceveUDP1;// hashmap contenant
-															// les
-															// id deja croisé
-	private ConcurrentHashMap<UnsignedLong, Boolean> IdAlreadyReceveUDP2;
+	private Set<Long> IdAlreadyReceveUDP1;// hashSet contenant les id deja croise
+	private Set<Long> IdAlreadyReceveUDP2;
 
 	private LinkedList<Message> listForApply; // liste des message recu qui sont
 												// pour cette ID
@@ -408,14 +408,14 @@ public class RingoSocket implements Ringo {
 		}
 		*/
 		
-		if(IdAlreadyReceveUDP1.containsKey(msg.getIdm())){
+		if(IdAlreadyReceveUDP1.contains(msg.getIdm())){
 			if (verboseMode) {
 				System.out.println(threadToString()+"Message DEJA ENVOYER OU RECU : " + msg.toString());
 			}
 			return;
 		}
 		else{
-			IdAlreadyReceveUDP1.put(msg.getIdm(), true);
+			IdAlreadyReceveUDP1.add(msg.getIdm());
 		}
 		addToListToSend(msg);
 		//addToListToSend(Message.APPL(idm,this.idApp,msg));
@@ -481,13 +481,13 @@ public class RingoSocket implements Ringo {
 			System.out.println(threadToString()+"Message Recu : " + msgR.toString());
 		}
 
-		if(IdAlreadyReceveUDP1.containsKey(msgR.getIdm())){
+		if(IdAlreadyReceveUDP1.contains(msgR.getIdm())){
 			if (verboseMode) {
 				System.out.println(threadToString()+"Message DEJA ENVOYER OU RECU : " + msgR.toString());
 			}
 			return;
 		}else{
-			IdAlreadyReceveUDP1.put(msgR.getIdm(), true);
+			IdAlreadyReceveUDP1.add(msgR.getIdm());
 		}
 
 		if (msgR.getType()==TypeMessage.GBYE) {
@@ -573,7 +573,7 @@ public class RingoSocket implements Ringo {
 
 		super();
 		
-		this.IdAlreadyReceveUDP1=new ConcurrentHashMap<Long,Boolean>();
+		this.IdAlreadyReceveUDP1=Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
 		
 		this.idApp=idApp;
 		this.ip="127.000.000.001";
