@@ -70,7 +70,7 @@ public class RingoSocket implements Ringo {
 	private Integer port_diff;
 	private MulticastSocket sockMultiRECEP;
 
-	private ConcurrentHashMap<UnsignedLong, Boolean> IdAlreadyReceveUDP1;// hashmap contenant
+	private ConcurrentHashMap<Long, Boolean> IdAlreadyReceveUDP1;// hashmap contenant
 															// les
 															// id deja croisé
 	private ConcurrentHashMap<UnsignedLong, Boolean> IdAlreadyReceveUDP2;
@@ -94,7 +94,7 @@ public class RingoSocket implements Ringo {
 	private Boolean EYBGisArrive;
 
 	private Boolean TESTisComeBack;
-	private Integer ValTEST;
+	private long ValTEST;
 
 	private Boolean boolClose;
 	
@@ -400,15 +400,25 @@ public class RingoSocket implements Ringo {
 
 
 
-	public void send(byte [] msg) throws DOWNmessageException, SizeMessageException{
+	public void send(Message msg) throws DOWNmessageException, SizeMessageException{
 		isclose();
-		
+		/*
 		if (msg.length > Ringo.maxSizeMsg) {
 			throw new SizeMessageException();
 		}
-		//TODO ID of the new message_ap
-		long idm=1;
-		addToListToSend(Message.APPL(idm,this.idApp,msg));
+		*/
+		
+		if(IdAlreadyReceveUDP1.containsKey(msg.getIdm())){
+			if (verboseMode) {
+				System.out.println(threadToString()+"Message DEJA ENVOYER OU RECU : " + msg.toString());
+			}
+			return;
+		}
+		else{
+			IdAlreadyReceveUDP1.put(msg.getIdm(), true);
+		}
+		addToListToSend(msg);
+		//addToListToSend(Message.APPL(idm,this.idApp,msg));
 	}
 	
 	private void addToListToSend(Message msg){
@@ -418,7 +428,7 @@ public class RingoSocket implements Ringo {
 		}
 	}
 
-	public void receive(byte [] msg) throws DOWNmessageException {
+	public void receive(Message msg) throws DOWNmessageException {
 
 		isclose();
 		synchronized (listForApply) {
@@ -432,7 +442,7 @@ public class RingoSocket implements Ringo {
 					//e.printStackTrace();
 				}
 			}
-			msg=listForApply.pop().getDataForApp();
+			msg=listForApply.pop();
 		}
 	}
 	
@@ -442,7 +452,7 @@ public class RingoSocket implements Ringo {
 			//System.out.println(threadToString()+"dans thread receve");
 		}
 
-		byte[] dataToReceve = new byte[100];
+		byte[] dataToReceve = new byte[Ringo.maxSizeMsg];
 		DatagramPacket paquet = new DatagramPacket(dataToReceve, dataToReceve.length);
 		if (verboseMode) {
 			//System.out.println(threadToString()+"j'attends de recevoir un message dans RECEVE");
@@ -451,34 +461,44 @@ public class RingoSocket implements Ringo {
 		this.sockRecever.receive(paquet);// attente passive
 
 		
-		String st = new String(paquet.getData(), 0, paquet.getLength());
+		//String st = new String(paquet.getData(), 0, paquet.getLength());
 
-		Message tmp=null;
+		
+		Message msgR=null;
 		try {
-			tmp = new Message(paquet.getData());
+			msgR = new Message(paquet.getData());
 		} catch (unknownTypeMesssage e) {
 			// TODO Auto-generated catch block
 			//e.printStackTrace();
 		} catch (parseMessageException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
+		}
+		if(msgR==null){
+			return;
 		}
 		if (verboseMode) {
-			System.out.println(threadToString()+"Message Recu : " + st);
+			System.out.println(threadToString()+"Message Recu : " + msgR.toString());
 		}
 
-		Integer idm = 100;
+		if(IdAlreadyReceveUDP1.containsKey(msgR.getIdm())){
+			if (verboseMode) {
+				System.out.println(threadToString()+"Message DEJA ENVOYER OU RECU : " + msgR.toString());
+			}
+			return;
+		}else{
+			IdAlreadyReceveUDP1.put(msgR.getIdm(), true);
+		}
 
-		if (st.startsWith("GBYE")) {
-			String m = "EYBG" + " " + idm;
-			//TODO
+		if (msgR.getType()==TypeMessage.GBYE) {
+		
 
 		}
-		else if (st.startsWith("TEST")) {
-			if (st.substring(4).startsWith(ValTEST.toString())) {
+		else if (msgR.getType()==TypeMessage.TEST) {
+			if (msgR.getIdm()==ValTEST) {
 				this.TESTisComeBack = true;
 			}
-		} else if (st.startsWith("EYBG")) {
+		} else if (msgR.getType()==TypeMessage.EYBG) {
 
 			synchronized (EYBGisArrive) {
 				EYBGisArrive = true;
@@ -487,7 +507,7 @@ public class RingoSocket implements Ringo {
 
 		} else {
 			synchronized (this.listToSend) {
-				this.listToSend.add(tmp);
+				this.listToSend.add(msgR);
 				this.listToSend.notifyAll();
 			}
 		}
@@ -552,6 +572,9 @@ public class RingoSocket implements Ringo {
 	public RingoSocket(String idApp,Integer numberLICENPortUDP,Integer numberPortTcp,boolean verboseMode) throws IOException {
 
 		super();
+		
+		this.IdAlreadyReceveUDP1=new ConcurrentHashMap<Long,Boolean>();
+		
 		this.idApp=idApp;
 		this.ip="127.000.000.001";
 		this.ip_diff = "225.1.2.4";

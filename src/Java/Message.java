@@ -47,6 +47,9 @@ public class Message {
 	private long idm;
 	private byte [] idmLITTLE_ENDIAN_8;
 	
+	private Integer size_mess;
+	private String size_messString;
+	
 	private String id_app;
 	private byte[] data_app;
 	
@@ -121,6 +124,9 @@ public class Message {
 			if(this.idm!=-1){
 				this.idmLITTLE_ENDIAN_8=Message.longToByteArray(this.idm,8, ByteOrder.LITTLE_ENDIAN);
 			} 
+			if(this.size_mess!=null){
+				this.size_messString=longToStringRepresentation(this.size_mess,3);
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -148,7 +154,7 @@ public class Message {
 		int curseur=sizeTypeMSG;
 		int sizeIp_SPACE_PORT=sizeIp+1+sizePort;
 		String strParsed=getDataFromNtoV(0,curseur);
-		System.out.println("type reconnu : "+strParsed);
+		//System.out.println("type reconnu : "+strParsed);
 		
 		
 		try{
@@ -281,7 +287,7 @@ public class Message {
 	 */
 	private void parseTestEnd(int end) throws parseMessageException{	
 		if(this.data.length!=end){
-				System.out.println(this.data[end]);
+				//System.out.println(this.data[end]);
 				throw new parseMessageException();
 			}
 	}
@@ -388,9 +394,9 @@ public class Message {
 			return str+" "+this.ip_diff +" "+this.port_diffString;
 		}
 		if(type==TypeMessage.APPL){
-			return str+" "+this.id_app+" "+new String(this.data_app);
+			return str+" "+this.id_app+" "+size_messString+" "+new String(this.data_app);
 		}
-		str=str+" "+this.ip+" "+this.port_diffString;
+		str=str+" "+this.ip+" "+this.portString;
 		if(type==TypeMessage.DUPL){
 			str=str+" "+this.ip_diff+" "+this.port_diffString;
 		}
@@ -414,7 +420,6 @@ public class Message {
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
-		System.out.println();
 		tmp.remplirData("WELC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString+" ").getBytes(),
 				tmp.ip_diff.getBytes(),(" "+tmp.port_diffString).getBytes());
 		return tmp;
@@ -452,6 +457,8 @@ public class Message {
 		tmp.port_succ=port_succ;
 		
 		tmp.convertALL();;
+		tmp.remplirData("GBYE ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
+				(" "+tmp.ip+" "+tmp.portString+" "+tmp.ip_succ+" "+tmp.port_succString).getBytes());
 		return tmp;
 	}
 	
@@ -465,6 +472,8 @@ public class Message {
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
+		tmp.remplirData("DUPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
+				(" "+tmp.ip+" "+tmp.portString+" "+tmp.ip_diff+" "+tmp.port_diffString).getBytes());
 		return tmp;
 	}
 	public static Message EYBG(long idm) {
@@ -485,14 +494,15 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message APPL(long idm , String id_app , byte[] data_app) {
-		byte[] APPL = new byte[Ringo.maxSizeMsg];
+	public static Message APPL(long idm , String id_app ,Integer size_mess, byte[] data_app) {
+		byte[] APPL = new byte[4+1+Ringo.octalSizeIdm+1+8+1+data_app.length];
 		Message tmp=new Message(APPL,TypeMessage.APPL);
 		tmp.idm=idm;
 		tmp.id_app=id_app;
 		tmp.data_app=data_app;
+		tmp.size_mess=size_mess;
 		tmp.convertALL();;
-		tmp.remplirData("APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+id_app+" ").getBytes(),data_app);
+		tmp.remplirData("APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id_app+" ").getBytes(),tmp.data_app);
 		return tmp;
 	}
 	
@@ -510,51 +520,41 @@ public class Message {
 	}
 	
 	public static Message ACKC() {
-		byte[] ACKC = new byte[4+1];
-		ACKC=new String("ACKC\n").getBytes();
-		Message tmp=new Message(ACKC,TypeMessage.ACKC);
-		
+		byte[] ACKC = new String("ACKC\n").getBytes();
+		Message tmp = new Message(ACKC, TypeMessage.ACKC);
 		return tmp;
 	}
+
 	public static Message ACKD() {
-		
-		byte[] ACKD = new byte[4+1];
-		ACKD=new String("ACKD\n").getBytes();
-		Message tmp=new Message(ACKD,TypeMessage.ACKD);
-		
+		byte[] ACKD = new String("ACKD\n").getBytes();
+		Message tmp = new Message(ACKD, TypeMessage.ACKD);
 		return tmp;
 	}
 	
 	public static Message DOWN() {
-		byte[] DOWN = new byte[4];
-		DOWN=new String("DOWN").getBytes();
-		Message tmp=new Message(DOWN,TypeMessage.DOWN);
-		tmp.multi=true;
-		
+		byte[] DOWN = new String("DOWN").getBytes();
+		Message tmp = new Message(DOWN, TypeMessage.DOWN);
+		tmp.multi = true;
 		return tmp;
 	}
 
 	public static Message NOTC() {
-		byte[] NOTC = new byte[4 + 1];
-		NOTC = new String("NOTC\n").getBytes();
+		byte[] NOTC = new String("NOTC\n").getBytes();
 		Message tmp = new Message(NOTC, TypeMessage.NOTC);
-		
 		return tmp;
-	}	
-	
+	}
 	
 	/**
 	 * Rempli this.data avec les args
 	 * @param args
 	 */
-	private void remplirData(byte[] ...args){
-		int i=0;
-		for(byte[] arg1 : args){
-			for(byte arg2 : arg1){
-				this.data[i]=arg2;
+	private void remplirData(byte[]... args) {
+		int i = 0;
+		for (byte[] arg1 : args) {
+			for (byte arg2 : arg1) {
+				this.data[i] = arg2;
 				i++;
 			}
-			
 		}
 	}
 	
@@ -582,7 +582,7 @@ public class Message {
 		tmp=tmp+value;
 		
 		if(tmp.length()!=numberOfBytes){
-			System.out.println("pas bonne taille");
+			//System.out.println("pas bonne taille");
 			throw new Exception();
 		}
 		return tmp;
@@ -637,7 +637,7 @@ public class Message {
 		String[]tmp=ip.split("\\.");
 		
 		if(tmp.length!=4){
-			System.out.println("pas 4");
+			//System.out.println("pas 4");
 			throw new IpException();
 		}
 		//to put the 000
@@ -654,7 +654,7 @@ public class Message {
 		//TODO pour test , a retirer
 		if(tmp2.length()!=15){
 			
-			System.out.println("pas 15");
+			//System.out.println("pas 15");
 			throw new Exception();
 		}
 		return tmp2;
@@ -684,6 +684,10 @@ public class Message {
 	public Integer getPort_diff() {
 		return port_diff;
 	}
+	public long getIdm() {
+		return idm;
+	}
+	
 	
 	
 }

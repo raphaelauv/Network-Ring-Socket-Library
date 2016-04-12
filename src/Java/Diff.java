@@ -1,6 +1,5 @@
-import java.io.IOException;
+import java.io.IOException;	
 import java.net.BindException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -16,7 +15,7 @@ public class Diff {
 	private Scanner scan;
 	private String input;
 	
-	private byte[] output;
+	private Message output;
 	private RingoSocket diffSocket;
 	public Diff(Integer udpPort, Integer tcpPort) throws InterruptedException{
 		
@@ -32,9 +31,9 @@ public class Diff {
 						try {
 							output=null;
 							diffSocket.receive(output);
-							System.out.println(LocalDateTime.now() +"|"+"RECEVE :"+new String(output));
+							System.out.println(LocalDateTime.now() +"|"+"RECEVE :"+new String(output.toString()));
 						} catch (DOWNmessageException e) {
-							System.out.println("Thread APP RECEVE | DOWNmessageException , the socket is CLOSE");
+							System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
 							noError=false;
 						}
 					}
@@ -44,6 +43,7 @@ public class Diff {
 			this.runSend = new Runnable() {
 				public void run() {
 					boolean noError=true;
+					int val=0;
 					while (noError) {
 						
 						try {
@@ -53,22 +53,20 @@ public class Diff {
 								noError=true;
 							}
 							if(input.startsWith("connecTo ")){
-								
 								System.out.print("##### ASK FOR CONNECTION #####");
 								Message a=new Message(input.getBytes(),"Noparse");
 								a.parse_IP_SPACE_Port(9, Message.FLAG_IP_NORMAL);
-								System.out.println("parse succes");
+							
 								System.out.println(" | TRY TO CONNECT "+a.getIp()+" "+a.getPort());
 								diffSocket.connectTo(a.getIp(), a.getPort());
-								
 							}else{
-								input = input.length() + " " + input;
-								diffSocket.send(input.getBytes());
+								val++;
+								diffSocket.send(Message.APPL(val, "DIFF####",input.length(), input.getBytes()));
 							}
 						} catch (SizeMessageException e) {
 							System.out.println("\nERREUR SizeMessageException !! the limit is : "+Ringo.maxSizeMsg);
 						} catch (DOWNmessageException e) {
-							System.out.println("\nERREUR Thread APP SEND | DOWNmessageException , the socket is CLOSE");
+							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 							noError=false;
 						} catch (parseMessageException e) {
 							System.out.println("\nERREUR respect :connecTo ipAdresse port");
@@ -78,11 +76,11 @@ public class Diff {
 							e.printStackTrace();
 							System.out.println("\nERREUR connecTo : Already connect");
 						} catch (IOException e) {
-							//e.printStackTrace();
+							System.out.println("\nERREUR connecTo : IO");
 						} catch (InterruptedException e) {
-							//e.printStackTrace();
+							System.out.println("\nERREUR connecTo : Interrupted");
 						} catch (NoSuchElementException e) {
-							//e.printStackTrace();
+							System.out.println("\nERREUR connecTo : NoSuchElement");
 						} catch (ProtocolException e) {
 							System.out.println("\nERREUR connecTo : Erreur de protocol");
 							//e.printStackTrace();
@@ -96,12 +94,10 @@ public class Diff {
 			this.ThSend = new Thread(runSend);
 			
 			this.ThRecev.setName("DIFF RECE");
-			this.ThSend.setName("DIFF SEND");
+			this.ThSend.setName("DIFF SEND ");
 			
 			this.ThRecev.start();
 			this.ThSend.start();
-			
-			
 			
 			
 		} catch (BindException e) {
@@ -118,7 +114,6 @@ public class Diff {
 			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
 			return;
 		}
-		
 		System.out.println("arg0 UDP : " + args[0]); // 4242
 		System.out.println("arg1 TCP : " + args[1]); // 5555
 		System.out.println("#########################################################");
