@@ -662,12 +662,10 @@ public class RingoSocket implements Ringo {
 							//e1.printStackTrace();
 							erreur=true;
 						}
-						
 					}
 				}
 				if(verboseMode){System.out.println(threadToString()+"END thread TCP");}
 			}
-
 		};
 
 		this.ThRecev = new Thread(runRecev);
