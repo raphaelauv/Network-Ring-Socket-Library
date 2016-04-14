@@ -114,7 +114,6 @@ public class Message {
 			if(this.port_succ!=null){
 				this.port_succString=convertPort(this.port_succ);
 			}
-			
 			if(this.ip_diff!=null){
 				this.ip_diff=convertIP(this.ip_diff);
 			}
@@ -151,9 +150,11 @@ public class Message {
 	 * @throws parseMessageException
 	 */
 	private void parse() throws unknownTypeMesssage ,IndexOutOfBoundsException, parseMessageException{
-		int curseur=sizeTypeMSG;
+		int curseur=0;
 		int sizeIp_SPACE_PORT=sizeIp+1+sizePort;
-		String strParsed=getDataFromNtoV(0,curseur);
+		String strParsed=getDataFromNtoV(curseur,sizeTypeMSG);
+		
+		curseur=curseur+sizeTypeMSG;
 		//System.out.println("type reconnu : "+strParsed);
 		
 		
@@ -208,8 +209,6 @@ public class Message {
 			parseTestEnd(curseur);
 			return;
 		}
-		
-		
 		parseTestSpace(curseur);
 		curseur++;
 		if(type==TypeMessage.TEST){
@@ -219,9 +218,21 @@ public class Message {
 			return;
 		}
 		if(type==TypeMessage.APPL){
-			strParsed=getDataFromNtoV(curseur,Ringo.octalSizeIdApp);
+			
+			strParsed=getDataFromNtoV(curseur,curseur+Ringo.octalSizeIdApp);
+			this.id_app=strParsed;
 			curseur=curseur+Ringo.octalSizeIdApp;
+			parseTestSpace(curseur);
+			curseur++;
+			strParsed=getDataFromNtoV(curseur,curseur+Ringo.octalSizeMessSize);
+			curseur=curseur+Ringo.octalSizeMessSize;
+			this.size_messString=strParsed;
+			this.size_mess=Integer.parseInt(this.size_messString);
+			parseTestSpace(curseur);
+			curseur++;
+			
 			this.data_app= Arrays.copyOfRange(this.data, curseur, data.length);
+			
 			return;
 		}
 		
@@ -495,14 +506,14 @@ public class Message {
 	}
 	
 	public static Message APPL(long idm , String id_app ,Integer size_mess, byte[] data_app) {
-		byte[] APPL = new byte[4+1+Ringo.octalSizeIdm+1+8+1+data_app.length];
+		byte[] APPL = new byte[4+1+Ringo.octalSizeIdm+1+8+1+3+1+data_app.length];
 		Message tmp=new Message(APPL,TypeMessage.APPL);
 		tmp.idm=idm;
 		tmp.id_app=id_app;
 		tmp.data_app=data_app;
 		tmp.size_mess=size_mess;
 		tmp.convertALL();;
-		tmp.remplirData("APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id_app+" ").getBytes(),tmp.data_app);
+		tmp.remplirData("APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id_app+" "+tmp.size_messString+" ").getBytes(),tmp.data_app);
 		return tmp;
 	}
 	
@@ -564,7 +575,7 @@ public class Message {
 	 * 
 	 * @param value
 	 * @param numberOfBytes
-	 * @return byte[numberOfBytes]=value
+	 * @return 
 	 * @throws Exception
 	 */
 	private static String longToStringRepresentation(long value,int numberOfBytes) throws Exception{

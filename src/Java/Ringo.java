@@ -13,7 +13,8 @@ public interface Ringo {
 	public final static int octalSizeIP = 15;
 	public final static int octalSizePort = 4;
 	public final static int octalSizeTypeMSG = 4;
-	
+	public final static int octalSizeMessSize = 3;
+	public final static int octalSizeNom = 2;
 	/**
 	 * 	Demande un test de l'anneau
 	 * @param sendDownIfBreak true -> si l'anneau est cassé alors averti sur multi diffusion | else -> pas d'alert

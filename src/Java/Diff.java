@@ -61,7 +61,7 @@ public class Diff {
 								diffSocket.connectTo(a.getIp(), a.getPort());
 							}else{
 								val++;
-								diffSocket.send(Message.APPL(val, "DIFF####",input.length(), input.getBytes()));
+								diffSocket.send(Message.APPL(val,"DIFF####",input.length(),input.getBytes()));
 							}
 						} catch (SizeMessageException e) {
 							System.out.println("\nERREUR SizeMessageException !! the limit is : "+Ringo.maxSizeMsg);
@@ -109,7 +109,6 @@ public class Diff {
 	
 	public static void main(String[] args) throws UnknownHostException, unknownTypeMesssage, parseMessageException {
 
-		
 		if (args==null || args.length == 0 || args[0] == null || args[1] == null) {
 			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
 			return;

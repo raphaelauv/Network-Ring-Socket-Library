@@ -41,9 +41,9 @@ public class test {
 					//a = new Message("WHOS 00000001".getBytes());
 					
 					a = new Message("DUPL 00000000 255.000.255.255 0900 255.000.255.255 0900".getBytes());
-					byte[] b = "bonjour".getBytes();
-					premier.send(b);
-					premier.receive(b);
+					
+					premier.send(a);
+					premier.receive(a);
 				} catch (parseMessageException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

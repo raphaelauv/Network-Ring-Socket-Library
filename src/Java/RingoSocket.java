@@ -311,8 +311,10 @@ public class RingoSocket implements Ringo {
 			buffIn.close();
 			socket.close();
 
-			this.listenPortUDP=msg1.getPort();
 			this.ipPortUDP1=msg1.getIp();
+			synchronized (portUDP1) {
+				this.portUDP1=msg1.getPort();
+			}
 			this.ip_diff=msg1.getIp_diff();
 			this.port_diff=msg1.getPort_diff();
 		}
@@ -391,10 +393,8 @@ public class RingoSocket implements Ringo {
 			buffOut.close();
 			buffIn.close();
 			socket.close();
+			this.portUDP1=msg2.getPort();
 
-			synchronized (portUDP1) {
-
-			}
 		}
 	}
 
@@ -584,6 +584,7 @@ public class RingoSocket implements Ringo {
 		this.sockSender = new DatagramSocket();
 		this.listenPortUDP = numberLICENPortUDP;
 		this.sockRecever = new DatagramSocket(numberLICENPortUDP);
+		
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
 		this.verboseMode=false;
