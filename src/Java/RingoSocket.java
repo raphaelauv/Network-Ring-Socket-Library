@@ -343,8 +343,7 @@ public class RingoSocket implements Ringo {
 	        BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
 	        BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
 			
-
-	        Message msg1=Message.WELC(this.ip, this.listenPortUDP, this.ip_diff, this.port_diff);
+	        Message msg1=Message.WELC(this.ip, this.portUDP1, this.ip_diff, this.port_diff);
 			buffOut.write(msg1.getData());
 			buffOut.flush();
 
@@ -477,8 +476,8 @@ public class RingoSocket implements Ringo {
 		if(msgR==null){
 			return;
 		}
-		if (verboseMode) {
-			System.out.println(threadToString()+"Message Recu : " + msgR.toString());
+		if (verboseMode){
+			System.out.println(threadToString()+"Message Recu    : " + msgR.toString());
 		}
 
 		if(IdAlreadyReceveUDP1.contains(msgR.getIdm())){
@@ -490,26 +489,35 @@ public class RingoSocket implements Ringo {
 			IdAlreadyReceveUDP1.add(msgR.getIdm());
 		}
 
-		if (msgR.getType()==TypeMessage.GBYE) {
-		
-
-		}
-		else if (msgR.getType()==TypeMessage.TEST) {
-			if (msgR.getIdm()==ValTEST) {
+		if (msgR.getType() == TypeMessage.GBYE) {
+			//TODO
+			return;
+		} else if (msgR.getType() == TypeMessage.TEST) {
+			if (msgR.getIdm() == ValTEST) {
 				this.TESTisComeBack = true;
+				return;
 			}
-		} else if (msgR.getType()==TypeMessage.EYBG) {
+
+		} else if (msgR.getType() == TypeMessage.EYBG) {
 
 			synchronized (EYBGisArrive) {
 				EYBGisArrive = true;
 				EYBGisArrive.notifyAll();
 			}
-
-		} else {
-			synchronized (this.listToSend) {
-				this.listToSend.add(msgR);
-				this.listToSend.notifyAll();
+			return;
+			
+		} else if (msgR.getType() == TypeMessage.APPL) {
+			if (msgR.getId_app() == idApp) {
+				synchronized (this.listToSend) {
+					this.listForApply.add(msgR);
+					this.listForApply.notifyAll();
+				}
 			}
+			return;
+		}
+		synchronized (this.listToSend) {
+			this.listToSend.add(msgR);
+			this.listToSend.notifyAll();
 		}
 	}
 
@@ -563,7 +571,7 @@ public class RingoSocket implements Ringo {
 		}
 		if (verboseMode) {
 			if (verboseMode) {
-				System.out.println(threadToString()+"Message envoyer : "+msg.toString() );
+				System.out.println(threadToString()+"Message Envoyer : "+msg.toString() );
 			}
 		}
 

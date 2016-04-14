@@ -671,10 +671,6 @@ public class Message {
 		return tmp2;
 	}
 	
-	public byte[] getDataForApp() {
-		return data_app;
-	}
-	
 	public boolean isMulti() {
 		return multi;
 	}
@@ -698,7 +694,8 @@ public class Message {
 	public long getIdm() {
 		return idm;
 	}
-	
-	
+	public String getId_app() {
+		return id_app;
+	}
 	
 }

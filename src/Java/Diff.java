@@ -32,9 +32,13 @@ public class Diff {
 							output=null;
 							diffSocket.receive(output);
 							System.out.println(LocalDateTime.now() +"|"+"RECEVE :"+new String(output.toString()));
+							diffSocket.send(output);
 						} catch (DOWNmessageException e) {
 							System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
 							noError=false;
+						} catch (SizeMessageException e) {
+							// TODO Auto-generated catch block
+							//	e.printStackTrace();
 						}
 					}
 				}
@@ -98,7 +102,6 @@ public class Diff {
 			
 			this.ThRecev.start();
 			this.ThSend.start();
-			
 			
 		} catch (BindException e) {
 			System.out.println("The ports are already in use");
