@@ -52,7 +52,7 @@ public class Diff {
 						
 						try {
 							input = scan.nextLine();
-							if(input.equals("disconnect")){
+							if(input.equals("disconnecT")){
 								diffSocket.close();
 								noError=true;
 							}
@@ -110,7 +110,7 @@ public class Diff {
 		}
 	}
 	
-	public static void main(String[] args) throws UnknownHostException, unknownTypeMesssage, parseMessageException {
+	public static void main(String[] args) {
 
 		if (args==null || args.length == 0 || args[0] == null || args[1] == null) {
 			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
@@ -119,6 +119,7 @@ public class Diff {
 		System.out.println("arg0 UDP : " + args[0]); // 4242
 		System.out.println("arg1 TCP : " + args[1]); // 5555
 		System.out.println("#########################################################");
+		System.out.println("## To ask disconnect,type : disconnecT                 ##");
 		System.out.println("## To ask connection,type :connecTo IpADRESSE(15) Port ##");
 		System.out.println("#########################################################");
 		try {
