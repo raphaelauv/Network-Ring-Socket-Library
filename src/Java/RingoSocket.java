@@ -431,7 +431,6 @@ public class RingoSocket implements Ringo {
 
 		isclose();
 		synchronized (listForApply) {
-
 			while (listForApply.isEmpty()) {
 				isclose();// en cas de down durant l'attente
 				try {

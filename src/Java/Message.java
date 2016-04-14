@@ -697,5 +697,10 @@ public class Message {
 	public String getId_app() {
 		return id_app;
 	}
+	public byte[] getData_app() {
+		return data_app;
+	}
+	
+	
 	
 }

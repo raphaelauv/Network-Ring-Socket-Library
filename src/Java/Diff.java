@@ -31,7 +31,7 @@ public class Diff {
 						try {
 							output=null;
 							diffSocket.receive(output);
-							System.out.println(LocalDateTime.now() +"|"+"RECEVE :"+new String(output.toString()));
+							System.out.println(LocalDateTime.now() +"|"+"RECEVE :"+new String(output.getData_app()));
 							diffSocket.send(output);
 						} catch (DOWNmessageException e) {
 							System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
