@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 public class Diff {
 	
+	private final String style="#########################################################";
 	private Thread ThRecev;
 	private Thread ThSend;
 	
@@ -29,16 +30,15 @@ public class Diff {
 					boolean noError=true;
 					while (noError) {
 						try {
-							output=null;
-							diffSocket.receive(output);
-							System.out.println(LocalDateTime.now() +"|"+"RECEVE :"+new String(output.getData_app()));
-							diffSocket.send(output);
+							output=diffSocket.receive();
+							byte[] content =output.getData_app();
+							int taille=Integer.parseInt(new String(content,0,3));
+							String message =new String(content, 4, taille);
+							System.out.println(style+"\n"+LocalDateTime.now()+" -> "+"RECEVE :"+message+"\n"+style);
+							
 						} catch (DOWNmessageException e) {
 							System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
 							noError=false;
-						} catch (SizeMessageException e) {
-							// TODO Auto-generated catch block
-							//	e.printStackTrace();
 						}
 					}
 				}
@@ -60,14 +60,15 @@ public class Diff {
 								System.out.print("##### ASK FOR CONNECTION #####");
 								Message a=new Message(input.getBytes(),"Noparse");
 								a.parse_IP_SPACE_Port(9, Message.FLAG_IP_NORMAL);
-							
+								
 								System.out.println(" | TRY TO CONNECT "+a.getIp()+" "+a.getPort());
 								diffSocket.connectTo(a.getIp(), a.getPort());
 							}else{
 								val++;
-								diffSocket.send(Message.APPL(val,"DIFF####",input.length(),input.getBytes()));
+								String contenu=Message.longToStringRepresentation(input.length(),3)+" "+input;
+								diffSocket.send(Message.APPL(val,"DIFF####",contenu.getBytes()));
 							}
-						} catch (SizeMessageException e) {
+						} catch (numberOfBytesException |SizeMessageException e) {
 							System.out.println("\nERREUR SizeMessageException !! the limit is : "+Ringo.maxSizeMsg);
 						} catch (DOWNmessageException e) {
 							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
@@ -87,8 +88,7 @@ public class Diff {
 							System.out.println("\nERREUR connecTo : NoSuchElement");
 						} catch (ProtocolException e) {
 							System.out.println("\nERREUR connecTo : Erreur de protocol");
-							//e.printStackTrace();
-						} 
+						}
 					}
 					ThRecev.interrupt();
 				}

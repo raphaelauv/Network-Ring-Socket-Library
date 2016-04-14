@@ -55,6 +55,6 @@ public interface Ringo {
 	 * attente passive
 	 * @return Contenu du message
 	 */
-	public void receive(Message msg) throws DOWNmessageException;
+	public Message receive() throws DOWNmessageException;
 	
 }

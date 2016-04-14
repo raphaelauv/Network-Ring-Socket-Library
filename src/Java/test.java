@@ -43,7 +43,7 @@ public class test {
 					a = new Message("DUPL 00000000 255.000.255.255 0900 255.000.255.255 0900".getBytes());
 					
 					premier.send(a);
-					premier.receive(a);
+					a=premier.receive();
 				} catch (parseMessageException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

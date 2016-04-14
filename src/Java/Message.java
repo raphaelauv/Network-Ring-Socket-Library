@@ -47,9 +47,6 @@ public class Message {
 	private long idm;
 	private byte [] idmLITTLE_ENDIAN_8;
 	
-	private Integer size_mess;
-	private String size_messString;
-	
 	private String id_app;
 	private byte[] data_app;
 	
@@ -123,9 +120,6 @@ public class Message {
 			if(this.idm!=-1){
 				this.idmLITTLE_ENDIAN_8=Message.longToByteArray(this.idm,8, ByteOrder.LITTLE_ENDIAN);
 			} 
-			if(this.size_mess!=null){
-				this.size_messString=longToStringRepresentation(this.size_mess,3);
-			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -218,18 +212,20 @@ public class Message {
 			return;
 		}
 		if(type==TypeMessage.APPL){
-			
 			strParsed=getDataFromNtoV(curseur,curseur+Ringo.octalSizeIdApp);
 			this.id_app=strParsed;
 			curseur=curseur+Ringo.octalSizeIdApp;
 			parseTestSpace(curseur);
 			curseur++;
+			/*
 			strParsed=getDataFromNtoV(curseur,curseur+Ringo.octalSizeMessSize);
+			 
 			curseur=curseur+Ringo.octalSizeMessSize;
 			this.size_messString=strParsed;
 			this.size_mess=Integer.parseInt(this.size_messString);
 			parseTestSpace(curseur);
 			curseur++;
+			*/
 			
 			this.data_app= Arrays.copyOfRange(this.data, curseur, data.length);
 			
@@ -405,7 +401,7 @@ public class Message {
 			return str+" "+this.ip_diff +" "+this.port_diffString;
 		}
 		if(type==TypeMessage.APPL){
-			return str+" "+this.id_app+" "+size_messString+" "+new String(this.data_app);
+			return str+" "+this.id_app+" "+new String(this.data_app);
 		}
 		str=str+" "+this.ip+" "+this.portString;
 		if(type==TypeMessage.DUPL){
@@ -505,15 +501,14 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message APPL(long idm , String id_app ,Integer size_mess, byte[] data_app) {
-		byte[] APPL = new byte[4+1+Ringo.octalSizeIdm+1+8+1+3+1+data_app.length];
+	public static Message APPL(long idm , String id_app, byte[] data_app) {
+		byte[] APPL = new byte[4+1+Ringo.octalSizeIdm+1+8+1+data_app.length];
 		Message tmp=new Message(APPL,TypeMessage.APPL);
 		tmp.idm=idm;
 		tmp.id_app=id_app;
 		tmp.data_app=data_app;
-		tmp.size_mess=size_mess;
 		tmp.convertALL();;
-		tmp.remplirData("APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id_app+" "+tmp.size_messString+" ").getBytes(),tmp.data_app);
+		tmp.remplirData("APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id_app+" ").getBytes(),tmp.data_app);
 		return tmp;
 	}
 	
@@ -578,7 +573,7 @@ public class Message {
 	 * @return 
 	 * @throws Exception
 	 */
-	private static String longToStringRepresentation(long value,int numberOfBytes) throws Exception{
+	public static String longToStringRepresentation(long value,int numberOfBytes) throws numberOfBytesException{
 		if(value<0){
 			throw new numberOfBytesException();
 		}
@@ -591,11 +586,6 @@ public class Message {
 			tmp=tmp+"0";
 		}
 		tmp=tmp+value;
-		
-		if(tmp.length()!=numberOfBytes){
-			//System.out.println("pas bonne taille");
-			throw new Exception();
-		}
 		return tmp;
 	}
 	
