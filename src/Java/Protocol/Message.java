@@ -1,23 +1,8 @@
+package Protocol;
+import Protocol.Exceptions.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-		
-class IpException extends Exception{
-
-	private static final long serialVersionUID = 1L;
-}
-class numberOfBytesException extends Exception{
-
-	private static final long serialVersionUID = 1L;
-}
-class unknownTypeMesssage extends Exception{
-
-	private static final long serialVersionUID = 1L;
-}
-class parseMessageException extends Exception{
-
-	private static final long serialVersionUID = 1L;	
-}
 
 /**
  * Stock et Parse les informations d'un message

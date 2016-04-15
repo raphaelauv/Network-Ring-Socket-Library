@@ -1,3 +1,4 @@
+package Protocol;
 
 /**
  * Force to use a UnsignedLong 

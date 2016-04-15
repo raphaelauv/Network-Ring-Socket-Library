@@ -4,6 +4,9 @@ import java.net.UnknownHostException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import Protocol.Message;
+import Protocol.RingoSocket;
+import Protocol.Exceptions.*;
 public abstract class Appl {
 
 	final String style="#########################################################";

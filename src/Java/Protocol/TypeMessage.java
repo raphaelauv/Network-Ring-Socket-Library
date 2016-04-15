@@ -1,3 +1,5 @@
+package Protocol;
+
 public enum TypeMessage {
 	WELC,
 	NEWC,

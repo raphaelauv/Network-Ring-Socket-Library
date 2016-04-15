@@ -1,3 +1,5 @@
+package Protocol;
+import Protocol.Exceptions.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -14,35 +16,6 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.Runnable;
-
-/*
- * Mauvvais message recu
- */
-class ProtocolException extends Exception {
-	private static final long serialVersionUID = 1L;
-}
-
-/*
- * Le message est trop grand
- */
-class SizeMessageException extends Exception {
-	private static final long serialVersionUID = 1L;
-}
-
-/*
- * L'entite est deja connecte
- */
-class AlreadyAllUdpPortSet extends Exception {
-	private static final long serialVersionUID = 1L;
-}
-
-/**
- * Exception l'entite reseaux a recu un DOWN et donc est deconnecter
- */
-class DOWNmessageException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-}
 
 public class RingoSocket implements Ringo {
 
