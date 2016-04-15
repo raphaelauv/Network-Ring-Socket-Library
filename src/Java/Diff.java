@@ -1,132 +1,88 @@
-import java.io.IOException;	
+import java.io.IOException;
 import java.net.BindException;
-import java.net.UnknownHostException;
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
-public class Diff {
-	
-	private final String style="#########################################################";
-	private Thread ThRecev;
-	private Thread ThSend;
-	
-	private Runnable runRecev;
-	private Runnable runSend;
-	
-	private Scanner scan;
-	private String input;
-	
-	private Message output;
-	private RingoSocket diffSocket;
-	public Diff(Integer udpPort, Integer tcpPort) throws InterruptedException{
+
+public class Diff extends Appl {
+
+	public Diff(Integer udpPort, Integer tcpPort) throws BindException, IOException {
 		
-		this.scan = new Scanner(System.in);
-		
-		try {
-			this.diffSocket= new RingoSocket("DIFF####",udpPort,tcpPort ,true);
-			
-			this.runRecev = new Runnable() {
-				public void run() {
-					boolean noError=true;
-					while (noError) {
-						try {
-							output=diffSocket.receive();
-							byte[] content =output.getData_app();
-							int taille=Integer.parseInt(new String(content,0,3));
-							String message =new String(content, 4, taille);
-							System.out.println(style+"\n"+LocalDateTime.now()+" -> "+"RECEVE :"+message+"\n"+style);
-							
-						} catch (DOWNmessageException e) {
-							System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
-							noError=false;
-						}
+		super("DIFF####", udpPort, tcpPort, true);
+
+		this.runRecev = new Runnable() {
+			public void run() {
+				while (runContinue) {
+					try {
+						output = diffSocket.receive();
+						byte[] content = output.getData_app();
+						int taille = Integer.parseInt(new String(content, 0, 3));
+						String message = new String(content, 4, taille);
+						System.out.println(
+								style + "\n" + LocalDateTime.now() + " -> " + "RECEVE :" + message + "\n" + style);
+
+					} catch (DOWNmessageException e) {
+						System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
+						runContinue = false;
 					}
 				}
-			};
-			
-			this.runSend = new Runnable() {
-				public void run() {
-					boolean noError=true;
-					int val=0;
-					while (noError) {
-						
+				ThSend.interrupt();
+			}
+		};
+
+		this.runSend = new Runnable() {
+			public void run() {
+				int val = 0;
+				boolean entrytested;
+				while (runContinue) {
+					entrytested = testEntry();
+
+					if (!entrytested) {
 						try {
-							input = scan.nextLine();
-							if(input.equals("disconnecT")){
-								diffSocket.close();
-								noError=true;
-							}
-							if(input.startsWith("connecTo ")){
-								System.out.print("##### ASK FOR CONNECTION #####");
-								Message a=new Message(input.getBytes(),"Noparse");
-								a.parse_IP_SPACE_Port(9, Message.FLAG_IP_NORMAL);
-								
-								System.out.println(" | TRY TO CONNECT "+a.getIp()+" "+a.getPort());
-								diffSocket.connectTo(a.getIp(), a.getPort());
-							}else{
-								val++;
-								String contenu=Message.longToStringRepresentation(input.length(),3)+" "+input;
-								diffSocket.send(Message.APPL(val,"DIFF####",contenu.getBytes()));
-							}
-						} catch (numberOfBytesException |SizeMessageException e) {
-							System.out.println("\nERREUR SizeMessageException !! the limit is : "+Ringo.maxSizeMsg);
+							val++;
+							String contenu = Message.longToStringRepresentation(input.length(), 3) + " " + input;
+							diffSocket.send(Message.APPL(val, "DIFF####", contenu.getBytes()));
+						} catch (numberOfBytesException | SizeMessageException e) {
+							System.out.println("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
 						} catch (DOWNmessageException e) {
 							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
-							noError=false;
-						} catch (parseMessageException e) {
-							System.out.println("\nERREUR respect :connecTo ipAdresse port");
-						} catch (UnknownHostException e) {
-							System.out.println("\nERREUR connecTo : UnknownHost ");
-						} catch (AlreadyAllUdpPortSet e) {
-							e.printStackTrace();
-							System.out.println("\nERREUR connecTo : Already connect");
-						} catch (IOException e) {
-							System.out.println("\nERREUR connecTo : IO");
-						} catch (InterruptedException e) {
-							System.out.println("\nERREUR connecTo : Interrupted");
-						} catch (NoSuchElementException e) {
-							System.out.println("\nERREUR connecTo : NoSuchElement");
-						} catch (ProtocolException e) {
-							System.out.println("\nERREUR connecTo : Erreur de protocol");
+							runContinue = false;
+						}
+
+					}
+					else{
+						if(!runContinue){
+							System.out.println("\nTHREAD: APP SEND   | END");
 						}
 					}
-					ThRecev.interrupt();
 				}
-			};
-			
-			this.ThRecev = new Thread(runRecev);
-			this.ThSend = new Thread(runSend);
-			
-			this.ThRecev.setName("DIFF RECE");
-			this.ThSend.setName("DIFF SEND ");
-			
-			this.ThRecev.start();
-			this.ThSend.start();
-			
-		} catch (BindException e) {
-			System.out.println("The ports are already in use");
-		} catch (NumberFormatException | IOException e) {
-			e.printStackTrace();
-		}
+				ThRecev.interrupt();
+			}
+		};
+
+		this.ThRecev = new Thread(runRecev);
+		this.ThSend = new Thread(runSend);
+
+		this.ThRecev.setName("DIFF RECE");
+		this.ThSend.setName("DIFF SEND ");
+
+		this.ThRecev.start();
+		this.ThSend.start();
+
 	}
-	
+
 	public static void main(String[] args) {
 
-		if (args==null || args.length == 0 || args[0] == null || args[1] == null) {
-			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
+		if (!Appl.testArgs(args)) {
 			return;
 		}
-		System.out.println("arg0 UDP : " + args[0]); // 4242
-		System.out.println("arg1 TCP : " + args[1]); // 5555
-		System.out.println("#########################################################");
-		System.out.println("## To ask disconnect,type : disconnecT                 ##");
-		System.out.println("## To ask connection,type :connecTo IpADRESSE(15) Port ##");
-		System.out.println("#########################################################");
+		Appl.printInfo(args);
+
 		try {
 			new Diff(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
-			
-		} catch (InterruptedException e) {
-			//e.printStackTrace();
+
+		} catch (BindException e) {
+			System.out.println("The ports are already in use");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }

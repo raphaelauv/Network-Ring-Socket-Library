@@ -294,7 +294,6 @@ public class Message {
 	 */
 	private void parseTestEnd(int end) throws parseMessageException{	
 		if(this.data.length!=end){
-				//System.out.println(this.data[end]);
 				throw new parseMessageException();
 			}
 	}
@@ -638,7 +637,6 @@ public class Message {
 		String[]tmp=ip.split("\\.");
 		
 		if(tmp.length!=4){
-			//System.out.println("pas 4");
 			throw new IpException();
 		}
 		//to put the 000
@@ -654,8 +652,6 @@ public class Message {
 		
 		//TODO pour test , a retirer
 		if(tmp2.length()!=15){
-			
-			//System.out.println("pas 15");
 			throw new Exception();
 		}
 		return tmp2;
@@ -664,11 +660,9 @@ public class Message {
 	public boolean isMulti() {
 		return multi;
 	}
-
 	public void setMulti(boolean multi) {
 		this.multi = multi;
 	}
-
 	public byte[] getData() {
 		return data;
 	}
@@ -690,7 +684,4 @@ public class Message {
 	public byte[] getData_app() {
 		return data_app;
 	}
-	
-	
-	
 }

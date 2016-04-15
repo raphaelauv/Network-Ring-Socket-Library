@@ -15,13 +15,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.Runnable;
 
-
 /*
  * Mauvvais message recu
  */
 class ProtocolException extends Exception {
 	private static final long serialVersionUID = 1L;
 }
+
 /*
  * Le message est trop grand
  */
@@ -47,7 +47,7 @@ class DOWNmessageException extends Exception {
 public class RingoSocket implements Ringo {
 
 	private boolean verboseMode;
-	
+
 	private String idApp;
 
 	private String ip;
@@ -58,7 +58,7 @@ public class RingoSocket implements Ringo {
 	private ServerSocket sockServerTCP;
 
 	private DatagramSocket sockSender;
-	
+
 	private Integer portUDP1;
 	private String ipPortUDP1;
 
@@ -72,7 +72,8 @@ public class RingoSocket implements Ringo {
 	private Integer port_diff;
 	private MulticastSocket sockMultiRECEP;
 
-	private Set<Long> IdAlreadyReceveUDP1;// hashSet contenant les id deja croise
+	private Set<Long> IdAlreadyReceveUDP1;// hashSet contenant les id deja
+											// croise
 	private Set<Long> IdAlreadyReceveUDP2;
 
 	private LinkedList<Message> listForApply; // liste des message recu qui sont
@@ -97,36 +98,35 @@ public class RingoSocket implements Ringo {
 	private long ValTEST;
 
 	private Boolean boolClose;
-	
+
 	private void closeServ(boolean modeDOWN) {
-		
-		this.boolClose=true;
+
+		this.boolClose = true;
 		this.sockRecever.close();
 		this.sockMultiRECEP.close();
-		
+
 		try {
 			this.sockServerTCP.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			// e.printStackTrace();
 		}
 		this.ThRecev.interrupt();
-		
-		this.ThServTCP.interrupt();;
-		
-		if(modeDOWN){
+
+		this.ThServTCP.interrupt();
+		;
+
+		if (modeDOWN) {
 			this.sockSender.close();
 			this.ThSend1.interrupt();
 			synchronized (listForApply) {
 				this.listForApply.notifyAll();
 			}
-			//this.ThSend2.interrupt();
-		}
-		else{
-		
+			// this.ThSend2.interrupt();
+		} else {
+
 			synchronized (listToSend) {
-				while(!listToSend.isEmpty()){
-					System.out.println(threadToString()+"FILE NON VIDE : taille ->"+listToSend.size());
+				while (!listToSend.isEmpty()) {
 					listToSend.notify();
 					try {
 						listToSend.wait();
@@ -137,36 +137,37 @@ public class RingoSocket implements Ringo {
 				}
 				this.sockSender.close();
 				this.ThSend1.interrupt();
-				//this.ThSend2.interrupt();
+				// this.ThSend2.interrupt();
 			}
 			this.ThMULTIrecev.interrupt();
 		}
 	}
-	public void close() throws InterruptedException ,DOWNmessageException{
+
+	public void close() throws InterruptedException, DOWNmessageException {
 		isClose();
 		Integer idm = 10000000;
 		Message q = Message.GBYE(idm, this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
-		
+
 		synchronized (listToSend) {
 			listToSend.add(q);
 		}
+		printVerbose("WAITING for EYBG message");
 
-		if(verboseMode){System.out.println(threadToString()+"WAITING for EYBG message");}
-		
 		synchronized (EYBGisArrive) {
 			EYBGisArrive = false;
 			EYBGisArrive.wait(4000);
-			if(EYBGisArrive){
-				
+			if (EYBGisArrive) {
+
 			}
 		}
-		
+
 		test(false);
-		
+
 		closeServ(false);
 	}
+
 	private void isClose() throws DOWNmessageException {
-		synchronized(boolClose){
+		synchronized (boolClose) {
 			if (boolClose) {
 				throw new DOWNmessageException();
 			}
@@ -182,44 +183,40 @@ public class RingoSocket implements Ringo {
 
 		this.sockMultiRECEP.receive(paquet);
 		String st = new String(paquet.getData(), 0, paquet.getLength());
-		if (verboseMode) {
-			System.out.println(threadToString()+"message MULTI RECEVE : " + st);
-		}
+		printVerbose("message MULTI RECEVE : " + st);
 
 		if (st.equals("DOWN\n")) {
 			closeServ(true);
-			throw new DOWNmessageException(); // to  the thread MULTI
+			throw new DOWNmessageException(); // to the thread MULTI
 		}
 
 	}
 
-	private String threadToString(){
-		return "THREAD: "+Thread.currentThread().getName()+" | ";
+	private String threadToString() {
+		return "THREAD: " + Thread.currentThread().getName() + " | ";
 	}
+
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
 		isClose();
 		int idm = 20;
 
-		Message test = Message.TEST(idm,this.ip_diff, this.port_diff);
+		Message test = Message.TEST(idm, this.ip_diff, this.port_diff);
 		this.ValTEST = idm;
 		this.TESTisComeBack = false;
-		
+
 		addToListToSend(test);
-		
+
 		Thread.sleep(2000);
 
 		if (!TESTisComeBack) {
-			if (verboseMode) {
-				System.out.println(threadToString()+"message TEST is NOT comeback");
-			}
-			if(sendDownIfBreak){
+			printVerbose("message TEST is NOT comeback");
+			if (sendDownIfBreak) {
 				addToListToSend(Message.DOWN());
 			}
 			return false;
 		}
-		if (verboseMode) {
-			System.out.println(threadToString()+"message TEST is comeback");
-		}
+		printVerbose("message TEST is comeback");
+
 		return true;
 
 	}
@@ -227,95 +224,88 @@ public class RingoSocket implements Ringo {
 	public void connectTo(String adresse, int idTCP)
 			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException {
 		isClose();
-		/*if (portUDP1 != 0) {
-			throw new AlreadyAllUdpPortSet();
-		}
-*/
-		//sockServerTCP.close();
-		//synchronized (sockServerTCP) {// pas d'acceptation de connection pendant
-										// une connection
-			Socket socket = new Socket(adresse, idTCP);
-			if (verboseMode) {
-				System.out.println(threadToString()+"conecter en TCP a :" + adresse + " sur port : " + idTCP);
-			}
-			BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
-	        BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
-			
-			
-			byte[] tmp=new byte[Ringo.maxSizeMsg];
-			int sizeReturn=buffIn.read(tmp);
-			if(sizeReturn!=46){
-				socket.close();
-				return;
-			}
-			tmp=Arrays.copyOfRange(tmp,0,46);
-			Message msg1=null;
-			try {
-				msg1 = new Message(tmp);
-			} catch (unknownTypeMesssage e1) {
-				e1.printStackTrace();
-				socket.close();
-				return;
-			} catch (parseMessageException e) {
-				e.printStackTrace();
-				socket.close();
-				return;
-			}
-			if(msg1.getType()!=TypeMessage.WELC){
-				socket.close();
-				throw new ProtocolException();
-			}
-			
-			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message RECEVE : " + msg1.toString());
-			}
+		/*
+		 * if (portUDP1 != 0) { throw new AlreadyAllUdpPortSet(); }
+		 */
+		// sockServerTCP.close();
+		// synchronized (sockServerTCP) {// pas d'acceptation de connection
+		// pendant
+		// une connection
+		Socket socket = new Socket(adresse, idTCP);
+		printVerbose("conecter en TCP a :" + adresse + " sur port : " + idTCP);
 
-			Message msg2=Message.NEWC(this.ip, this.portUDP1);
-			buffOut.write(msg2.getData());
-			buffOut.flush();
-			
-			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message SEND   : " + msg2.toString());
-			}
+		BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
+		BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
 
-			sizeReturn=buffIn.read(tmp);
-			
-			if(sizeReturn!=5){
-				socket.close();
-				return;
-			}
-			tmp=Arrays.copyOfRange(tmp,0,5);
-			
-			Message msg3=null;
-			try {
-				msg3 = new Message(tmp);
-			} catch (parseMessageException |unknownTypeMesssage e) {
-				socket.close();
-				throw new ProtocolException();
-			}
-			if(msg3.getType()!=TypeMessage.ACKC){
-				socket.close();
-				throw new ProtocolException();
-			}
-			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message RECEVE : " + msg3.toString());
-			}
-			synchronized (ipPortUDP1) {
-				synchronized (portUDP1) {
-					this.ipPortUDP1=msg1.getIp();
-					this.portUDP1=msg1.getPort();
-				}
-			}
-			synchronized (ip_diff) {
-				synchronized (port_diff) {
-					this.ip_diff=msg1.getIp_diff();
-					this.port_diff=msg1.getPort_diff();	
-				}
-			}
-			buffOut.close();
-			buffIn.close();
+		byte[] tmp = new byte[Ringo.maxSizeMsg];
+		int sizeReturn = buffIn.read(tmp);
+		if (sizeReturn != 46) {
 			socket.close();
+			return;
 		}
+		tmp = Arrays.copyOfRange(tmp, 0, 46);
+		Message msg1 = null;
+		try {
+			msg1 = new Message(tmp);
+		} catch (unknownTypeMesssage e1) {
+			e1.printStackTrace();
+			socket.close();
+			return;
+		} catch (parseMessageException e) {
+			e.printStackTrace();
+			socket.close();
+			return;
+		}
+		if (msg1.getType() != TypeMessage.WELC) {
+			socket.close();
+			throw new ProtocolException();
+		}
+
+		printVerbose("TCP : message RECEVE : " + msg1.toString());
+
+		Message msg2 = Message.NEWC(this.ip, this.portUDP1);
+		buffOut.write(msg2.getData());
+		buffOut.flush();
+
+		printVerbose("TCP : message SEND   : " + msg2.toString());
+
+		sizeReturn = buffIn.read(tmp);
+
+		if (sizeReturn != 5) {
+			socket.close();
+			return;
+		}
+		tmp = Arrays.copyOfRange(tmp, 0, 5);
+
+		Message msg3 = null;
+		try {
+			msg3 = new Message(tmp);
+		} catch (parseMessageException | unknownTypeMesssage e) {
+			socket.close();
+			throw new ProtocolException();
+		}
+		if (msg3.getType() != TypeMessage.ACKC) {
+			socket.close();
+			throw new ProtocolException();
+		}
+		printVerbose("TCP : message RECEVE : " + msg3.toString());
+
+		synchronized (ipPortUDP1) {
+			synchronized (portUDP1) {
+				this.ipPortUDP1 = msg1.getIp();
+				this.portUDP1 = msg1.getPort();
+			}
+		}
+		synchronized (ip_diff) {
+			synchronized (port_diff) {
+				this.ip_diff = msg1.getIp_diff();
+				this.port_diff = msg1.getPort_diff();
+			}
+		}
+		buffOut.close();
+		buffIn.close();
+		socket.close();
+	}
 
 	/**
 	 * Serv in TCP to accept an entrance TCP connection
@@ -323,95 +313,78 @@ public class RingoSocket implements Ringo {
 	 * @param idTCP
 	 *            port TCP of serv
 	 * @throws IOException
-	 * @throws ProtocolException 
-	 * @throws DOWNmessageException 
+	 * @throws ProtocolException
+	 * @throws DOWNmessageException
 	 */
 	private void servTCP() throws IOException, ProtocolException {
 		synchronized (sockServerTCP) {
 
 			Socket socket = sockServerTCP.accept();
 
-			
-			if (verboseMode) {
-				System.out.println(threadToString()+"TCP connect");
+			printVerbose("TCP connect");
 
-			}
-			
-	        BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
-	        BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
-			
-	        Message msg1=Message.WELC(this.ip, this.portUDP1, this.ip_diff, this.port_diff);
+			BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
+			BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
+
+			Message msg1 = Message.WELC(this.ip, this.portUDP1, this.ip_diff, this.port_diff);
 			buffOut.write(msg1.getData());
 			buffOut.flush();
 
-			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message SEND   : " + msg1.toString());
-			}
-			
-			byte[] tmp=new byte[Ringo.maxSizeMsg];
-			int sizeReturn=buffIn.read(tmp);
-			if(sizeReturn!=25){
+			printVerbose("TCP : message SEND   : " + msg1.toString());
+
+			byte[] tmp = new byte[Ringo.maxSizeMsg];
+			int sizeReturn = buffIn.read(tmp);
+			if (sizeReturn != 25) {
 				throw new ProtocolException();
 			}
-			tmp=Arrays.copyOfRange(tmp,0,25);
-			
-			Message msg2=null;
+			tmp = Arrays.copyOfRange(tmp, 0, 25);
+
+			Message msg2 = null;
 			try {
 				msg2 = new Message(tmp);
-				if(msg2.getType()!=TypeMessage.NEWC){
+				if (msg2.getType() != TypeMessage.NEWC) {
 					throw new ProtocolException();
 				}
-			} catch (parseMessageException |unknownTypeMesssage e) {
-				if (verboseMode) {
-					System.out.println(threadToString()+"TCP : erreur protocol");
-				}
+			} catch (parseMessageException | unknownTypeMesssage e) {
+				printVerbose("TCP : erreur protocol");
 				return;
 			}
-			
-			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message RECEVE : " + msg2.toString());
-			}
+
+			printVerbose("TCP : message RECEVE : " + msg2.toString());
 
 			synchronized (this.portUDP1) {
-				this.portUDP1=msg2.getPort();
+				this.portUDP1 = msg2.getPort();
 			}
-			
-			Message msg3 =Message.ACKC();
+
+			Message msg3 = Message.ACKC();
 			buffOut.write(msg3.getData());
 			buffOut.flush();
-			
-			if (verboseMode) {
-				System.out.println(threadToString()+"TCP : message SEND   : "+msg3.toString());
-			}
-			
+
+			printVerbose("TCP : message SEND   : " + msg3.toString());
+
 			buffOut.close();
 			buffIn.close();
 		}
 	}
 
-
-
-	public void send(Message msg) throws DOWNmessageException, SizeMessageException{
+	public void send(Message msg) throws DOWNmessageException, SizeMessageException {
 		isClose();
 		/*
-		if (msg.length > Ringo.maxSizeMsg) {
-			throw new SizeMessageException();
-		}
-		*/
-		
-		if(IdAlreadyReceveUDP1.contains(msg.getIdm())){
-			if (verboseMode) {
-				System.out.println(threadToString()+"Message DEJA ENVOYER OU RECU : " + msg.toString());
-			}
+		 * if (msg.length > Ringo.maxSizeMsg) { throw new
+		 * SizeMessageException(); }
+		 */
+
+		if (IdAlreadyReceveUDP1.contains(msg.getIdm())) {
+			printVerbose(threadToString() + "Message DEJA ENVOYER OU RECU : " + msg.toString());
+
 			return;
-		}
-		else{
+		} else {
 			IdAlreadyReceveUDP1.add(msg.getIdm());
 		}
 		addToListToSend(msg);
 	}
-	
-	private void addToListToSend(Message msg){
+
+	private void addToListToSend(Message msg) {
 		synchronized (listToSend) {
 			this.listToSend.add(msg);
 			this.listToSend.notifyAll();
@@ -427,39 +400,36 @@ public class RingoSocket implements Ringo {
 					listForApply.wait();
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
-					//e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 			return listForApply.pop();
 		}
 	}
-	
+
 	private void receveMessage() throws IOException {
 
 		byte[] dataToReceve = new byte[Ringo.maxSizeMsg];
 		DatagramPacket paquet = new DatagramPacket(dataToReceve, dataToReceve.length);
 
-		this.sockRecever.receive(paquet);// attente passive		
-		Message msgR=null;
+		this.sockRecever.receive(paquet);// attente passive
+		Message msgR = null;
 		try {
 			msgR = new Message(paquet.getData());
-		} catch (parseMessageException |unknownTypeMesssage e) {
+		} catch (parseMessageException | unknownTypeMesssage e) {
 			return;
 		}
-		
-		if(IdAlreadyReceveUDP1.contains(msgR.getIdm())){
-			if (verboseMode) {
-				System.out.println(threadToString()+"Message DEJA ENVOYER OU RECU : " + msgR.toString());
-			}
+
+		if (IdAlreadyReceveUDP1.contains(msgR.getIdm())) {
+			printVerbose("Message DEJA ENVOYER OU RECU : " + msgR.toString());
 			return;
-		}else{
+		} else {
 			IdAlreadyReceveUDP1.add(msgR.getIdm());
 		}
-		if (verboseMode){
-			System.out.println(threadToString()+"Message Recu    : " + msgR.toString());
-		}
+		printVerbose("Message Recu    : " + msgR.toString());
+
 		if (msgR.getType() == TypeMessage.GBYE) {
-			//TODO
+			// TODO
 			return;
 		} else if (msgR.getType() == TypeMessage.TEST) {
 			if (msgR.getIdm() == ValTEST) {
@@ -473,15 +443,15 @@ public class RingoSocket implements Ringo {
 				EYBGisArrive.notifyAll();
 			}
 			return;
-			
+
 		} else if (msgR.getType() == TypeMessage.APPL) {
-			
+
 			if (msgR.getId_app().equals(idApp)) {
 				synchronized (this.listForApply) {
 					this.listForApply.add(msgR);
 					this.listForApply.notifyAll();
 				}
-				//TODO renvoyer automatique ou pas
+				// TODO renvoyer automatique ou pas
 			}
 		}
 		synchronized (this.listToSend) {
@@ -493,77 +463,70 @@ public class RingoSocket implements Ringo {
 	private void sendMessage() throws IOException, InterruptedException {
 
 		Message msg;
-		if (verboseMode) {
-			//System.out.println(threadToString()+"dans thread send");
-		}
 		synchronized (listToSend) {
 			while (listToSend.isEmpty()) {
 				listToSend.notifyAll(); // pour le wait de closeServ
 				this.listToSend.wait();
 			}
-			msg=this.listToSend.pop();
+			msg = this.listToSend.pop();
 		}
-		
+
 		byte[] dataTosend = msg.getData();
-		
-		if(msg.isMulti()){
+
+		if (msg.isMulti()) {
 			DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
 					InetAddress.getByName(this.ip_diff.toString()), port_diff);
 			this.sockSender.send(paquetMulti);
-		}
-		else{
-			
+		} else {
+
 			if (portUDP1 != null) {
-				
+
 				DatagramPacket paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
 						InetAddress.getByName(this.ipPortUDP1.toString()), portUDP1);
-				
+
 				this.sockSender.send(paquet1);
-			
+
 			}
 			if (portUDP2 != null) {
 				DatagramPacket paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
 						InetAddress.getByName(this.ipPortUDP2.toString()), portUDP2);
-				
+
 				this.sockSender.send(paquet2);
 			}
 		}
-		if (verboseMode) {
-			if (verboseMode) {
-				System.out.println(threadToString()+"Message Envoyer : "+msg.toString() );
-			}
-		}
+		printVerbose("Message Envoyer : " + msg.toString());
 
 	}
 
-	public RingoSocket(String idApp,Integer numberLICENPortUDP,Integer numberPortTcp,boolean verboseMode) throws IOException {
+	public RingoSocket(String idApp, Integer numberLICENPortUDP, Integer numberPortTcp, boolean verboseMode)
+			throws IOException {
 
 		super();
-		
-		this.IdAlreadyReceveUDP1=Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
-		
-		this.idApp=idApp;
-		this.ip="127.000.000.001";
+
+		this.IdAlreadyReceveUDP1 = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
+
+		this.idApp = idApp;
+		this.ip = "127.000.000.001";
 		this.ip_diff = "225.1.2.4";
 		this.port_diff = 9999;
-		this.numberPortTcp=numberPortTcp;
-		this.sockServerTCP=new ServerSocket(numberPortTcp);
+		this.numberPortTcp = numberPortTcp;
+		this.sockServerTCP = new ServerSocket(numberPortTcp);
 		this.sockSender = new DatagramSocket();
 		this.listenPortUDP = numberLICENPortUDP;
 		this.sockRecever = new DatagramSocket(numberLICENPortUDP);
-		
+
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
-		this.verboseMode=false;
-		this.verboseMode=verboseMode;
-		
-		this.ipPortUDP1="127.000.000.001";
-		this.ipPortUDP2="127.000.000.001";
-		this.portUDP1=numberLICENPortUDP;
-		this.portUDP2=null;
-		this.EYBGisArrive=false;
-		this.boolClose=false;
-		
+		this.verboseMode = false;
+		this.verboseMode = verboseMode;
+
+		this.ipPortUDP1 = "127.000.000.001";
+		this.ipPortUDP2 = "127.000.000.001";
+		this.portUDP1 = numberLICENPortUDP;
+		this.portUDP2 = null;
+		this.EYBGisArrive = false;
+		this.boolClose = false;
+
 		/*******************************************************************
 		 * Creation des 4 thread anonyme : d'envoi UDP | reception UDP | serv
 		 * tcp | reception multi
@@ -571,15 +534,15 @@ public class RingoSocket implements Ringo {
 		 */
 		this.runRecev = new Runnable() {
 			public void run() {
-				boolean erreur=false;
+				boolean erreur = false;
 				while (!erreur) {
 					try {
 						receveMessage();
 					} catch (IOException e) {
-						erreur=true;
+						erreur = true;
 					}
 				}
-				if(verboseMode){System.out.println(threadToString()+"END thread RECEV");}
+				printVerbose("END thread RECEV");
 			}
 		};
 
@@ -590,44 +553,44 @@ public class RingoSocket implements Ringo {
 					try {
 						receveMULTI();
 					} catch (DOWNmessageException | IOException e) {
-						erreur=true;			
+						erreur = true;
 					}
 				}
-				if(verboseMode){System.out.println(threadToString()+"END thread MULTI");}
+				printVerbose("END thread MULTI");
 			}
 		};
 
 		this.runSend1 = new Runnable() {
 			public void run() {
-				boolean erreur=false;
+				boolean erreur = false;
 				while (!erreur) {
 					try {
 						sendMessage();
-					} catch ( InterruptedException | IOException e) {
-						erreur=true;
+					} catch (InterruptedException | IOException e) {
+						erreur = true;
 					}
 				}
-				if(verboseMode){System.out.println(threadToString()+"END thread SEND");}
+				printVerbose("END thread SEND");
 			}
 		};
 
 		this.runServTCP = new Runnable() {
 			public void run() {
-				boolean erreur=false;
+				boolean erreur = false;
 				while (!erreur) {
 					try {
 						servTCP();
-					} catch (ProtocolException |IOException e) {
+					} catch (ProtocolException | IOException e) {
 						try {
 							isClose();
 						} catch (DOWNmessageException e1) {
 							// TODO Auto-generated catch block
-							//e1.printStackTrace();
-							erreur=true;
+							// e1.printStackTrace();
+							erreur = true;
 						}
 					}
 				}
-				if(verboseMode){System.out.println(threadToString()+"END thread TCP");}
+				printVerbose("END thread TCP");
 			}
 		};
 
@@ -640,9 +603,9 @@ public class RingoSocket implements Ringo {
 		this.ThSend1.setName("Send UDP 1");
 		this.ThServTCP.setName("server TCP");
 		this.ThMULTIrecev.setName("MULTI-DIFF");
-		
-		//this.ThSend2.setName("Send UDP 2");
-		
+
+		// this.ThSend2.setName("Send UDP 2");
+
 		this.ThRecev.start();
 		this.ThSend1.start();
 		this.ThServTCP.start();
@@ -660,7 +623,7 @@ public class RingoSocket implements Ringo {
 
 			this.runSend2 = new Runnable() {
 				public void run() {
-					boolean erreur=false;
+					boolean erreur = false;
 					while (!erreur) {
 						try {
 							receveMessage();
@@ -683,5 +646,11 @@ public class RingoSocket implements Ringo {
 
 	public int getIdEntite() {
 		return idEntite;
+	}
+
+	private void printVerbose(String toPrint) {
+		if (verboseMode) {
+			System.out.println(threadToString() + toPrint);
+		}
 	}
 }
