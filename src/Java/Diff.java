@@ -44,7 +44,8 @@ public class Diff extends Appl {
 							val++;
 							String contenu = Message.longToStringRepresentation(input.length(), 3) + " " + input;
 							diffSocket.send(Message.APPL(val, "DIFF####", contenu.getBytes()));
-						} catch (numberOfBytesException | SizeMessageException e) {
+						} catch (numberOfBytesException e) {
+							//TODO
 							System.out.println("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
 						} catch (DOWNmessageException e) {
 							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");

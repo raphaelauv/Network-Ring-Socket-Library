@@ -16,6 +16,7 @@ public class Message {
 	private byte[] data;
 	
 	private TypeMessage type;
+	
 	private String ip;
 	private String ip_diff;
 	private String ip_succ;
@@ -41,15 +42,9 @@ public class Message {
 	
 	public final static int FLAG_IP_DIFF = 1;
 	public final static int FLAG_IP_NORMAL = 2;
-	public final static int FLAG_IP_SUCC = 2;
+	public final static int FLAG_IP_SUCC = 3;
 	
-	public String getIp(){
-		return this.ip;
-	}
-	public Integer getPort(){
-		return this.port;
-	}
-	
+
 	/**
 	 * Create a new Message and Parse it from unknown DATA
 	 * @param data
@@ -112,9 +107,9 @@ public class Message {
 	}
 	
 	
-	private String getDataFromNtoV(int n, int v) {
+	private String getDataFrom_N(int n, int size) {
 		try{
-			String tmp = new String(this.data, n, v - n);
+			String tmp = new String(this.data, n, size);
 			return tmp;
 		}catch(StringIndexOutOfBoundsException e){
 			return "";
@@ -131,9 +126,9 @@ public class Message {
 	private void parse() throws unknownTypeMesssage ,IndexOutOfBoundsException, parseMessageException{
 		int curseur=0;
 		int sizeIp_SPACE_PORT=sizeIp+1+sizePort;
-		String strParsed=getDataFromNtoV(curseur,sizeTypeMSG);
+		String strParsed=getDataFrom_N(curseur,sizeTypeMSG);
 		
-		curseur=curseur+sizeTypeMSG;
+		curseur+=sizeTypeMSG;
 		//System.out.println("type reconnu : "+strParsed);
 		
 		
@@ -148,7 +143,7 @@ public class Message {
 			return;
 		}
 		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
-			strParsed=getDataFromNtoV(curseur,curseur+1);
+			strParsed=getDataFrom_N(curseur,1);
 			if(!strParsed.equals("\n")){
 				throw new parseMessageException();
 			}
@@ -173,33 +168,33 @@ public class Message {
 			parseTestSpace(curseur);
 			curseur++;
 			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
-			curseur=curseur+sizeIp_SPACE_PORT;
+			curseur+=sizeIp_SPACE_PORT;
 			parseTestEnd(curseur);
 			return;
 			
 		}
 		
 		curseur++;
-		strParsed=getDataFromNtoV(curseur,curseur+Ringo.octalSizeIdm);
+		strParsed=getDataFrom_N(curseur,Ringo.octalSizeIdm);
 		this.idm=byteArrayToLong(strParsed.getBytes(),Ringo.octalSizeIdm,ByteOrder.LITTLE_ENDIAN);
 		
-		curseur=curseur+Ringo.octalSizeIdm;
+		curseur+=Ringo.octalSizeIdm;
 		if(type==TypeMessage.WHOS || type==TypeMessage.EYBG){
-			parseTestEnd(curseur);
+			//parseTestEnd(curseur);
 			return;
 		}
 		parseTestSpace(curseur);
 		curseur++;
 		if(type==TypeMessage.TEST){
 			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
-			curseur=curseur+sizeIp_SPACE_PORT;
-			parseTestEnd(curseur);
+			curseur+=sizeIp_SPACE_PORT;
+			//parseTestEnd(curseur);
 			return;
 		}
 		if(type==TypeMessage.APPL){
-			strParsed=getDataFromNtoV(curseur,curseur+Ringo.octalSizeIdApp);
+			strParsed=getDataFrom_N(curseur,Ringo.octalSizeIdApp);
 			this.id_app=strParsed;
-			curseur=curseur+Ringo.octalSizeIdApp;
+			curseur+=Ringo.octalSizeIdApp;
 			parseTestSpace(curseur);
 			curseur++;
 			/*
@@ -218,20 +213,20 @@ public class Message {
 		}
 		
 		parse_IP_SPACE_Port(curseur,FLAG_IP_NORMAL);
-		curseur=curseur+sizeIp_SPACE_PORT;
+		curseur+=sizeIp_SPACE_PORT;
 		parseTestSpace(curseur);
 		curseur++;
 		
 		if(type==TypeMessage.DUPL){
 			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
-			curseur=curseur+sizeIp_SPACE_PORT;
-			parseTestEnd(curseur);
+			curseur+=sizeIp_SPACE_PORT;
+			//parseTestEnd(curseur);
 			return;
 		}
 		if(type==TypeMessage.GBYE){
 			parse_IP_SPACE_Port(curseur,FLAG_IP_SUCC);
-			curseur=curseur+sizeIp_SPACE_PORT;
-			parseTestEnd(curseur);
+			curseur+=sizeIp_SPACE_PORT;
+			//parseTestEnd(curseur);
 			return;
 		}	
 	}
@@ -244,8 +239,9 @@ public class Message {
 	public void parse_IP_SPACE_Port(int start,int FLAG_IP) throws parseMessageException{
 		
 		String strParsed;
-		int valEndIP= start+Ringo.octalSizeIP;
-		strParsed=getDataFromNtoV(start,valEndIP);
+		int curseur= start+Ringo.octalSizeIP;
+		
+		strParsed=getDataFrom_N(start,Ringo.octalSizeIP);
 		parseTestIp(strParsed);
 		if(FLAG_IP==FLAG_IP_DIFF){
 			this.ip_diff=strParsed;
@@ -255,10 +251,9 @@ public class Message {
 		else{
 			this.ip_succ=strParsed;
 		}
-		parseTestSpace(valEndIP);
-		strParsed=getDataFromNtoV(valEndIP+1,valEndIP+1+Ringo.octalSizePort);
+		parseTestSpace(curseur);
+		strParsed=getDataFrom_N(curseur+1,Ringo.octalSizePort);
 		parseTestPort(strParsed);
-		
 		
 		int valPort=Integer.parseInt(strParsed);
 		if(FLAG_IP==FLAG_IP_DIFF){
@@ -387,18 +382,17 @@ public class Message {
 		if(type==TypeMessage.APPL){
 			return str+" "+this.id_app+" "+new String(this.data_app);
 		}
-		str=str+" "+this.ip+" "+this.portString;
+		str=str+" "+this.ip+" "+this.portString+" ";
 		if(type==TypeMessage.DUPL){
-			str=str+" "+this.ip_diff+" "+this.port_diffString;
+			return str+this.ip_diff+" "+this.port_diffString;
 		}
 		if(type==TypeMessage.GBYE){
-			str=str+" "+this.ip_succ+" "+this.port_succString;
+			return str+this.ip_succ+" "+this.port_succString;
 		}
 		//TODO POURT TESTS
 		else{
-			str=new String(this.data);
+			return new String(this.data);
 		}
-		return str;
 	}
 	
 	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
@@ -669,4 +663,18 @@ public class Message {
 	public byte[] getData_app() {
 		return data_app;
 	}
+	
+	public String getIp_succ() {
+		return ip_succ;
+	}
+	public Integer getPort_succ() {
+		return port_succ;
+	}
+	public String getIp(){
+		return this.ip;
+	}
+	public Integer getPort(){
+		return this.port;
+	}
+	
 }

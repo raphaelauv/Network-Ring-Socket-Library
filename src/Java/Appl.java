@@ -48,13 +48,13 @@ public abstract class Appl {
 		try {
 			input = scan.nextLine();
 			if (input.equals("disconnecT")) {
-				System.out.print("##### ASK FOR DISCONNECT #####");
+				System.out.println("##### ASK FOR DISCONNECT #####");
 				diffSocket.close();
 				runContinue = false;
 				return true;
 			}
 			if (input.startsWith("connecTo ")) {
-				System.out.print("##### ASK FOR CONNECTION #####");
+				System.out.println("##### ASK FOR CONNECTION #####");
 				Message a = new Message(input.getBytes(), "Noparse");
 				a.parse_IP_SPACE_Port(9, Message.FLAG_IP_NORMAL);
 
