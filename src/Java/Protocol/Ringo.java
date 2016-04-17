@@ -9,7 +9,9 @@ import java.net.UnknownHostException;
  */
 public interface Ringo {
 
+	
 	public final static int maxSizeMsg = 512;
+	public final static int octalSizeId = 8;
 	public final static int octalSizeIdm = 8;
 	public final static int octalSizeIdApp = 8;
 	public final static int octalSizeIP = 15;
@@ -42,7 +44,7 @@ public interface Ringo {
 	 * @throws DOWNmessageException 
 	 * @throws ProtocolException 
 	 */
-	public void connectTo(String adresse ,int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException;
+	public void connectTo(String adresse ,int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException ,InterruptedException;
 
 	/**
 	 * Pour demander l'envoi d'un message a l'entité id

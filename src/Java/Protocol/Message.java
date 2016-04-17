@@ -17,6 +17,7 @@ public class Message {
 	
 	private TypeMessage type;
 	
+	private String id;
 	private String ip;
 	private String ip_diff;
 	private String ip_succ;
@@ -153,17 +154,17 @@ public class Message {
 		
 		parseTestSpace(curseur);
 		
+		curseur++;
 		
-		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB || type==TypeMessage.WELC){
-			curseur++;
+		
+		if(type==TypeMessage.NEWC || type==TypeMessage.WELC){
+			
 			parse_IP_SPACE_Port(curseur,FLAG_IP_NORMAL);
 			
-			curseur=curseur+sizeIp_SPACE_PORT;
-			if(!(type==TypeMessage.WELC)){
-				
+			curseur+=sizeIp_SPACE_PORT;
+			if(type==TypeMessage.NEWC){
 				parseTestEnd(curseur);
 				return;
-					
 			}
 			parseTestSpace(curseur);
 			curseur++;
@@ -174,7 +175,6 @@ public class Message {
 			
 		}
 		
-		curseur++;
 		strParsed=getDataFrom_N(curseur,Ringo.octalSizeIdm);
 		this.idm=byteArrayToLong(strParsed.getBytes(),Ringo.octalSizeIdm,ByteOrder.LITTLE_ENDIAN);
 		
@@ -185,30 +185,33 @@ public class Message {
 		}
 		parseTestSpace(curseur);
 		curseur++;
+		
+		
 		if(type==TypeMessage.TEST){
 			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
 			curseur+=sizeIp_SPACE_PORT;
 			//parseTestEnd(curseur);
 			return;
 		}
+		
+		if(type==TypeMessage.MEMB){
+			strParsed=getDataFrom_N(curseur,Ringo.octalSizeId);
+			this.id=strParsed;
+			curseur+=Ringo.octalSizeId;
+			parseTestSpace(curseur);
+			curseur++;
+			parse_IP_SPACE_Port(curseur,FLAG_IP_NORMAL);
+			curseur+=sizeIp_SPACE_PORT;
+			return;
+		}
+		
 		if(type==TypeMessage.APPL){
 			strParsed=getDataFrom_N(curseur,Ringo.octalSizeIdApp);
 			this.id_app=strParsed;
 			curseur+=Ringo.octalSizeIdApp;
 			parseTestSpace(curseur);
 			curseur++;
-			/*
-			strParsed=getDataFromNtoV(curseur,curseur+Ringo.octalSizeMessSize);
-			 
-			curseur=curseur+Ringo.octalSizeMessSize;
-			this.size_messString=strParsed;
-			this.size_mess=Integer.parseInt(this.size_messString);
-			parseTestSpace(curseur);
-			curseur++;
-			*/
-			
 			this.data_app= Arrays.copyOfRange(this.data, curseur, data.length);
-			
 			return;
 		}
 		
@@ -357,10 +360,10 @@ public class Message {
 			return str+"\\n";
 		}
 		
-		if(type==TypeMessage.NEWC || type==TypeMessage.MEMB || type==TypeMessage.WELC){
-			
-			str=str+" "+this.ip+" "+this.portString;
-			if(!(type==TypeMessage.WELC)){
+		
+		if(type==TypeMessage.NEWC || type==TypeMessage.WELC){
+			str+=" "+this.ip+" "+this.portString;
+			if(type==TypeMessage.NEWC){
 				return str;
 			}
 			return str+" "+this.ip_diff+" "+this.port_diffString;
@@ -376,6 +379,11 @@ public class Message {
 		if(type==TypeMessage.WHOS || type==TypeMessage.EYBG){
 			return str;
 		}
+		
+		if(type==TypeMessage.MEMB){
+			return str+" "+this.id+" "+this.ip+" "+this.portString;
+		}
+		
 		if(type==TypeMessage.TEST){
 			return str+" "+this.ip_diff +" "+this.port_diffString;
 		}
@@ -422,13 +430,15 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message MEMB(String ip ,int portUDP1) {
-		byte[] MEMB = new byte[4+1+sizeIp+1+sizePort];
+	public static Message MEMB(long idm,String id,String ip ,int portUDP1) {
+		byte[] MEMB = new byte[4+1+Ringo.octalSizeIdm+1+Ringo.octalSizeId+1+sizeIp+1+sizePort];
 		Message tmp=new Message(MEMB,TypeMessage.MEMB);
+		tmp.idm=idm;
+		tmp.id=id;
 		tmp.ip=ip;
 		tmp.port=portUDP1;
 		tmp.convertALL();;
-		tmp.remplirData("MEMB ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString).getBytes());
+		tmp.remplirData("MEMB ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id).getBytes(),(" "+tmp.ip+" ").getBytes(),tmp.portString.getBytes());
 		return tmp;
 	}
 	
@@ -503,15 +513,18 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message ACKC() {
-		byte[] ACKC = new String("ACKC\n").getBytes();
-		Message tmp = new Message(ACKC, TypeMessage.ACKC);
+	public static Message ACKD(int port) {
+		byte[] ACKD = new byte[4+1+sizePort+1];
+		Message tmp = new Message(ACKD, TypeMessage.ACKD);
+		tmp.port=port;
+		tmp.convertALL();
+		tmp.remplirData("ACKD ".getBytes(),(tmp.portString+"\n").getBytes());
 		return tmp;
 	}
 
-	public static Message ACKD() {
-		byte[] ACKD = new String("ACKD\n").getBytes();
-		Message tmp = new Message(ACKD, TypeMessage.ACKD);
+	public static Message ACKC() {
+		byte[] ACKC = new String("ACKC\n").getBytes();
+		Message tmp = new Message(ACKC, TypeMessage.ACKC);
 		return tmp;
 	}
 	
@@ -610,8 +623,8 @@ public class Message {
 	private static String convertIP(String ip) throws Exception{
 		
 		if(ip=="localhost"){
-			//TODO pour TEST
-			return ip;
+			
+			return "127.000.000.001";
 		}
 		String[]tmp=ip.split("\\.");
 		
