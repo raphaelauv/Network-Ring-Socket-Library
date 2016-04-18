@@ -60,6 +60,8 @@ public class RingoSocket implements Ringo {
 	 * Verroux
 	 */
 	Semaphore tcpAcces;
+	Semaphore EYBG_Acces;
+	Semaphore UDP_ipPort_Acces;
 	Semaphore idmAcces;
 	
 	private Long idmActuel;
@@ -202,7 +204,7 @@ public class RingoSocket implements Ringo {
 			socket.close();
 			return;
 		}
-		tmp = Arrays.copyOfRange(tmp, 0, 46);
+		//tmp = Arrays.copyOfRange(tmp, 0, 46);
 		Message msg1 = null;
 		try {
 			msg1 = new Message(tmp);
@@ -224,39 +226,46 @@ public class RingoSocket implements Ringo {
 
 		printVerbose("TCP : message SEND   : " + msg2.toString());
 
+		try {
+			this.UDP_ipPort_Acces.acquire();
+			System.out.println("verroux acquis");
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		sizeReturn = buffIn.read(tmp);
 
 		if (sizeReturn != 5) {
 			socket.close();
 			return;
 		}
-		tmp = Arrays.copyOfRange(tmp, 0, 5);
+		//tmp = Arrays.copyOfRange(tmp, 0, 5);
 
 		Message msg3 = null;
 		try {
 			msg3 = new Message(tmp);
 		} catch (parseMessageException | unknownTypeMesssage e) {
 			socket.close();
+			this.UDP_ipPort_Acces.release();
 			throw new ProtocolException();
 		}
 		if (msg3.getType() != TypeMessage.ACKC) {
 			socket.close();
+			this.UDP_ipPort_Acces.release();
 			throw new ProtocolException();
-		}
+		}		
 		printVerbose("TCP : message RECEVE : " + msg3.toString());
 
-		synchronized (ipPortUDP1) {
-			synchronized (portUDP1) {
-				this.ipPortUDP1 = msg1.getIp();
-				this.portUDP1 = msg1.getPort();
-			}
-		}
-		synchronized (ip_diff) {
-			synchronized (port_diff) {
-				this.ip_diff = msg1.getIp_diff();
-				this.port_diff = msg1.getPort_diff();
-			}
-		}
+		
+		this.ipPortUDP1 = msg1.getIp();
+		this.portUDP1 = msg1.getPort();
+		
+		this.ip_diff = msg1.getIp_diff();
+		this.port_diff = msg1.getPort_diff();
+		this.UDP_ipPort_Acces.release();
+		System.out.println("verroux liberer");
+		
 		buffOut.close();
 		buffIn.close();
 		socket.close();
@@ -323,6 +332,8 @@ public class RingoSocket implements Ringo {
 		this.boolClose = false;
 		this.tcpAcces=new Semaphore(1);
 		this.idmAcces=new Semaphore(1);
+		this.UDP_ipPort_Acces = new Semaphore(1);
+		this.EYBG_Acces= new Semaphore(0);
 		this.idmActuel=0L;
 		
 		this.ThRecev = new Thread(new servUDPlisten(this).runServUDPlisten);

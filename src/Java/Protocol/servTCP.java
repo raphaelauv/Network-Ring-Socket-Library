@@ -45,6 +45,8 @@ class servTCP {
 	 * @throws DOWNmessageException
 	 */
 	private void serv() throws IOException, ProtocolException {
+		
+			
 			Socket socket = ringoSocket.sockServerTCP.accept();
 			try {
 				ringoSocket.tcpAcces.acquire();
@@ -64,10 +66,11 @@ class servTCP {
 
 			byte[] tmp = new byte[Ringo.maxSizeMsg];
 			int sizeReturn = buffIn.read(tmp);
+			
 			if (sizeReturn != 25) {
 				throw new ProtocolException();
 			}
-			tmp = Arrays.copyOfRange(tmp, 0, 25);
+			//tmp = Arrays.copyOfRange(tmp, 0, 25);
 
 			Message msg2 = null;
 			try {
@@ -90,16 +93,23 @@ class servTCP {
 
 			buffOut.write(msg3.getData());
 			buffOut.flush();
-
 			
 			ringoSocket.printVerbose("TCP : message SEND   : " + msg3.toString());
-
-			synchronized (ringoSocket.ipPortUDP1) {
-				synchronized (ringoSocket.portUDP1) {
-					ringoSocket.portUDP1 = msg2.getPort();
-					ringoSocket.ipPortUDP1=msg2.getIp();
-				}
+			
+			try {
+				ringoSocket.UDP_ipPort_Acces.acquire();
+				System.out.println("verroux acquis");
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			
+			
+			ringoSocket.portUDP1 = msg2.getPort();
+			ringoSocket.ipPortUDP1=msg2.getIp();
+			
+			ringoSocket.UDP_ipPort_Acces.release();
+			System.out.println("verroux liberer");
 			buffOut.close();
 			buffIn.close();
 			

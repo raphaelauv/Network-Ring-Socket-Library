@@ -9,7 +9,6 @@ import java.util.Arrays;
  */
 public class Message {
 	
-	//private String type;
 	private boolean multi;
 	private byte[] data;
 	
@@ -39,16 +38,16 @@ public class Message {
 	private final static Integer sizePort = Ringo.byteSizePort;
 	private final static Integer sizeTypeMSG = Ringo.byteSizeTypeMSG;
 	
-	public final static int FLAG_IP_DIFF = 1;
-	public final static int FLAG_IP_NORMAL = 2;
-	public final static int FLAG_IP_SUCC = 3;
+	private final static int FLAG_IP_DIFF = 1;
+	private final static int FLAG_IP_NORMAL = 2;
+	private final static int FLAG_IP_SUCC = 3;
 	
 
 	/**
-	 * Create a new Message and Parse it from unknown DATA
-	 * @param data
-	 * @throws unknownTypeMesssage
-	 * @throws parseMessageException
+	 * Create a new Message and Parse it from data
+	 * @param data le contenu du message a parser
+	 * @throws unknownTypeMesssage if the type Message is unknow
+	 * @throws parseMessageException if the data do no correcpond to the Type Message
 	 */
 	public Message(byte[] data) throws unknownTypeMesssage, parseMessageException {
 		super();
@@ -59,16 +58,6 @@ public class Message {
 			throw new unknownTypeMesssage();
 		}
 		this.convertALL();
-	}
-	
-	/**
-	 * @deprecated
-	 * @param data
-	 * @param NOPARSE
-	 */
-	public Message(byte [] data,String NOPARSE){//TODO trouver plus jolie synthaxiquement
-		super();
-		this.data=data;
 	}
 	
 	/**
@@ -154,7 +143,7 @@ public class Message {
 		}
 		
 		if(type==TypeMessage.DOWN){
-			parseTestEnd(curseur);
+			//parseTestEnd(curseur);
 			return;
 		}
 		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
@@ -162,7 +151,7 @@ public class Message {
 			if(!strParsed.equals("\n")){
 				throw new parseMessageException();
 			}
-			parseTestEnd(curseur+1);
+			//parseTestEnd(curseur+1);
 			return;
 		}
 		
@@ -177,14 +166,14 @@ public class Message {
 			
 			curseur+=sizeIp_SPACE_PORT;
 			if(type==TypeMessage.NEWC){
-				parseTestEnd(curseur);
+				//parseTestEnd(curseur);
 				return;
 			}
 			parseTestSpace(curseur);
 			curseur++;
 			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
 			curseur+=sizeIp_SPACE_PORT;
-			parseTestEnd(curseur);
+			//parseTestEnd(curseur);
 			return;
 			
 		}

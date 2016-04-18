@@ -9,7 +9,6 @@ import Protocol.Exceptions.*;
 public abstract class Appl {
 
 	final String style="#########################################################";
-	
 	String input;
 	Message output;
 	boolean runContinue;
@@ -18,7 +17,6 @@ public abstract class Appl {
 	Thread ThSend;
 	
 	Scanner scan;
-	
 	RingoSocket ringoSocket;
 	
 	public Appl(String APPLID,Integer udpPort, Integer tcpPort, boolean verboseMode) throws BindException,IOException{
