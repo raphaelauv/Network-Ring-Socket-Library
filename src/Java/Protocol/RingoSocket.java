@@ -78,6 +78,10 @@ public class RingoSocket implements Ringo {
 
 	private Boolean boolClose;
 
+	/**
+	 * Ferme tout les Thread de la RingoSocket
+	 * @param modeDOWN if true envoi un DOWN en multi avant de fermer
+	 */
 	void closeServ(boolean modeDOWN) {
 
 		this.boolClose = true;
@@ -147,6 +151,10 @@ public class RingoSocket implements Ringo {
 		closeServ(false);
 	}
 
+	/**
+	 * Tester si la ringoSocket est fermer
+	 * @throws DOWNmessageException si la ringoSocket est fermer
+	 */
 	void isClose() throws DOWNmessageException {
 		synchronized (boolClose) {
 			if (boolClose) {
@@ -680,11 +688,20 @@ public class RingoSocket implements Ringo {
 	public int getIdEntite() {
 		return idEntite;
 	}
+	
+	/**
+	 * Affiche l'argument si en mode VERBOSE
+	 * @param toPrint text a afficher
+	 */
 	void printVerbose(String toPrint) {
 		if (verboseMode) {
 			System.out.println(threadToString() + toPrint);
 		}
 	}
+	/**
+	 * Recuprer le nom du Thread actuel
+	 * @return le String du nom du Thread actuel
+	 */
 	private String threadToString() {
 		return "THREAD: " + Thread.currentThread().getName() + " | ";
 	}

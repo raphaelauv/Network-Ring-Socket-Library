@@ -6,8 +6,6 @@ import java.util.Arrays;
 
 /**
  * Stock et Parse les informations d'un message
- * 
- *
  */
 public class Message {
 	
@@ -63,11 +61,21 @@ public class Message {
 		this.convertALL();
 	}
 	
-	public Message(byte [] data,String NOPARSE){
+	/**
+	 * @deprecated
+	 * @param data
+	 * @param NOPARSE
+	 */
+	public Message(byte [] data,String NOPARSE){//TODO trouver plus jolie synthaxiquement
 		super();
 		this.data=data;
 	}
 	
+	/**
+	 * Constructeur pour les Appels statique , pattern FACTORIE
+	 * @param data
+	 * @param type
+	 */
 	private Message(byte[] data, TypeMessage type) {
 		super();
 		this.setMulti(false);
@@ -107,7 +115,13 @@ public class Message {
 		}
 	}
 	
-	
+	/**
+	 * Retourne This.data entre N et SIZE-N
+	 * 
+	 * @param n debut 
+	 * @param size taille demander
+	 * @return le string de this.data de N jusqu'a Size-N
+	 */
 	private String getDataFrom_N(int n, int size) {
 		try{
 			String tmp = new String(this.data, n, size);
@@ -676,7 +690,6 @@ public class Message {
 	public byte[] getData_app() {
 		return data_app;
 	}
-	
 	public String getIp_succ() {
 		return ip_succ;
 	}

@@ -23,9 +23,10 @@ public class Trans extends Appl {
 		
 		super("TRANS###", udpPort, tcpPort, true);
 		
+		/*
+		 * Remplir la HashMap contenant les fichiers du repertoire courant
+		 */
 		File[] fileList= new File("").getAbsoluteFile().listFiles();
-		
-		
 		files= new HashMap<String,Path>();
 		if(fileList!=null){
 			for (File f : fileList) {
@@ -35,7 +36,8 @@ public class Trans extends Appl {
 			}
 		}
 		
-		int idTrans=10000000;
+		int idTrans=10000000;//TODO
+		
 		Runnable runRecev = new Runnable() {
 			public void run() {
 				while (runContinue) {
@@ -115,6 +117,10 @@ public class Trans extends Appl {
 		initThread(runRecev,runSend,"TRANS");
 	}
 	
+	/**
+	 * Quand un fichier est nouvelement recu , il peut etre ajouter a la hashMap des fichiers du repertoire
+	 * @param newFile le nouveau fichier recu par le reseau
+	 */
 	private void updateFileList(File newFile){
 		this.files.put(newFile.getName(), newFile.toPath());
 	}

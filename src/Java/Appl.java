@@ -3,7 +3,6 @@ import java.net.BindException;
 import java.net.UnknownHostException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-
 import Protocol.Message;
 import Protocol.RingoSocket;
 import Protocol.Exceptions.*;
@@ -28,6 +27,12 @@ public abstract class Appl {
 		this.runContinue=true;
 	}
 	
+	/**
+	 * Pour initialiser les threads , les nommer puis les lancer
+	 * @param receve
+	 * @param send
+	 * @param name nom de l'APPL
+	 */
 	public void initThread(Runnable receve,Runnable send,String name){
 		this.ThRecev = new Thread(receve);
 		this.ThSend = new Thread(send);
@@ -40,12 +45,22 @@ public abstract class Appl {
 	}
 	
 	
+	/**
+	 * Test les arguments et affiche les informations de base des APPL
+	 * @param args les args du main
+	 */
 	public static void start(String[] args){
 		if (args==null || args.length == 0 || args[0] == null || args[1] == null) {
 			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
 			System.exit(1);
 		}
-		printInfo(args);
+
+		System.out.println("arg0 UDP : " + args[0]); // 4242
+		System.out.println("arg1 TCP : " + args[1]); // 5555
+		System.out.println("#########################################################");
+		System.out.println("## To ask disconnect,type : disconnecT                 ##");
+		System.out.println("## To ask connection,type :connecTo IpADRESSE(15) Port ##");
+		System.out.println("#########################################################");
 	}
 	
 	
@@ -96,12 +111,4 @@ public abstract class Appl {
 		return false;
 	}
 	
-	private static void printInfo(String[] args){
-		System.out.println("arg0 UDP : " + args[0]); // 4242
-		System.out.println("arg1 TCP : " + args[1]); // 5555
-		System.out.println("#########################################################");
-		System.out.println("## To ask disconnect,type : disconnecT                 ##");
-		System.out.println("## To ask connection,type :connecTo IpADRESSE(15) Port ##");
-		System.out.println("#########################################################");
-	}
 }
