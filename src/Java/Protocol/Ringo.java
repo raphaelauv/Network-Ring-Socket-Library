@@ -23,7 +23,7 @@ public interface Ringo {
 	public final static int byteSizeSpace = 1;
 	/**
 	 * 	Demande un test de l'anneau
-	 * @param sendDownIfBreak true -> si l'anneau est cassé alors averti sur multi diffusion | else -> pas d'alert
+	 * @param sendDownIfBreak true -> si l'anneau est cassee alors averti sur multi diffusion | else -> pas d'alert
 	 * @return true -> anneau pas casse
 	 * @throws InterruptedException
 	 * @throws DOWNmessageException
@@ -49,7 +49,7 @@ public interface Ringo {
 	public void connectTo(String adresse ,int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException ,InterruptedException;
 
 	/**
-	 * Pour demander l'envoi d'un message a l'entité id
+	 * Pour demander l'envoi d'un message a l'entite id
 	 * @param message
 	 * @param id
 	 * @throws SizeException

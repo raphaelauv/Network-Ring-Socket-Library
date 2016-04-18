@@ -571,7 +571,7 @@ public class Message {
 	
 	/**
 	 * 
-	 * Crée un String de la valeur 562 sur 6 -> 000562
+	 * Cree un String de la valeur 562 sur 6 -> 000562
 	 * 
 	 * @param value
 	 * @param numberOfBytes
