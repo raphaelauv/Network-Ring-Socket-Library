@@ -6,7 +6,7 @@ import java.util.Scanner;
 import Protocol.Message;
 import Protocol.RingoSocket;
 import Protocol.Exceptions.*;
-public abstract class Appl {
+public class Appl {
 
 	final String style="#########################################################";
 	String input;
@@ -119,4 +119,19 @@ public abstract class Appl {
 		return false;
 	}
 	
+	/**
+	 * pour lancer une simple entite ringoSocket , denouer de toute interaction utilisateur 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		start(args);
+		try {
+			new Appl(null,Integer.parseInt(args[0]), Integer.parseInt(args[1]),true);
+
+		} catch (BindException e) {
+			System.out.println("The ports are already in use");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

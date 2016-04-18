@@ -24,7 +24,6 @@ public class RingoSocket implements Ringo {
 	String idApp;
 	String ip;
 
-	private int idEntite;
 
 	ServerSocket sockServerTCP;
 	private Integer portTcp;
@@ -309,7 +308,11 @@ public class RingoSocket implements Ringo {
 
 		this.IdAlreadyReceveUDP1 = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
 
-		this.idApp = idApp;
+		if(idApp==null){
+			this.idApp ="";
+		}else{
+			this.idApp = idApp;
+		}
 		this.ip = "127.000.000.001";
 		this.ip_diff = "225.1.2.4";
 		this.port_diff = 9999;
@@ -386,9 +389,6 @@ public class RingoSocket implements Ringo {
 	}
 	
 	*/
-	public int getIdEntite() {
-		return idEntite;
-	}
 	
 	/**
 	 * Affiche l'argument si en mode VERBOSE

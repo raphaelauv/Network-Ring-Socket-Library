@@ -41,7 +41,7 @@ class servUDPlisten {
 		try {
 			msgR = new Message(paquet.getData());
 		} catch (parseMessageException | unknownTypeMesssage e) {
-			e.printStackTrace();
+			e.printStackTrace();//TODO
 			return;
 		}
 
@@ -61,7 +61,7 @@ class servUDPlisten {
 				ringoSocket.EYBG_Acces.acquire();
 				System.out.println("verroux acquis");
 				}catch (InterruptedException e){
-					e.printStackTrace();
+					e.printStackTrace();//TODO
 				}
 				ringoSocket.ipPortUDP1=msgR.getIp_succ();
 				ringoSocket.portUDP1=msgR.getPort_succ();
