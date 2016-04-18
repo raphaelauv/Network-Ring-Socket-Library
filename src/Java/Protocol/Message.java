@@ -586,7 +586,7 @@ public class Message {
 	}
 	
 	public static byte[] longToByteArray(Long val,int numberOfByte,ByteOrder ENDIAN){
-		if(val<0){		
+		if(val<0){
 		}
 		//long values = Long.parseUnsignedLong("18446744073709551615");
 		return ByteBuffer.allocate(numberOfByte).order(ENDIAN).putLong(val).array();

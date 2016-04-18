@@ -1,4 +1,8 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.BindException;
@@ -13,6 +17,19 @@ import Protocol.Ringo;
 import Protocol.Exceptions.*;
 
 public class Trans extends Appl {
+	
+	class infoTransfert {
+		public long actual_no_mess;
+		public long num_mess;
+		public BufferedOutputStream outputStream;
+
+		public infoTransfert( long actual_no_mess,long num_mess) {
+			super();
+			
+			this.actual_no_mess = actual_no_mess;
+			this.num_mess = num_mess;
+		}
+	}
 	
 	private final int byteSizeTransType=3;
 	
@@ -29,11 +46,11 @@ public class Trans extends Appl {
 	 * clef un Id-trens en COUR
 	 * valeur [noMess actuel,nuMmess attendu]
 	 */
-	private HashMap<Long, Long[]> id_TransMAP;
+	private HashMap<Long, infoTransfert> id_TransMAP;
 	
 	private volatile String nameFileAsk;
 	
-	private final int MaxDataByMessage = Ringo.maxSizeMsg - (Ringo.byteSizeType + (Ringo.byteSizeSpace * 7)
+	private final int maxSizeContent = Ringo.maxSizeMsg - (Ringo.byteSizeType + (Ringo.byteSizeSpace * 7)
 			+ Ringo.byteSizeIdm * 3 + Ringo.byteSizeIdApp + byteSizeTransType +byteSizeContent) ;
 
 	private final int byteSizeStart=byteSizeTransType+Ringo.byteSizeSpace*4+byteSizeId_Trans;
@@ -43,7 +60,7 @@ public class Trans extends Appl {
 		
 		super("TRANS###", udpPort, tcpPort, verbose);
 		
-		this.id_TransMAP=new HashMap<Long, Long[]>(10);
+		this.id_TransMAP=new HashMap<Long, infoTransfert>(10);
 		
 		/*
 		 * Remplir la HashMap contenant les fichiers du repertoire courant
@@ -64,23 +81,23 @@ public class Trans extends Appl {
 				while (runContinue) {
 					try {
 						msgIN = ringoSocket.receive();
-						byte[] content = msgIN.getData_app();
+						byte[] msgInByte = msgIN.getData_app();
 						int curseur;
 						String affichage=style + "\n"+LocalDateTime.now() +" -> " + "RECEVE : ";
 						
-						String type = new String(content, 0, byteSizeTransType);
+						String type = new String(msgInByte, 0, byteSizeTransType);
 						
 						curseur=byteSizeTransType+Ringo.byteSizeSpace;
 						
 						if(type.equals("REQ")){
-							req(affichage,content,curseur);
+							req(affichage,msgInByte,curseur);
 						}
 						else if(type.equals("ROK")){
-							rok(affichage,content,curseur);
+							rok(affichage,msgInByte,curseur);
 						}
 						
 						else if(type.equals("SEN")){
-							sen(affichage,content,curseur);
+							sen(affichage,msgInByte,curseur);
 						}
 
 					} catch (DOWNmessageException e) {
@@ -89,6 +106,9 @@ public class Trans extends Appl {
 					} catch (IOException e) {
 						System.out.println("THREAD: APP RECEVE | File error");
 						//e.printStackTrace();
+					} catch (numberOfBytesException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
 				ThSend.interrupt();
@@ -128,31 +148,81 @@ public class Trans extends Appl {
 		initThread(runRecev,runSend,"TRANS");
 	}
 	
-	private void sen(String affichage, byte[] content, int curseur){
+	private void sen(String affichage, byte[] msgInByte, int curseur)throws DOWNmessageException, IOException{
 		affichage+= "SEN " ;
+		byte [] id_transByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeId_Trans);
+		Long id_trans=Message.byteArrayToLong(id_transByte, byteSizeId_Trans, ByteOrder.nativeOrder());
+		curseur+=byteSizeId_Trans+Ringo.byteSizeSpace;
+		infoTransfert value =id_TransMAP.get(id_trans);
+		if(value==null){
+			ringoSocket.send(msgIN);
+			return;
+		}
+		
+		byte [] no_messByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeNo_Mess);
+		Long no_mess=Message.byteArrayToLong(no_messByte, byteSizeNo_Mess, ByteOrder.nativeOrder());
+		curseur+=byteSizeNo_Mess+Ringo.byteSizeSpace;
+		
+		String size_contentSTR = new String(msgInByte,curseur,byteSizeContent);
+		int size_content = Integer.parseInt(size_contentSTR);
+		curseur+=byteSizeContent+Ringo.byteSizeSpace;
+		
+		
+		if(!(value.actual_no_mess==no_mess)){
+			System.out.println("problem d'ordre");
+			System.out.println("valeur attentdu "+value.actual_no_mess);
+			System.out.println("valeur recu "+no_mess);
+			return;
+		}
+		File temp;
+		if(value.actual_no_mess==0){
+			System.out.println("premiere partie");
+			temp = File.createTempFile("tempfile", ".tmp");
+			value.outputStream=new BufferedOutputStream(new FileOutputStream(temp));	
+		}
+
+		value.outputStream.write(msgInByte,curseur,size_content);
+		value.outputStream.flush();
+		value.actual_no_mess++;
+		System.out.println("val nomess "+value.actual_no_mess);
+		System.out.println("val nummess "+value.num_mess);
+		System.out.println("ecris dedans "+new String(msgInByte,curseur,size_content));
+		if(value.actual_no_mess==value.num_mess){
+			System.out.println("transfert FINI");
+			value.outputStream.close();
+			
+		}
+		
 	}
 	
-	private void rok(String affichage, byte[] content, int curseur){
+	private void rok(String affichage, byte[] msgInByte, int curseur) throws DOWNmessageException{
 		affichage+= "ROK " ;
-		byte [] id_trans=Arrays.copyOfRange(content,curseur, byteSizeId_Trans);
-		Long id_transLong=Message.byteArrayToLong(id_trans, byteSizeId_Trans, ByteOrder.nativeOrder());
-		curseur+=byteSizeTransType+Ringo.byteSizeSpace;
+		byte [] id_transByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeId_Trans);
 		
-		String size_nom_STR = new String(content,curseur,byteSizeNom);
+		Long id_trans=Message.byteArrayToLong(id_transByte, byteSizeId_Trans, ByteOrder.nativeOrder());
+		curseur+=byteSizeId_Trans+Ringo.byteSizeSpace;
+		
+		String size_nom_STR = new String(msgInByte,curseur,byteSizeNom);
 		int tailleNameFile = Integer.parseInt(size_nom_STR);
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;
-		String name_fileSTR = new String(content, curseur,tailleNameFile);
-	
+		String name_fileSTR = new String(msgInByte, curseur,tailleNameFile);
 		
+		if(name_fileSTR.equals(nameFileAsk)){
+			byte [] num_messByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeNum_Mess);
+			Long num_mess=Message.byteArrayToLong(num_messByte, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
+			
+			id_TransMAP.put(id_trans,new infoTransfert(0L,num_mess) );	
+		}
+		else{
+			ringoSocket.send(msgIN);// renvoi sur l'anneau du message
+		}
 	}
 	
-	
-	
-	private void req(String affichage, byte[] content, int curseur) throws IOException, DOWNmessageException{
-		String size_nom_STR = new String(content,curseur,byteSizeNom);
+	private void req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, numberOfBytesException{
+		String size_nom_STR = new String(msgInByte,curseur,byteSizeNom);
 		int tailleNameFile = Integer.parseInt(size_nom_STR);
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;
-		String name_fileSTR = new String(content, curseur,tailleNameFile);
+		String name_fileSTR = new String(msgInByte, curseur,tailleNameFile);
 		
 		affichage+= "REQ " + name_fileSTR;
 		System.out.println(affichage+ "\n" + style);
@@ -163,27 +233,40 @@ public class Trans extends Appl {
 			
 			byte []  debutMsg= "ROK".getBytes();
 			long idt= ringoSocket.getUniqueIdm();
-			byte [] idTrans=Message.longToByteArray(idt, 8,ByteOrder.LITTLE_ENDIAN );
+			System.out.println("id transaction "+idt);
+			byte [] idTrans=Message.longToByteArray(idt, byteSizeId_Trans,ByteOrder.LITTLE_ENDIAN );
 			byte [] size_nom=size_nom_STR.getBytes();
 			byte [] name_file=name_fileSTR.getBytes();
 			System.out.println("SIZE OF FILE :"+Files.size(pathFile));
-			long num_messLong = Files.size(pathFile)/MaxDataByMessage;
-			byte [] num_mess =Message.longToByteArray(num_messLong, 8, ByteOrder.LITTLE_ENDIAN);
+			long num_messLong = Files.size(pathFile)/maxSizeContent;
+			if(num_messLong<1){
+				num_messLong=1;
+			}
+			byte [] num_mess =Message.longToByteArray(num_messLong, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
 			byte [] SPACE =" ".getBytes();
-			
 			byte [] data = new byte [byteSizeDataROK_withoutName_FILE+tailleNameFile];
 			
 			Message.remplirData(data,debutMsg,SPACE,idTrans,SPACE,size_nom,SPACE,name_file,SPACE,num_mess);
 			ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
 			
 			debutMsg="SEN".getBytes();
+			
+			File file=pathFile.toFile();
+			BufferedInputStream out=new BufferedInputStream(new FileInputStream(file));
+			byte [] content = new byte[maxSizeContent];
+			int size_contentVal;
+			byte [] no_mess;
+			byte [] size_content;
 			for(long i=0; i<num_messLong ; i++){
-				byte [] no_mess=Message.longToByteArray( i, 8, ByteOrder.LITTLE_ENDIAN);
-				
-				data= new byte[byteSizeDataSEN_withContent+999];
-				
+				size_contentVal=out.read(content);
+				no_mess=Message.longToByteArray( i, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
+				size_content=Message.longToStringRepresentation(size_contentVal, 3).getBytes();
+				data= new byte[500];
+				Message.remplirData(data, debutMsg,SPACE,idTrans,SPACE,no_mess,SPACE,size_content,SPACE,content);
+				ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
 				
 			}
+			out.close();
 		}else{
 			ringoSocket.send(msgIN);// renvoi sur l'anneau du message
 		}

@@ -234,7 +234,6 @@ public class RingoSocket implements Ringo {
 
 		try {
 			this.UDP_ipPort_Acces.acquire();
-			System.out.println("verroux acquis");
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -270,7 +269,6 @@ public class RingoSocket implements Ringo {
 		this.ip_diff = msg1.getIp_diff();
 		this.port_diff = msg1.getPort_diff();
 		this.UDP_ipPort_Acces.release();
-		System.out.println("verroux liberer");
 		
 		buffOut.close();
 		buffIn.close();

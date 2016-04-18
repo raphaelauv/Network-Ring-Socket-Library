@@ -86,7 +86,9 @@ public class Appl {
 			if (input.startsWith("connecTo ")) {
 				
 				System.out.println("##### ASK FOR CONNECTION #####");
+				
 				String info=input.substring(9,input.length());
+				
 				int positionEspace=info.indexOf(" ");
 				String ip=info.substring(0,positionEspace);
 				ip=Message.convertIP(ip);
@@ -122,6 +124,9 @@ public class Appl {
 		} catch (IpException e) {
 			System.out.println("\nTHREAD connecTo : Erreur format IP invalide");
 			return true;
+		} catch(StringIndexOutOfBoundsException e){
+			System.out.println("\nTHREAD connecTo : Erreur format IP ou port invalide");
+			return false;
 		}
 		
 		return false;
