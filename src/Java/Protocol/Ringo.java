@@ -63,4 +63,9 @@ public interface Ringo {
 	 */
 	public Message receive() throws DOWNmessageException;
 	
+	/**
+	 * Get an unique IDM message id
+	 * @return
+	 */
+	public long getUniqueIdm();
 }

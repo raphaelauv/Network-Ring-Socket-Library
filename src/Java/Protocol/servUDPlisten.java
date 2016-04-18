@@ -75,7 +75,7 @@ class servUDPlisten {
 				return;
 			}
 		}else if (msgR.getType() == TypeMessage.WHOS) {
-			ringoSocket.send(Message.MEMB(400,ringoSocket.id,ringoSocket.ip, ringoSocket.portUDP1));	
+			ringoSocket.send(Message.MEMB(400,ringoSocket.idApp,ringoSocket.ip, ringoSocket.portUDP1));	
 			
 		} else if (msgR.getType() == TypeMessage.EYBG) {
 			synchronized (ringoSocket.EYBGisArrive) {
@@ -86,7 +86,7 @@ class servUDPlisten {
 
 		} else if (msgR.getType() == TypeMessage.APPL) {
 
-			if (msgR.getId_app().equals(ringoSocket.id)) {
+			if (msgR.getId_app().equals(ringoSocket.idApp)) {
 				synchronized (ringoSocket.listForApply) {
 					ringoSocket.listForApply.add(msgR);
 					ringoSocket.listForApply.notifyAll();

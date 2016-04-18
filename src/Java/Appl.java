@@ -59,7 +59,7 @@ public abstract class Appl {
 		System.out.println("arg1 TCP : " + args[1]); // 5555
 		System.out.println("#########################################################");
 		System.out.println("## To ask disconnect,type : disconnecT                 ##");
-		System.out.println("## To ask connection,type :connecTo IpADRESSE(15) Port ##");
+		System.out.println("## To ask connection,type :connecTo Ip Port ##");
 		System.out.println("#########################################################");
 	}
 	
@@ -79,33 +79,43 @@ public abstract class Appl {
 				return true;
 			}
 			if (input.startsWith("connecTo ")) {
+				
 				System.out.println("##### ASK FOR CONNECTION #####");
-				Message a = new Message(input.getBytes(), "Noparse");
-				a.parse_IP_SPACE_Port(9, Message.FLAG_IP_NORMAL);
-
-				System.out.println(" | TRY TO CONNECT " + a.getIp() + " " + a.getPort());
-				ringoSocket.connectTo(a.getIp(), a.getPort());
+				String info=input.substring(9,input.length());
+				int positionEspace=info.indexOf(" ");
+				String ip=info.substring(0,positionEspace);
+				ip=Message.convertIP(ip);
+				int port=Integer.parseInt(info.substring(positionEspace+1,info.length()));
+				System.out.println(" | TRY TO CONNECT " + ip + " " + port);
+				
+				ringoSocket.connectTo(ip, port);
 				
 				return true;
 			}
-		} catch (parseMessageException e) {
-			System.out.println("\nERREUR respect :connecTo ipAdresse port");
 		} catch (UnknownHostException e) {
 			System.out.println("\nERREUR connecTo : UnknownHost ");
+			return true;
 		} catch (AlreadyAllUdpPortSet e) {
 			e.printStackTrace();
 			System.out.println("\nERREUR connecTo : Already connect");
+			return true;
 		} catch (IOException e) {
+			e.printStackTrace();
 			System.out.println("\nERREUR connecTo : IO");
 		} catch (InterruptedException e) {
 			System.out.println("\nERREUR connecTo : Interrupted");
 		} catch (NoSuchElementException e) {
 			System.out.println("\nERREUR connecTo : NoSuchElement");
+			return true;
 		} catch (ProtocolException e) {
 			System.out.println("\nERREUR connecTo : Erreur de protocol");
+			return true;
 		} catch (DOWNmessageException e) {
 			System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 			runContinue = false;
+		} catch (IpException e) {
+			System.out.println("\nTHREAD connecTo : Erreur format IP invalide");
+			return true;
 		}
 		
 		return false;

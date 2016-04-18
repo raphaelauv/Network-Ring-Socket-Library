@@ -313,7 +313,7 @@ public class Message {
 	 * @param portTest
 	 * @throws parseMessageException
 	 */
-	private void parseTestPort(String portTest)throws parseMessageException{
+	public static void parseTestPort(String portTest)throws parseMessageException{
 		if(portTest.length()!=4){
 			throw new parseMessageException();
 		}
@@ -634,10 +634,9 @@ public class Message {
 	 * @return 
 	 * @throws Exception
 	 */
-	private static String convertIP(String ip) throws Exception{
+	public static String convertIP(String ip) throws IpException{
 		
-		if(ip=="localhost"){
-			
+		if(ip.equals("localhost")){
 			return "127.000.000.001";
 		}
 		String[]tmp=ip.split("\\.");
@@ -656,10 +655,6 @@ public class Message {
 		}
 		String tmp2=tmp[0]+"."+tmp[1]+"."+tmp[2]+"."+tmp[3];
 		
-		//TODO pour test , a retirer
-		if(tmp2.length()!=15){
-			throw new Exception();
-		}
 		return tmp2;
 	}
 	
