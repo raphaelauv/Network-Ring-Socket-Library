@@ -98,8 +98,9 @@ public class Appl {
 			System.out.println("\nERREUR connecTo : Already connect");
 			return true;
 		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("\nERREUR connecTo : IO");
+			//e.printStackTrace();
+			System.out.println("\nERREUR connecTo : IO - ConnectException");
+			return true;
 		} catch (InterruptedException e) {
 			System.out.println("\nERREUR connecTo : Interrupted");
 		} catch (NoSuchElementException e) {

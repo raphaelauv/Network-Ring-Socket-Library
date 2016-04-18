@@ -36,16 +36,14 @@ public class Diff extends Appl {
 
 		Runnable runSend = new Runnable() {
 			public void run() {
-				int val = 0;
 				boolean entrytested;
 				while (runContinue) {
 					entrytested = testEntry();
 
 					if (!entrytested) {
 						try {
-							val++;
 							String contenu = Message.longToStringRepresentation(input.length(), 3) + " " + input;
-							ringoSocket.send(Message.APPL(val, "DIFF####", contenu.getBytes()));
+							ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "DIFF####", contenu.getBytes()));
 						} catch (numberOfBytesException e) {
 							//TODO
 							System.out.println("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
@@ -53,7 +51,6 @@ public class Diff extends Appl {
 							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 							runContinue = false;
 						}
-
 					}
 					else{
 						if(!runContinue){
@@ -64,7 +61,6 @@ public class Diff extends Appl {
 				ThRecev.interrupt();
 			}
 		};
-
 		super.initThread(runRecev,runSend,"DIFF");
 	}
 

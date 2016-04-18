@@ -373,7 +373,7 @@ public class Message {
 			
 		}	
 		try {
-			str=str+" "+longToStringRepresentation(this.idm, 8);
+			str=str+" "+new String(this.idmLITTLE_ENDIAN_8);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

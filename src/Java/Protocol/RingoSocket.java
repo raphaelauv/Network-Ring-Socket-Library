@@ -10,12 +10,17 @@ import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+
+import javax.swing.plaf.synth.SynthSeparatorUI;
+
 import java.lang.Runnable;
 
 public class RingoSocket implements Ringo {
@@ -64,6 +69,8 @@ public class RingoSocket implements Ringo {
 	Semaphore idmAcces;
 	
 	private Long idmActuel;
+	
+	private byte [] idmStart;
 
 	Object EYBGisArrive=new Object();
 	boolean EYBGisArriveBool;
@@ -124,7 +131,7 @@ public class RingoSocket implements Ringo {
 
 	public void close() throws InterruptedException, DOWNmessageException {
 		isClose();
-		int idm = 10000;//TODO
+		long idm = getUniqueIdm();//TODO
 		Message msg = Message.GBYE(idm, this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
 
 		synchronized (listToSend) {
@@ -161,8 +168,8 @@ public class RingoSocket implements Ringo {
 
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
 		isClose();
-		int idm = 20;//TODO
-
+		
+		long idm=getUniqueIdm();
 		Message test = Message.TEST(idm, this.ip_diff, this.port_diff);
 		
 		send(test);
@@ -343,6 +350,8 @@ public class RingoSocket implements Ringo {
 		this.EYBG_Acces= new Semaphore(0);
 		this.idmActuel=0L;
 		
+		this.build_IDM_array();
+		
 		this.ThRecev = new Thread(new servUDPlisten(this).runServUDPlisten);
 		this.ThSend1 = new Thread(new servUDPsend(this).runServUDPsend);
 		this.ThServTCP = new Thread(new servTCP(this).runServTcp);
@@ -360,6 +369,33 @@ public class RingoSocket implements Ringo {
 
 	}
 	
+	/**
+	 * Build the start of the IDM array
+	 * 
+	 * @throws UnknownHostException
+	 */
+	private void build_IDM_array() throws UnknownHostException{
+
+		InetAddress ip = InetAddress.getByName(this.ip);
+		byte[] ipBytes = ip.getAddress();
+		
+		
+		byte[] portBytes = new byte[2];
+		portBytes[0] = (byte)(this.portTcp & 0xFF);
+		portBytes[1] = (byte)((this.portTcp >> 8) & 0xFF);
+		
+		this.idmStart= new byte[Ringo.byteSizeIdm];
+		
+		int cmp=0;
+		for(int j=0;j<ipBytes.length;j++){
+			this.idmStart[cmp]=ipBytes[j];
+			cmp++;
+		}
+		for(int j=0; j<portBytes.length;j++){
+			this.idmStart[cmp]=portBytes[j];
+			cmp++;
+		}
+	}
 /*
 	public void dedoubler(int udpNew) throws AlreadyAllUdpPortSet, InterruptedException {
 
@@ -418,6 +454,27 @@ public class RingoSocket implements Ringo {
 			e.printStackTrace();
 		}
 		idmAcces.release();
-		return idmActuel++;
+		byte[] val=Arrays.copyOf(this.idmStart, Ringo.byteSizeIdm);
+		
+		byte [] end_of_IDM= new byte[2];
+
+		end_of_IDM[0] = (byte)(this.idmActuel & 0xFF);
+		end_of_IDM[1] = (byte)((this.idmActuel >> 8) & 0xFF);
+		
+		idmActuel++;
+		val[6]=end_of_IDM[0];
+		val[7]=end_of_IDM[1];
+		
+		/*
+		System.out.print("IDM :");
+		for (byte b : val) {
+		    System.out.print(b & 0xFF);
+		    System.out.print(" ");
+		}
+		*/
+		
+		long valLong=Message.byteArrayToLong(val,Ringo.byteSizeIdm, ByteOrder.nativeOrder());
+		
+		return valLong;
 	}
 }

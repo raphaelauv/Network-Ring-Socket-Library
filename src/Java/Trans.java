@@ -15,7 +15,7 @@ import Protocol.Exceptions.*;
 public class Trans extends Appl {
 	
 	private final int byteSizeTransType=3;
-	private volatile int val = 0;
+	
 	private HashMap<String, Path> files;
 	
 	public final static int byteSizeNom = 2;
@@ -69,16 +69,18 @@ public class Trans extends Appl {
 						String affichage=style + "\n"+LocalDateTime.now() +" -> " + "RECEVE : ";
 						
 						String type = new String(content, 0, byteSizeTransType);
+						
 						curseur=byteSizeTransType+Ringo.byteSizeSpace;
+						
 						if(type.equals("REQ")){
 							req(affichage,content,curseur);
 						}
 						else if(type.equals("ROK")){
-							req(affichage,content,curseur);
+							rok(affichage,content,curseur);
 						}
 						
 						else if(type.equals("SEN")){
-							req(affichage,content,curseur);
+							sen(affichage,content,curseur);
 						}
 
 					} catch (DOWNmessageException e) {
@@ -102,9 +104,8 @@ public class Trans extends Appl {
 
 					if (!entrytested) {
 						try {
-							val++;
 							String contenu = "REQ "+Message.longToStringRepresentation(input.length(),byteSizeNom)+ " " + input;
-							ringoSocket.send(Message.APPL(val, "TRANS###", contenu.getBytes()));
+							ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
 							nameFileAsk=input;
 						} catch (numberOfBytesException e) {
 							//TODO
@@ -173,7 +174,7 @@ public class Trans extends Appl {
 			byte [] data = new byte [byteSizeDataROK_withoutName_FILE+tailleNameFile];
 			
 			Message.remplirData(data,debutMsg,SPACE,idTrans,SPACE,size_nom,SPACE,name_file,SPACE,num_mess);
-			ringoSocket.send(Message.APPL(val, "TRANS###", data));
+			ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
 			
 			debutMsg="SEN".getBytes();
 			for(long i=0; i<num_messLong ; i++){

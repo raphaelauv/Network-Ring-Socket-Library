@@ -56,10 +56,10 @@ class servUDPlisten {
 		if (msgR.getType() == TypeMessage.GBYE) {
 			if(msgR.getIp().equals(ringoSocket.ipPortUDP1) && msgR.getPort().equals(ringoSocket.portUDP1)){
 				ringoSocket.printVerbose("My next leave the RING");
-				ringoSocket.send(Message.EYBG(300));
+				ringoSocket.send(Message.EYBG(this.ringoSocket.getUniqueIdm()));
 				try{
 				ringoSocket.EYBG_Acces.acquire();
-				System.out.println("verroux acquis");
+				
 				}catch (InterruptedException e){
 					e.printStackTrace();//TODO
 				}
@@ -75,7 +75,7 @@ class servUDPlisten {
 				return;
 			}
 		}else if (msgR.getType() == TypeMessage.WHOS) {
-			ringoSocket.send(Message.MEMB(400,ringoSocket.idApp,ringoSocket.ip, ringoSocket.portUDP1));	
+			ringoSocket.send(Message.MEMB(this.ringoSocket.getUniqueIdm(),ringoSocket.idApp,ringoSocket.ip, ringoSocket.portUDP1));	
 			
 		} else if (msgR.getType() == TypeMessage.EYBG) {
 			synchronized (ringoSocket.EYBGisArrive) {
