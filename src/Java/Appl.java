@@ -46,19 +46,26 @@ public class Appl {
 	/**
 	 * Test les arguments et affiche les informations de base des APPL
 	 * @param args les args du main
+	 * @return 
 	 */
-	public static void start(String[] args){
+	public static boolean start(String[] args){
 		if (args==null || args.length == 0 || args[0] == null || args[1] == null) {
 			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
 			System.exit(1);
 		}
-
+	
 		System.out.println("arg0 UDP : " + args[0]); // 4242
 		System.out.println("arg1 TCP : " + args[1]); // 5555
 		System.out.println("#########################################################");
+		System.out.println("## add -v after the port argument for VERBOSE Mode     ##");
 		System.out.println("## To ask disconnect,type : disconnecT                 ##");
 		System.out.println("## To ask connection,type : connecTo Ip Port           ##");
 		System.out.println("#########################################################");
+		if(args.length>2 && args[2].equals("-v")){
+			return true;
+		}
+		return false;
+		
 	}
 	
 	

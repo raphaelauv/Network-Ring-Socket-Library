@@ -458,6 +458,7 @@ public class RingoSocket implements Ringo {
 		
 		byte [] end_of_IDM= new byte[2];
 
+		this.idmActuel=this.idmActuel%65000;//~limite de 2^255;
 		end_of_IDM[0] = (byte)(this.idmActuel & 0xFF);
 		end_of_IDM[1] = (byte)((this.idmActuel >> 8) & 0xFF);
 		

@@ -39,9 +39,9 @@ public class Trans extends Appl {
 	private final int byteSizeStart=byteSizeTransType+Ringo.byteSizeSpace*4+byteSizeId_Trans;
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;
-	public Trans(Integer udpPort, Integer tcpPort) throws BindException, IOException {
+	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException {
 		
-		super("TRANS###", udpPort, tcpPort, true);
+		super("TRANS###", udpPort, tcpPort, verbose);
 		
 		this.id_TransMAP=new HashMap<Long, Long[]>(10);
 		
@@ -162,7 +162,7 @@ public class Trans extends Appl {
 			System.out.print("FILE IS HERE | ");
 			
 			byte []  debutMsg= "ROK".getBytes();
-			long idt=1000;//TODO
+			long idt= ringoSocket.getUniqueIdm();
 			byte [] idTrans=Message.longToByteArray(idt, 8,ByteOrder.LITTLE_ENDIAN );
 			byte [] size_nom=size_nom_STR.getBytes();
 			byte [] name_file=name_fileSTR.getBytes();
@@ -199,10 +199,10 @@ public class Trans extends Appl {
 
 	public static void main(String[] args) {
 
-		Appl.start(args);
+		boolean verbose=Appl.start(args);
 
 		try {
-			new Trans(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+			new Trans(Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
 
 		} catch (BindException e) {
 			System.out.println("The ports are already in use");

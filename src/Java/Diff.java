@@ -9,9 +9,9 @@ public class Diff extends Appl {
 	
 	public final static int byteSizeMess = 3;
 	
-	public Diff(Integer udpPort, Integer tcpPort) throws BindException, IOException {
+	public Diff(Integer udpPort, Integer tcpPort,boolean verbose) throws BindException, IOException {
 		
-		super("DIFF####", udpPort, tcpPort, true);
+		super("DIFF####", udpPort, tcpPort, verbose);
 
 		Runnable runRecev = new Runnable() {
 			public void run() {
@@ -66,10 +66,9 @@ public class Diff extends Appl {
 
 	public static void main(String[] args) {
 
-		Appl.start(args);
-
+		boolean verbose=Appl.start(args);
 		try {
-			new Diff(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+			new Diff(Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
 
 		} catch (BindException e) {
 			System.out.println("The ports are already in use");
