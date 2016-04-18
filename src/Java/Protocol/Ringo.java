@@ -17,9 +17,8 @@ public interface Ringo {
 	public final static int byteSizeIP = 15;
 	public final static int byteSizePort = 4;
 	public final static int byteSizeTypeMSG = 4;
-	public final static int byteSizeMess = 3;
-	public final static int byteSizeContent = 3;
-	public final static int byteSizeNom = 2;
+	
+	
 	public final static int byteSizeSpace = 1;
 	/**
 	 * 	Demande un test de l'anneau

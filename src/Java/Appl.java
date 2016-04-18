@@ -10,7 +10,7 @@ public class Appl {
 
 	final String style="#########################################################";
 	String input;
-	Message output;
+	Message msgIN;
 	boolean runContinue;
 	
 	Thread ThRecev;
@@ -57,7 +57,7 @@ public class Appl {
 		System.out.println("arg1 TCP : " + args[1]); // 5555
 		System.out.println("#########################################################");
 		System.out.println("## To ask disconnect,type : disconnecT                 ##");
-		System.out.println("## To ask connection,type :connecTo Ip Port ##");
+		System.out.println("## To ask connection,type : connecTo Ip Port           ##");
 		System.out.println("#########################################################");
 	}
 	

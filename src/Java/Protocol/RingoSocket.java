@@ -99,7 +99,7 @@ public class RingoSocket implements Ringo {
 			this.sockSender.close();
 			this.ThSend1.interrupt();
 			synchronized (listForApply) {
-				this.listForApply.notifyAll();
+				this.listForApply.notify();
 			}
 			// this.ThSend2.interrupt();
 		} else {
@@ -129,7 +129,7 @@ public class RingoSocket implements Ringo {
 
 		synchronized (listToSend) {
 			listToSend.add(msg);
-			listToSend.notifyAll();
+			listToSend.notify();
 		}
 		synchronized (this.EYBGisArrive) {
 			this.EYBGisArriveBool = false;
@@ -274,16 +274,20 @@ public class RingoSocket implements Ringo {
 
 	
 	public void send(Message msg) throws DOWNmessageException {
+		
 		isClose();
-		if (IdAlreadyReceveUDP1.contains(msg.getIdm())) {
+		if(msg==null){
+			return;
+		}
+		/*if (IdAlreadyReceveUDP1.contains(msg.getIdm())) {
 			printVerbose(threadToString() + "Message DEJA ENVOYER OU RECU : " + msg.toString());
 			return;
-		} else {
-			IdAlreadyReceveUDP1.add(msg.getIdm());
-		}
+		} 
+			*/
+		IdAlreadyReceveUDP1.add(msg.getIdm());
 		synchronized (listToSend) {
 			this.listToSend.add(msg);
-			this.listToSend.notifyAll();
+			this.listToSend.notify();
 		}
 	}
 

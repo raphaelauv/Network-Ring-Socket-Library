@@ -52,6 +52,7 @@ class servTCP {
 				ringoSocket.tcpAcces.acquire();
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();//TODO
+				return;
 			}
 			ringoSocket.printVerbose("TCP connect");
 
@@ -98,7 +99,6 @@ class servTCP {
 			
 			try {
 				ringoSocket.UDP_ipPort_Acces.acquire();
-				System.out.println("verroux acquis");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -109,7 +109,6 @@ class servTCP {
 			ringoSocket.ipPortUDP1=msg2.getIp();
 			
 			ringoSocket.UDP_ipPort_Acces.release();
-			System.out.println("verroux liberer");
 			buffOut.close();
 			buffIn.close();
 			

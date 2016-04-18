@@ -91,7 +91,7 @@ class servUDPlisten {
 					ringoSocket.listForApply.add(msgR);
 					ringoSocket.listForApply.notifyAll();
 				}
-				// TODO renvoyer automatique ou pas
+				return;
 			}
 		}
 		synchronized (ringoSocket.listToSend) {

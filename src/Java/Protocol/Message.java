@@ -416,7 +416,7 @@ public class Message {
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
-		tmp.remplirData("WELC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString+" ").getBytes(),
+		remplirData(WELC,"WELC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString+" ").getBytes(),
 				tmp.ip_diff.getBytes(),(" "+tmp.port_diffString).getBytes());
 		return tmp;
 
@@ -429,7 +429,7 @@ public class Message {
 		tmp.ip=ip;
 		tmp.port=portUDP1;
 		tmp.convertALL();;
-		tmp.remplirData("NEWC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString).getBytes());
+		remplirData(NEWC,"NEWC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString).getBytes());
 		return tmp;
 	}
 	
@@ -441,7 +441,7 @@ public class Message {
 		tmp.ip=ip;
 		tmp.port=portUDP1;
 		tmp.convertALL();;
-		tmp.remplirData("MEMB ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id).getBytes(),(" "+tmp.ip+" ").getBytes(),tmp.portString.getBytes());
+		remplirData(MEMB,"MEMB ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id).getBytes(),(" "+tmp.ip+" ").getBytes(),tmp.portString.getBytes());
 		return tmp;
 	}
 	
@@ -455,7 +455,7 @@ public class Message {
 		tmp.port_succ=port_succ;
 		
 		tmp.convertALL();;
-		tmp.remplirData("GBYE ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
+		remplirData(GBYE,"GBYE ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
 				(" "+tmp.ip+" "+tmp.portString+" "+tmp.ip_succ+" "+tmp.port_succString).getBytes());
 		return tmp;
 	}
@@ -470,7 +470,7 @@ public class Message {
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
-		tmp.remplirData("DUPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
+		remplirData(DUPL,"DUPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
 				(" "+tmp.ip+" "+tmp.portString+" "+tmp.ip_diff+" "+tmp.port_diffString).getBytes());
 		return tmp;
 	}
@@ -479,7 +479,7 @@ public class Message {
 		Message tmp=new Message(EYBG,TypeMessage.EYBG);
 		tmp.idm=idm;
 		tmp.convertALL();;
-		tmp.remplirData("EYBG ".getBytes(),tmp.idmLITTLE_ENDIAN_8);
+		remplirData(EYBG,"EYBG ".getBytes(),tmp.idmLITTLE_ENDIAN_8);
 		return tmp;
 	}
 	public static Message WHOS(long idm) {
@@ -488,7 +488,7 @@ public class Message {
 		Message tmp=new Message(WHOS,TypeMessage.WHOS);
 		tmp.idm=idm;
 		tmp.convertALL();;
-		tmp.remplirData("WHOS ".getBytes(),tmp.idmLITTLE_ENDIAN_8);
+		remplirData(WHOS,"WHOS ".getBytes(),tmp.idmLITTLE_ENDIAN_8);
 		return tmp;
 	}
 	
@@ -499,7 +499,7 @@ public class Message {
 		tmp.id_app=id_app;
 		tmp.data_app=data_app;
 		tmp.convertALL();;
-		tmp.remplirData("APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id_app+" ").getBytes(),tmp.data_app);
+		remplirData(APPL,"APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id_app+" ").getBytes(),tmp.data_app);
 		return tmp;
 	}
 	
@@ -511,7 +511,7 @@ public class Message {
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
-		tmp.remplirData("TEST ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
+		remplirData(TEST,"TEST ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
 				(" "+tmp.ip_diff+" ").getBytes(),tmp.port_diffString.getBytes());
 		return tmp;
 	}
@@ -521,7 +521,7 @@ public class Message {
 		Message tmp = new Message(ACKD, TypeMessage.ACKD);
 		tmp.port=port;
 		tmp.convertALL();
-		tmp.remplirData("ACKD ".getBytes(),(tmp.portString+"\n").getBytes());
+		remplirData(ACKD,"ACKD ".getBytes(),(tmp.portString+"\n").getBytes());
 		return tmp;
 	}
 
@@ -545,14 +545,16 @@ public class Message {
 	}
 	
 	/**
-	 * Rempli this.data avec les args
+	 * Rempli data avec les args
 	 * @param args
 	 */
-	private void remplirData(byte[]... args) {
+	
+	//TODO EXCEPTION SORTI DE DATA
+	public static void remplirData(byte [] data ,byte[]... args) {
 		int i = 0;
 		for (byte[] arg1 : args) {
 			for (byte arg2 : arg1) {
-				this.data[i] = arg2;
+				data[i] = arg2;
 				i++;
 			}
 		}

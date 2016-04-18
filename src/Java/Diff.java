@@ -6,7 +6,9 @@ import Protocol.Ringo;
 import Protocol.Exceptions.*;
 
 public class Diff extends Appl {
-
+	
+	public final static int byteSizeMess = 3;
+	
 	public Diff(Integer udpPort, Integer tcpPort) throws BindException, IOException {
 		
 		super("DIFF####", udpPort, tcpPort, true);
@@ -15,13 +17,14 @@ public class Diff extends Appl {
 			public void run() {
 				while (runContinue) {
 					try {
-						output = ringoSocket.receive();
-						byte[] content = output.getData_app();
-						int taille = Integer.parseInt(new String(content, 0, Ringo.byteSizeMess));
+						msgIN = ringoSocket.receive();
+						byte[] content = msgIN.getData_app();
+						int taille = Integer.parseInt(new String(content, 0, byteSizeMess));
 						String message = new String(content, 4, taille);
 						System.out.println(
 								style + "\n" + LocalDateTime.now() + " -> " + "RECEVE :" + message + "\n" + style);
 
+						ringoSocket.send(msgIN);//renvoi sur l'anneau du message
 					} catch (DOWNmessageException e) {
 						System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
 						runContinue = false;
