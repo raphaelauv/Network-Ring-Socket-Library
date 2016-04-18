@@ -18,24 +18,34 @@ public abstract class Appl {
 	Thread ThRecev;
 	Thread ThSend;
 	
-	Runnable runRecev;
-	Runnable runSend;
 	Scanner scan;
 	
-	RingoSocket diffSocket;
+	RingoSocket ringoSocket;
 	
 	public Appl(String APPLID,Integer udpPort, Integer tcpPort, boolean verboseMode) throws BindException,IOException{
-		this.diffSocket= new RingoSocket(APPLID,udpPort,tcpPort ,verboseMode);
+		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort ,verboseMode);
 		this.scan = new Scanner(System.in);
 		this.runContinue=true;
 	}
 	
-	public static boolean testArgs(String[] args){
+	public void initThread(Runnable receve,Runnable send,String name){
+		this.ThRecev = new Thread(receve);
+		this.ThSend = new Thread(send);
+
+		this.ThRecev.setName(name+" RECE");
+		this.ThSend.setName(name+" SEND ");
+
+		this.ThRecev.start();
+		this.ThSend.start();
+	}
+	
+	
+	public static void start(String[] args){
 		if (args==null || args.length == 0 || args[0] == null || args[1] == null) {
 			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
-			return false;
+			System.exit(1);
 		}
-		return true;
+		printInfo(args);
 	}
 	
 	
@@ -49,7 +59,7 @@ public abstract class Appl {
 			input = scan.nextLine();
 			if (input.equals("disconnecT")) {
 				System.out.println("##### ASK FOR DISCONNECT #####");
-				diffSocket.close();
+				ringoSocket.close();
 				runContinue = false;
 				return true;
 			}
@@ -59,7 +69,7 @@ public abstract class Appl {
 				a.parse_IP_SPACE_Port(9, Message.FLAG_IP_NORMAL);
 
 				System.out.println(" | TRY TO CONNECT " + a.getIp() + " " + a.getPort());
-				diffSocket.connectTo(a.getIp(), a.getPort());
+				ringoSocket.connectTo(a.getIp(), a.getPort());
 				
 				return true;
 			}
@@ -86,7 +96,7 @@ public abstract class Appl {
 		return false;
 	}
 	
-	public static void printInfo(String[] args){
+	private static void printInfo(String[] args){
 		System.out.println("arg0 UDP : " + args[0]); // 4242
 		System.out.println("arg1 TCP : " + args[1]); // 5555
 		System.out.println("#########################################################");

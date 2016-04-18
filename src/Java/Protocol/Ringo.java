@@ -9,16 +9,18 @@ import java.net.UnknownHostException;
  */
 public interface Ringo {
 
-	
 	public final static int maxSizeMsg = 512;
-	public final static int octalSizeId = 8;
-	public final static int octalSizeIdm = 8;
-	public final static int octalSizeIdApp = 8;
-	public final static int octalSizeIP = 15;
-	public final static int octalSizePort = 4;
-	public final static int octalSizeTypeMSG = 4;
-	public final static int octalSizeMessSize = 3;
-	public final static int octalSizeNom = 2;
+	public final static int byteSizeType = 4;
+	public final static int byteSizeId = 8;
+	public final static int byteSizeIdm = 8;
+	public final static int byteSizeIdApp = 8;
+	public final static int byteSizeIP = 15;
+	public final static int byteSizePort = 4;
+	public final static int byteSizeTypeMSG = 4;
+	public final static int byteSizeMess = 3;
+	public final static int byteSizeContent = 3;
+	public final static int byteSizeNom = 2;
+	public final static int byteSizeSpace = 1;
 	/**
 	 * 	Demande un test de l'anneau
 	 * @param sendDownIfBreak true -> si l'anneau est cassé alors averti sur multi diffusion | else -> pas d'alert

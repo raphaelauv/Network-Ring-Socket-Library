@@ -37,9 +37,9 @@ public class Message {
 	private String id_app;
 	private byte[] data_app;
 	
-	private final static Integer sizeIp = Ringo.octalSizeIP;
-	private final static Integer sizePort = Ringo.octalSizePort;
-	private final static Integer sizeTypeMSG = Ringo.octalSizeTypeMSG;
+	private final static Integer sizeIp = Ringo.byteSizeIP;
+	private final static Integer sizePort = Ringo.byteSizePort;
+	private final static Integer sizeTypeMSG = Ringo.byteSizeTypeMSG;
 	
 	public final static int FLAG_IP_DIFF = 1;
 	public final static int FLAG_IP_NORMAL = 2;
@@ -175,10 +175,10 @@ public class Message {
 			
 		}
 		
-		strParsed=getDataFrom_N(curseur,Ringo.octalSizeIdm);
-		this.idm=byteArrayToLong(strParsed.getBytes(),Ringo.octalSizeIdm,ByteOrder.LITTLE_ENDIAN);
+		strParsed=getDataFrom_N(curseur,Ringo.byteSizeIdm);
+		this.idm=byteArrayToLong(strParsed.getBytes(),Ringo.byteSizeIdm,ByteOrder.LITTLE_ENDIAN);
 		
-		curseur+=Ringo.octalSizeIdm;
+		curseur+=Ringo.byteSizeIdm;
 		if(type==TypeMessage.WHOS || type==TypeMessage.EYBG){
 			//parseTestEnd(curseur);
 			return;
@@ -195,9 +195,9 @@ public class Message {
 		}
 		
 		if(type==TypeMessage.MEMB){
-			strParsed=getDataFrom_N(curseur,Ringo.octalSizeId);
+			strParsed=getDataFrom_N(curseur,Ringo.byteSizeId);
 			this.id=strParsed;
-			curseur+=Ringo.octalSizeId;
+			curseur+=Ringo.byteSizeId;
 			parseTestSpace(curseur);
 			curseur++;
 			parse_IP_SPACE_Port(curseur,FLAG_IP_NORMAL);
@@ -206,9 +206,9 @@ public class Message {
 		}
 		
 		if(type==TypeMessage.APPL){
-			strParsed=getDataFrom_N(curseur,Ringo.octalSizeIdApp);
+			strParsed=getDataFrom_N(curseur,Ringo.byteSizeIdApp);
 			this.id_app=strParsed;
-			curseur+=Ringo.octalSizeIdApp;
+			curseur+=Ringo.byteSizeIdApp;
 			parseTestSpace(curseur);
 			curseur++;
 			this.data_app= Arrays.copyOfRange(this.data, curseur, data.length);
@@ -242,9 +242,9 @@ public class Message {
 	public void parse_IP_SPACE_Port(int start,int FLAG_IP) throws parseMessageException{
 		
 		String strParsed;
-		int curseur= start+Ringo.octalSizeIP;
+		int curseur= start+Ringo.byteSizeIP;
 		
-		strParsed=getDataFrom_N(start,Ringo.octalSizeIP);
+		strParsed=getDataFrom_N(start,Ringo.byteSizeIP);
 		parseTestIp(strParsed);
 		if(FLAG_IP==FLAG_IP_DIFF){
 			this.ip_diff=strParsed;
@@ -255,7 +255,7 @@ public class Message {
 			this.ip_succ=strParsed;
 		}
 		parseTestSpace(curseur);
-		strParsed=getDataFrom_N(curseur+1,Ringo.octalSizePort);
+		strParsed=getDataFrom_N(curseur+1,Ringo.byteSizePort);
 		parseTestPort(strParsed);
 		
 		int valPort=Integer.parseInt(strParsed);
@@ -431,7 +431,7 @@ public class Message {
 	}
 	
 	public static Message MEMB(long idm,String id,String ip ,int portUDP1) {
-		byte[] MEMB = new byte[4+1+Ringo.octalSizeIdm+1+Ringo.octalSizeId+1+sizeIp+1+sizePort];
+		byte[] MEMB = new byte[4+1+Ringo.byteSizeIdm+1+Ringo.byteSizeId+1+sizeIp+1+sizePort];
 		Message tmp=new Message(MEMB,TypeMessage.MEMB);
 		tmp.idm=idm;
 		tmp.id=id;
@@ -443,7 +443,7 @@ public class Message {
 	}
 	
 	public static Message GBYE(long idm, String ip, int listenPortUDP, String ip_succ, int port_succ) {
-		byte[] GBYE = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+		byte[] GBYE = new byte[4+1+Ringo.byteSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
 		Message tmp=new Message(GBYE,TypeMessage.GBYE);
 		tmp.idm=idm;
 		tmp.ip=ip;
@@ -458,7 +458,7 @@ public class Message {
 	}
 	
 	public static Message DUPL(long idm, String ip, int listenPortUDP, String ip_diff ,int port_diff) {
-		byte[] DUPL = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+		byte[] DUPL = new byte[4+1+Ringo.byteSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
 		
 		Message tmp=new Message(DUPL,TypeMessage.DUPL);
 		tmp.idm=idm;
@@ -472,7 +472,7 @@ public class Message {
 		return tmp;
 	}
 	public static Message EYBG(long idm) {
-		byte[] EYBG = new byte[5+Ringo.octalSizeIdm];
+		byte[] EYBG = new byte[5+Ringo.byteSizeIdm];
 		Message tmp=new Message(EYBG,TypeMessage.EYBG);
 		tmp.idm=idm;
 		tmp.convertALL();;
@@ -480,7 +480,7 @@ public class Message {
 		return tmp;
 	}
 	public static Message WHOS(long idm) {
-		byte[] WHOS = new byte[4+1+Ringo.octalSizeIdm];//[5+8]=13
+		byte[] WHOS = new byte[4+1+Ringo.byteSizeIdm];//[5+8]=13
 
 		Message tmp=new Message(WHOS,TypeMessage.WHOS);
 		tmp.idm=idm;
@@ -490,7 +490,7 @@ public class Message {
 	}
 	
 	public static Message APPL(long idm , String id_app, byte[] data_app) {
-		byte[] APPL = new byte[4+1+Ringo.octalSizeIdm+1+8+1+data_app.length];
+		byte[] APPL = new byte[4+1+Ringo.byteSizeIdm+1+8+1+data_app.length];
 		Message tmp=new Message(APPL,TypeMessage.APPL);
 		tmp.idm=idm;
 		tmp.id_app=id_app;
@@ -501,7 +501,7 @@ public class Message {
 	}
 	
 	public static Message TEST(long idm, String ip_diff ,int port_diff) {
-		byte[] TEST = new byte[4+1+Ringo.octalSizeIdm+1+sizeIp+1+sizePort];
+		byte[] TEST = new byte[4+1+Ringo.byteSizeIdm+1+sizeIp+1+sizePort];
 		
 		Message tmp=new Message(TEST,TypeMessage.TEST);
 		tmp.idm=idm;
