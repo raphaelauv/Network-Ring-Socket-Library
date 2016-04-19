@@ -35,6 +35,10 @@ public class Trans extends Appl {
 	
 	private HashMap<String, Path> files;
 	
+	Object ROKisComeBack=new Object();//mutex
+	boolean ROKisComeBackBool;
+	private volatile String REQ_AskFile;
+	
 	public final static int byteSizeNom = 2;
 	public final static int byteSizeNum_Mess = 8;
 	public final static int byteSizeNo_Mess = 8;
@@ -47,7 +51,7 @@ public class Trans extends Appl {
 	 * valeur [noMess actuel,nuMmess attendu]
 	 */
 	private HashMap<Long, infoTransfert> id_TransMAP;
-	private volatile String nameFileAsk;
+	
 	private final int maxSizeContent = Ringo.maxSizeMsg - (Ringo.byteSizeType + (Ringo.byteSizeSpace * 7)
 			+ Ringo.byteSizeIdm * 3 + Ringo.byteSizeIdApp + byteSizeTransType +byteSizeContent) ;
 	private final int byteSizeStart=byteSizeTransType+Ringo.byteSizeSpace*4+byteSizeId_Trans;
@@ -92,7 +96,6 @@ public class Trans extends Appl {
 						else if(type.equals("ROK")){
 							rok(affichage,msgInByte,curseur);
 						}
-						
 						else if(type.equals("SEN")){
 							sen(affichage,msgInByte,curseur);
 						}
@@ -122,7 +125,16 @@ public class Trans extends Appl {
 						try {
 							String contenu = "REQ "+Message.longToStringRepresentation(input.length(),byteSizeNom)+ " " + input;
 							ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
-							nameFileAsk=input;
+							synchronized (ROKisComeBack) {
+								REQ_AskFile=input;
+								ROKisComeBackBool=false;
+								ROKisComeBack.wait(5000);
+								if(!ROKisComeBackBool){
+									System.out.println("ROK is not comeback in time");
+								}
+								REQ_AskFile="";
+							}
+							
 						} catch (numberOfBytesException e) {
 							//TODO
 							System.out.println("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
@@ -208,11 +220,16 @@ public class Trans extends Appl {
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;
 		String name_fileSTR = new String(msgInByte, curseur,tailleNameFile);
 		
-		if(name_fileSTR.equals(nameFileAsk)){
+		if(name_fileSTR.equals(REQ_AskFile)){
+			synchronized (ROKisComeBack) {
+				ROKisComeBackBool=true;
+				ROKisComeBack.notify();
+			}
 			byte [] num_messByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeNum_Mess);
 			Long num_mess=Message.byteArrayToLong(num_messByte, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
-			
 			id_TransMAP.put(id_trans,new infoTransfert(0L,num_mess) );	
+			System.out.println("THE TRANSFERT CAN START");
+			return;
 		}
 		else{
 			ringoSocket.send(msgIN);// renvoi sur l'anneau du message

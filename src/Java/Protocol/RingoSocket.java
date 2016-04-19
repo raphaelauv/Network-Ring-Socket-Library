@@ -23,7 +23,6 @@ public class RingoSocket implements Ringo {
 	String idApp;
 	String ip;
 
-
 	ServerSocket sockServerTCP;
 	private Integer portTcp;
 	
@@ -40,7 +39,6 @@ public class RingoSocket implements Ringo {
 	MulticastSocket sockMultiRECEP;
 	String ip_diff;
 	Integer port_diff;
-	
 
 	Set<Long> IdAlreadyReceveUDP1;// hashSet contenant les id deja croise
 	Set<Long> IdAlreadyReceveUDP2;
