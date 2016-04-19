@@ -70,7 +70,7 @@ class servTCP {
 
 			Message msg2 = null;
 			try {
-				msg2 = new Message(tmp);
+				msg2 = Message.parseMessage(tmp);
 			} catch (parseMessageException | unknownTypeMesssage e) {
 				ringoSocket.printVerbose("TCP : erreur protocol");
 				return;

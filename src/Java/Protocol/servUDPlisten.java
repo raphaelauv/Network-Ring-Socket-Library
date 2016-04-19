@@ -39,7 +39,7 @@ class servUDPlisten {
 		ringoSocket.sockRecever.receive(paquet);// attente passive
 		Message msgR = null;
 		try {
-			msgR = new Message(paquet.getData());
+			msgR = Message.parseMessage(paquet.getData());
 		} catch (parseMessageException | unknownTypeMesssage e) {
 			e.printStackTrace();//TODO
 			return;

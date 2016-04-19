@@ -17,7 +17,7 @@ import Protocol.Exceptions.*;
 
 public class Trans extends Appl {
 	
-	class infoTransfert {
+	private class infoTransfert {
 		public long actual_no_mess;
 		public long num_mess;
 		public BufferedOutputStream outputStream;
@@ -47,12 +47,9 @@ public class Trans extends Appl {
 	 * valeur [noMess actuel,nuMmess attendu]
 	 */
 	private HashMap<Long, infoTransfert> id_TransMAP;
-	
 	private volatile String nameFileAsk;
-	
 	private final int maxSizeContent = Ringo.maxSizeMsg - (Ringo.byteSizeType + (Ringo.byteSizeSpace * 7)
 			+ Ringo.byteSizeIdm * 3 + Ringo.byteSizeIdApp + byteSizeTransType +byteSizeContent) ;
-
 	private final int byteSizeStart=byteSizeTransType+Ringo.byteSizeSpace*4+byteSizeId_Trans;
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;

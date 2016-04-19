@@ -42,6 +42,7 @@ public class Message {
 	private final static int FLAG_IP_NORMAL = 2;
 	private final static int FLAG_IP_SUCC = 3;
 	
+	
 
 	/**
 	 * Create a new Message and Parse it from data
@@ -49,7 +50,11 @@ public class Message {
 	 * @throws unknownTypeMesssage if the type Message is unknow
 	 * @throws parseMessageException if the data do no correcpond to the Type Message
 	 */
-	public Message(byte[] data) throws unknownTypeMesssage, parseMessageException {
+	public static Message parseMessage(byte [] data) throws unknownTypeMesssage, parseMessageException {
+		return new Message(data);
+	}
+	
+	private Message(byte[] data) throws unknownTypeMesssage, parseMessageException {
 		super();
 		this.data = data;
 		try {

@@ -221,7 +221,7 @@ public class RingoSocket implements Ringo {
 		//tmp = Arrays.copyOfRange(tmp, 0, 46);
 		Message msg1 = null;
 		try {
-			msg1 = new Message(tmp);
+			msg1 = Message.parseMessage(tmp);
 		} catch (parseMessageException |unknownTypeMesssage e1) {
 			e1.printStackTrace();//TODO a retirer apres tests
 			socket.close();
@@ -257,7 +257,7 @@ public class RingoSocket implements Ringo {
 
 		Message msg3 = null;
 		try {
-			msg3 = new Message(tmp);
+			msg3 = Message.parseMessage(tmp);
 		} catch (parseMessageException | unknownTypeMesssage e) {
 			socket.close();
 			this.UDP_ipPort_Acces.release();
