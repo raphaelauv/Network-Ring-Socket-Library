@@ -20,43 +20,30 @@ boolean isClose();
  * 	Demande un test de l'anneau
  * @param sendDownIfBreak true -> si l'anneau est cassee alors averti sur multi diffusion | else -> pas d'alert
  * @return true -> anneau pas casse
- * @throws InterruptedException
- * @throws DOWNmessageException
  */
 boolean test(boolean sendDownIfBreak);
 
 /**
  * demande la deconnection de l'entiter ,elle boucle sur elle meme
- * @throws InterruptedException
- * @throws DOWNmessageException
  */
 void disconnect();
 
 
 /**
  * Permet de quitter un anneau
- * @throws DOWNmessageException 
- * @throws IOException 
  */
 void close();
 
 /**
  * Pour s'inserer dans un anneau
  * @param adresse
- * @param udp
- * @throws AlreadyAllUdpPortSet
- * @throws UnknownHostException
- * @throws IOException
- * @throws DOWNmessageException 
- * @throws ProtocolException 
+ * @param tidTCP
  */
 void connectTo(String adresse ,int idTCP);
 
 /**
- * Pour demander l'envoi d'un message a l'entite id
+ * Pour demander l'envoi d'un message a l'entite
  * @param message
- * @param id
- * @throws SizeException
  */
 void send(Message msg);
 
@@ -64,14 +51,11 @@ void send(Message msg);
  * Demande un message en attente de lecture par l'apply
  * attente passive
  * @return Contenu du message
- * @throws InterruptedException 
  */
 Message receive();
 
 /**
  * Get an unique IDM message of the RINGO entiter
- * @return
- * @throws DOWNmessageException 
- * @throws InterruptedException 
+ * @return valeur de IDM
  */
 long getUniqueIdm();

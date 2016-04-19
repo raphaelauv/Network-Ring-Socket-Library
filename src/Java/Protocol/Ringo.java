@@ -55,7 +55,7 @@ public interface Ringo {
 	/**
 	 * Pour s'inserer dans un anneau
 	 * @param adresse
-	 * @param udp
+	 * @param idTCP
 	 * @throws AlreadyAllUdpPortSet
 	 * @throws UnknownHostException
 	 * @throws IOException
@@ -82,7 +82,7 @@ public interface Ringo {
 	
 	/**
 	 * Get an unique IDM message of the RINGO entiter
-	 * @return
+	 * @return the unique IDM value
 	 * @throws DOWNmessageException 
 	 * @throws InterruptedException 
 	 */
