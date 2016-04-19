@@ -44,6 +44,7 @@ public class Diff extends Appl {
 					entrytested = testEntry();
 					if (!entrytested) {
 						try {
+							ringoSocket.test(false);
 							String contenu = Message.longToStringRepresentation(input.length(), 3) + " " + input;
 							ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "DIFF####", contenu.getBytes()));
 						} catch (numberOfBytesException e) {

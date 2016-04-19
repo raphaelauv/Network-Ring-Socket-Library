@@ -19,6 +19,8 @@ public interface Ringo {
 	public final static int byteSizeTypeMSG = 4;
 	public final static int byteSizeSpace = 1;
 	
+	public final static int maximumWaitTimeMessage=5000;
+	
 	/**
 	 * Tester si l'entiter RINGO est fermer
 	 * @return

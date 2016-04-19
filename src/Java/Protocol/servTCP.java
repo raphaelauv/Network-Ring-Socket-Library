@@ -43,12 +43,9 @@ class servTCP {
 	 * @throws DOWNmessageException
 	 */
 	private void serv() throws IOException, ProtocolException, InterruptedException {
-		
-			
+
 			Socket socket = ringoSocket.sockServerTCP.accept();
-			
 			ringoSocket.tcpAcces.acquire();
-			
 			ringoSocket.printVerbose("TCP connect");
 
 			BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
@@ -91,13 +88,10 @@ class servTCP {
 			buffOut.flush();
 			
 			ringoSocket.printVerbose("TCP : message SEND   : " + msg3.toString());
-			
-			
-			ringoSocket.UDP_ipPort_Acces.acquire();
-			
+
+			ringoSocket.UDP_ipPort_Acces.acquire();			
 			ringoSocket.portUDP1 = msg2.getPort();
 			ringoSocket.ipPortUDP1=msg2.getIp();
-			
 			ringoSocket.UDP_ipPort_Acces.release();
 			buffOut.close();
 			buffIn.close();

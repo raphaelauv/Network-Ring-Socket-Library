@@ -7,10 +7,10 @@ import java.net.InetAddress;
 class servUDPsend {
 	private RingoSocket ringoSocket;
 	Runnable runServUDPsend;
-	
+
 	public servUDPsend(RingoSocket ringoSocket) {
 		this.ringoSocket = ringoSocket;
-		this.runServUDPsend= new Runnable() {
+		this.runServUDPsend = new Runnable() {
 			public void run() {
 				boolean erreur = false;
 				while (!erreur) {
@@ -24,7 +24,6 @@ class servUDPsend {
 			}
 		};
 	}
-	
 
 	private void sendMessage() throws IOException, InterruptedException {
 
@@ -41,12 +40,12 @@ class servUDPsend {
 
 		if (msg.isMulti()) {
 			DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
-					InetAddress.getByName(ringoSocket.ip_diff.toString()),ringoSocket.port_diff);
+					InetAddress.getByName(ringoSocket.ip_diff.toString()), ringoSocket.port_diff);
 			ringoSocket.sockSender.send(paquetMulti);
 		} else {
 
 			if (ringoSocket.portUDP1 != null) {
-				
+
 				DatagramPacket paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
 						InetAddress.getByName(ringoSocket.ipPortUDP1), ringoSocket.portUDP1);
 
@@ -54,23 +53,20 @@ class servUDPsend {
 
 			}
 			if (ringoSocket.portUDP2 != null) {
-				
+
 				DatagramPacket paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
 						InetAddress.getByName(ringoSocket.ipPortUDP2), ringoSocket.portUDP2);
 
 				ringoSocket.sockSender.send(paquet2);
 			}
 		}
-		
-		//Pour debloquer l'attente de changement de port
-		if(msg.getType()==TypeMessage.EYBG){
+
+		// Pour debloquer l'attente de changement de port
+		if (msg.getType() == TypeMessage.EYBG) {
 			ringoSocket.EYBG_Acces.release();
 		}
-		
+
 		ringoSocket.printVerbose("Message Envoyer : " + msg.toString());
 
 	}
-
-	
-	
 }

@@ -41,8 +41,6 @@ public class Message {
 	private final static int FLAG_IP_DIFF = 1;
 	private final static int FLAG_IP_NORMAL = 2;
 	private final static int FLAG_IP_SUCC = 3;
-	
-	
 
 	/**
 	 * Create a new Message and Parse it from data
@@ -288,7 +286,6 @@ public class Message {
 				throw new parseMessageException();
 			}
 	}
-	
 	/**
 	 * Pour parse
 	 * test si le caractere start est un caractere d'espace

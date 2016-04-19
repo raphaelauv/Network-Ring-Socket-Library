@@ -27,8 +27,7 @@ class servUDPlisten {
 				}
 				ringoSocket.printVerbose("END thread RECEV");
 			}
-		};
-		
+		};	
 	}
 	
 	private void receveMessage() throws IOException, InterruptedException, DOWNmessageException {
@@ -44,7 +43,15 @@ class servUDPlisten {
 			e.printStackTrace();//TODO
 			return;
 		}
-
+		if (msgR.getType() == TypeMessage.TEST) {
+			synchronized (ringoSocket.TESTisComeBack) {
+				if (msgR.getIdm() == ringoSocket.ValTEST) {
+					ringoSocket.TESTisComeBackBool = true;
+					ringoSocket.TESTisComeBack.notify();
+					return;
+				}
+			}
+		}
 		if (ringoSocket.IdAlreadyReceveUDP1.contains(msgR.getIdm())) {
 			ringoSocket.printVerbose("Message DEJA ENVOYER OU RECU : " + msgR.toString());
 			return;
@@ -57,7 +64,6 @@ class servUDPlisten {
 			if(msgR.getIp().equals(ringoSocket.ipPortUDP1) && msgR.getPort().equals(ringoSocket.portUDP1)){
 				ringoSocket.printVerbose("My next leave the RING");
 				ringoSocket.send(Message.EYBG(this.ringoSocket.getUniqueIdm()));
-				
 				ringoSocket.EYBG_Acces.acquire(); //pour attendre que EYBG soit bien envoyer
 				
 				ringoSocket.UDP_ipPort_Acces.acquire();
@@ -66,12 +72,15 @@ class servUDPlisten {
 				ringoSocket.UDP_ipPort_Acces.release();
 				return;
 			}
-			
-		} else if (msgR.getType() == TypeMessage.TEST) {
-			if (msgR.getIdm() == ringoSocket.ValTEST) {
-				ringoSocket.TESTisComeBack = true;
-				return;
+		}
+		else if (msgR.getType() == TypeMessage.APPL) {
+			if (msgR.getId_app().equals(ringoSocket.idApp)) {
+				synchronized (ringoSocket.listForApply) {
+					ringoSocket.listForApply.add(msgR);
+					ringoSocket.listForApply.notifyAll();
+				}
 			}
+
 		}else if (msgR.getType() == TypeMessage.WHOS) {
 			ringoSocket.send(Message.MEMB(this.ringoSocket.getUniqueIdm(),ringoSocket.idApp,ringoSocket.ip, ringoSocket.portUDP1));	
 			
@@ -81,22 +90,10 @@ class servUDPlisten {
 				ringoSocket.EYBGisArrive.notify();
 			}
 			return;
-
-		} else if (msgR.getType() == TypeMessage.APPL) {
-
-			if (msgR.getId_app().equals(ringoSocket.idApp)) {
-				synchronized (ringoSocket.listForApply) {
-					ringoSocket.listForApply.add(msgR);
-					ringoSocket.listForApply.notifyAll();
-				}
-				return;
-			}
 		}
 		synchronized (ringoSocket.listToSend) {
 			ringoSocket.listToSend.add(msgR);
 			ringoSocket.listToSend.notifyAll();
 		}
 	}
-	
-
 }

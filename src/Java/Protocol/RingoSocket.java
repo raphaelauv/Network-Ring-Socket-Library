@@ -66,11 +66,11 @@ public class RingoSocket implements Ringo {
 	
 	private byte [] idmStart;
 
-	Object EYBGisArrive=new Object();
+	Object EYBGisArrive=new Object();//mutex
 	boolean EYBGisArriveBool;
 
-	Object TESTisComeBack=new Object();
-	private Boolean TESTisComeBackBool;
+	Object TESTisComeBack=new Object();//mutex
+	boolean TESTisComeBackBool;
 	long ValTEST;
 
 	private Boolean boolClose;
@@ -121,14 +121,12 @@ public class RingoSocket implements Ringo {
 		testClose();
 		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
 
-		synchronized (listToSend) {
-			listToSend.add(msg);
-			listToSend.notify();
-		}
+		send(msg);
+		
 		synchronized (this.EYBGisArrive) {
 			this.EYBGisArriveBool = false;
 			printVerbose("WAITING for EYBG message");
-			this.EYBGisArrive.wait(5000); // attend que EYBG soit arriver a l'entite
+			this.EYBGisArrive.wait(maximumWaitTimeMessage); // attend que EYBG soit arriver a l'entite
 			printVerbose("EYBG comeback ? :"+EYBGisArriveBool);
 			boolDisconnect=true;
 			
@@ -186,8 +184,7 @@ public class RingoSocket implements Ringo {
 			this.ValTEST = idm;
 			this.TESTisComeBackBool= false;
 			printVerbose("WAITING for TEST message");
-			this.TESTisComeBack.wait(5000); // attend que EYBG soit arriver a l'entite
-			
+			this.TESTisComeBack.wait(maximumWaitTimeMessage); // attend que EYBG soit arriver a l'entite
 			if (!TESTisComeBackBool) {
 				printVerbose("message TEST is NOT comeback");
 				if (sendDownIfBreak) {
@@ -384,7 +381,6 @@ public class RingoSocket implements Ringo {
 		InetAddress ip = InetAddress.getByName(this.ip);
 		byte[] ipBytes = ip.getAddress();
 		
-		
 		byte[] portBytes = new byte[2];
 		portBytes[0] = (byte)(this.portTcp & 0xFF);
 		portBytes[1] = (byte)((this.portTcp >> 8) & 0xFF);
@@ -455,18 +451,15 @@ public class RingoSocket implements Ringo {
 	public long getUniqueIdm() throws DOWNmessageException, InterruptedException{
 		testClose();
 		
+		byte [] end_of_IDM= new byte[2];
 		idmAcces.acquire();
 		
-		byte [] end_of_IDM= new byte[2];
 		this.idmActuel=this.idmActuel%65000;//~limite de 2^255;
 		end_of_IDM[0] = (byte)(this.idmActuel & 0xFF);
 		end_of_IDM[1] = (byte)((this.idmActuel >> 8) & 0xFF);
 		idmActuel++;
 		idmAcces.release();
 		byte[] val=Arrays.copyOf(this.idmStart, Ringo.byteSizeIdm);
-		
-		
-		
 		
 		val[6]=end_of_IDM[0];
 		val[7]=end_of_IDM[1];
@@ -479,8 +472,6 @@ public class RingoSocket implements Ringo {
 		}
 		*/
 		
-		long valLong=Message.byteArrayToLong(val,Ringo.byteSizeIdm, ByteOrder.nativeOrder());
-		
-		return valLong;
+		return Message.byteArrayToLong(val,Ringo.byteSizeIdm, ByteOrder.nativeOrder());
 	}
 }
