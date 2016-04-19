@@ -29,7 +29,7 @@ class servTCP {
 						}
 					}
 				}
-				ringoSocket.printVerbose("END thread TCP");
+				ringoSocket.printVerbose("END");
 			}
 		};
 	}
@@ -47,24 +47,35 @@ class servTCP {
 			Socket socket = ringoSocket.sockServerTCP.accept();
 			ringoSocket.tcpAcces.acquire();
 			ringoSocket.printVerbose("TCP connect");
+			
 
 			BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
 			BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
-
-			Message msg1 = Message.WELC(ringoSocket.ip, ringoSocket.portUDP1, ringoSocket.ip_diff, ringoSocket.port_diff);
+			Message msg1;
+			if(ringoSocket.isDUPL){
+				msg1=Message.NOTC();
+			}else{
+				msg1 = Message.WELC(ringoSocket.ip, ringoSocket.portUDP1, ringoSocket.ip_diff, ringoSocket.port_diff);
+			}
 			buffOut.write(msg1.getData());
 			buffOut.flush();
 
+			if(ringoSocket.isDUPL){
+				buffOut.close();
+				buffIn.close();
+				ringoSocket.tcpAcces.release();
+				return;
+			}
 			ringoSocket.printVerbose("TCP : message SEND   : " + msg1.toString());
 
 			byte[] tmp = new byte[Ringo.maxSizeMsg];
 			int sizeReturn = buffIn.read(tmp);
-			
-			if (sizeReturn != 25) {
+			/*//TODO
+			if (sizeReturn != 26) {
 				throw new ProtocolException();
 			}
-			//tmp = Arrays.copyOfRange(tmp, 0, 25);
-
+			tmp = Arrays.copyOfRange(tmp, 0, 25);
+			 */
 			Message msg2 = null;
 			try {
 				msg2 = Message.parseMessage(tmp);

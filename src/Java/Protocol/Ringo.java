@@ -55,14 +55,16 @@ public interface Ringo {
 	/**
 	 * Pour s'inserer dans un anneau
 	 * @param adresse
-	 * @param idTCP
+	 * @param udp
 	 * @throws AlreadyAllUdpPortSet
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 * @throws DOWNmessageException 
 	 * @throws ProtocolException 
+	 * @throws AlreadyConnectException 
 	 */
-	public void connectTo(String adresse ,int idTCP) throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException ,InterruptedException;
+	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
+			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException, InterruptedException, AlreadyConnectException ,ImpossibleDUPLConnection;
 
 	/**
 	 * Pour demander l'envoi d'un message a l'entite id
@@ -82,7 +84,7 @@ public interface Ringo {
 	
 	/**
 	 * Get an unique IDM message of the RINGO entiter
-	 * @return the unique IDM value
+	 * @return
 	 * @throws DOWNmessageException 
 	 * @throws InterruptedException 
 	 */

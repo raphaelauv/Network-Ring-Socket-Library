@@ -25,7 +25,7 @@ class servUDPlisten {
 						erreur = true;
 					}
 				}
-				ringoSocket.printVerbose("END thread RECEV");
+				ringoSocket.printVerbose("END");
 			}
 		};	
 	}
@@ -53,7 +53,7 @@ class servUDPlisten {
 			}
 		}
 		if (ringoSocket.IdAlreadyReceveUDP1.contains(msgR.getIdm())) {
-			ringoSocket.printVerbose("Message DEJA ENVOYER OU RECU : " + msgR.toString());
+			ringoSocket.printVerbose("Message DEJA ENVOYER OU RECU : " + msgR.getIdm());
 			return;
 		} else {
 			ringoSocket.IdAlreadyReceveUDP1.add(msgR.getIdm());
@@ -78,6 +78,9 @@ class servUDPlisten {
 				synchronized (ringoSocket.listForApply) {
 					ringoSocket.listForApply.add(msgR);
 					ringoSocket.listForApply.notifyAll();
+				}
+				if(!ringoSocket.relayMSGAuto){
+					return;//pour ne pas renvoyer automatiquement le message sur le reseau
 				}
 			}
 

@@ -151,9 +151,8 @@ public class Message {
 		}
 		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
 			strParsed=getDataFrom_N(curseur,1);
-			if(!strParsed.equals("\n")){
-				throw new parseMessageException();
-			}
+			parseBackslash_N(strParsed);
+			curseur++;
 			//parseTestEnd(curseur+1);
 			return;
 		}
@@ -162,13 +161,15 @@ public class Message {
 		
 		curseur++;
 		
-		
-		if(type==TypeMessage.NEWC || type==TypeMessage.WELC){
+		if(type==TypeMessage.NEWC || type==TypeMessage.WELC || type==TypeMessage.DUPL){
 			
 			parse_IP_SPACE_Port(curseur,FLAG_IP_NORMAL);
 			
 			curseur+=sizeIp_SPACE_PORT;
 			if(type==TypeMessage.NEWC){
+				strParsed=getDataFrom_N(curseur,1);
+				parseBackslash_N(strParsed);
+				curseur++;
 				//parseTestEnd(curseur);
 				return;
 			}
@@ -176,6 +177,9 @@ public class Message {
 			curseur++;
 			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
 			curseur+=sizeIp_SPACE_PORT;
+			strParsed=getDataFrom_N(curseur,1);
+			parseBackslash_N(strParsed);
+			curseur++;
 			//parseTestEnd(curseur);
 			return;
 			
@@ -226,12 +230,6 @@ public class Message {
 		parseTestSpace(curseur);
 		curseur++;
 		
-		if(type==TypeMessage.DUPL){
-			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
-			curseur+=sizeIp_SPACE_PORT;
-			//parseTestEnd(curseur);
-			return;
-		}
 		if(type==TypeMessage.GBYE){
 			parse_IP_SPACE_Port(curseur,FLAG_IP_SUCC);
 			curseur+=sizeIp_SPACE_PORT;
@@ -294,6 +292,11 @@ public class Message {
 	 */
 	private void parseTestSpace(int start) throws parseMessageException{
 		if(! (new String(this.data,start,1).equals(" "))){
+			throw new parseMessageException();
+		}
+	}
+	private void parseBackslash_N(String strParsed) throws parseMessageException{
+		if(!strParsed.equals("\n")){
 			throw new parseMessageException();
 		}
 	}
@@ -365,13 +368,12 @@ public class Message {
 			return str+"\\n";
 		}
 		
-		
-		if(type==TypeMessage.NEWC || type==TypeMessage.WELC){
+		if(type==TypeMessage.NEWC || type==TypeMessage.WELC ||type==TypeMessage.DUPL){
 			str+=" "+this.ip+" "+this.portString;
 			if(type==TypeMessage.NEWC){
-				return str;
+				return str+"\\n";
 			}
-			return str+" "+this.ip_diff+" "+this.port_diffString;
+			return str+" "+this.ip_diff+" "+this.port_diffString+"\\n";
 			
 		}	
 		try {
@@ -396,9 +398,6 @@ public class Message {
 			return str+" "+this.id_app+" "+new String(this.data_app);
 		}
 		str=str+" "+this.ip+" "+this.portString+" ";
-		if(type==TypeMessage.DUPL){
-			return str+this.ip_diff+" "+this.port_diffString;
-		}
 		if(type==TypeMessage.GBYE){
 			return str+this.ip_succ+" "+this.port_succString;
 		}
@@ -410,7 +409,7 @@ public class Message {
 	
 	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
 		
-		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];
 		Message tmp=new Message(WELC,TypeMessage.WELC);
 		
 		tmp.ip=ip;
@@ -419,19 +418,19 @@ public class Message {
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
 		remplirData(WELC,"WELC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString+" ").getBytes(),
-				tmp.ip_diff.getBytes(),(" "+tmp.port_diffString).getBytes());
+				tmp.ip_diff.getBytes(),(" "+tmp.port_diffString+"\n").getBytes());
 		return tmp;
 
 	}
 	
 	
 	public static Message NEWC(String ip ,int portUDP1) {
-		byte[] NEWC = new byte[4+1+sizeIp+1+sizePort];
+		byte[] NEWC = new byte[4+1+sizeIp+1+sizePort+1];
 		Message tmp=new Message(NEWC,TypeMessage.NEWC);
 		tmp.ip=ip;
 		tmp.port=portUDP1;
 		tmp.convertALL();;
-		remplirData(NEWC,"NEWC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString).getBytes());
+		remplirData(NEWC,"NEWC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString+"\n").getBytes());
 		return tmp;
 	}
 	
@@ -462,18 +461,17 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message DUPL(long idm, String ip, int listenPortUDP, String ip_diff ,int port_diff) {
-		byte[] DUPL = new byte[4+1+Ringo.byteSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+	public static Message DUPL(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
+		byte[] DUPL = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];
 		
 		Message tmp=new Message(DUPL,TypeMessage.DUPL);
-		tmp.idm=idm;
 		tmp.ip=ip;
 		tmp.port=listenPortUDP;
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
-		remplirData(DUPL,"DUPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
-				(" "+tmp.ip+" "+tmp.portString+" "+tmp.ip_diff+" "+tmp.port_diffString).getBytes());
+		remplirData(DUPL,"DUPL ".getBytes(),
+				(tmp.ip+" "+tmp.portString+" "+tmp.ip_diff+" "+tmp.port_diffString+"\n").getBytes());
 		return tmp;
 	}
 	public static Message EYBG(long idm) {

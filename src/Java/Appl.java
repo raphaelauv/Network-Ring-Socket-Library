@@ -19,8 +19,8 @@ public class Appl {
 	Scanner scan;
 	RingoSocket ringoSocket;
 	
-	public Appl(String APPLID,Integer udpPort, Integer tcpPort, boolean verboseMode) throws BindException,IOException{
-		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort ,verboseMode);
+	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException{
+		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode);
 		this.scan = new Scanner(System.in);
 		this.runContinue=true;
 	}
@@ -87,19 +87,34 @@ public class Appl {
 				runContinue = false;
 				return true;
 			}
-			if (input.startsWith("connecTo ")) {
+			if (input.startsWith("connecTo ") || input.startsWith("dupl ")) {
 				
-				System.out.println("##### ASK FOR CONNECTION #####");
+				boolean dupl=false;
+				int curseur=0;
+				if(input.startsWith("dupl")){
+					dupl=true;
+				}
+				if(dupl){
+					System.out.println("##### ASK FOR DUPLICATION #####");
+					curseur+=5;
+				}else{
+					System.out.println("##### ASK FOR CONNECTION #####");
+					curseur+=9;
+				}
 				
-				String info=input.substring(9,input.length());
+				String info=input.substring(curseur,input.length());
 				
 				int positionEspace=info.indexOf(" ");
 				String ip=info.substring(0,positionEspace);
 				ip=Message.convertIP(ip);
 				int port=Integer.parseInt(info.substring(positionEspace+1,info.length()));
-				System.out.print(" | TRY TO CONNECT " + ip + " " + port);
+				System.out.println(" | TRY TO CONNECT " + ip + " " + port);
+				if(dupl){
+					ringoSocket.connectTo(ip, port, true);
+				}else{
+					ringoSocket.connectTo(ip, port,false);
+				}
 				
-				ringoSocket.connectTo(ip, port);
 				System.out.println(" ---> SUCCES");
 				return true;
 			}
@@ -128,9 +143,13 @@ public class Appl {
 		} catch (IpException e) {
 			System.out.println("\nTHREAD connecTo : Erreur format IP invalide");
 			return true;
-		} catch(StringIndexOutOfBoundsException e){
+		} catch(StringIndexOutOfBoundsException |NumberFormatException e){
 			System.out.println("\nTHREAD connecTo : Erreur format IP ou port invalide");
 			return false;
+		} catch (AlreadyConnectException e) {
+			System.out.println("\nTHREAD connecTo : deja connecter , utiliser disconnecT ou Dupl");
+		} catch (ImpossibleDUPLConnection e) {
+			System.out.println("\nTHREAD connecTo : impossible to connect To Dupl entity");
 		}
 		
 		return false;
@@ -141,10 +160,10 @@ public class Appl {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		start(args);
+		boolean verboseMode=start(args);
 		try {
-			new Appl(null,Integer.parseInt(args[0]), Integer.parseInt(args[1]),true);
-
+			new Appl(null,Integer.parseInt(args[0]), Integer.parseInt(args[1]),true,verboseMode);
+			
 		} catch (BindException e) {
 			System.out.println("The ports are already in use");
 		} catch (IOException e) {

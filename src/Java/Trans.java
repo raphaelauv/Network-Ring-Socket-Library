@@ -58,8 +58,8 @@ public class Trans extends Appl {
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;
 	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException {
-		
-		super("TRANS###", udpPort, tcpPort, verbose);
+
+		super("TRANS###", udpPort, tcpPort,false ,verbose);
 		
 		this.id_TransMAP=new HashMap<Long, infoTransfert>(10);
 		
@@ -105,38 +105,41 @@ public class Trans extends Appl {
 						runContinue = false;
 					} catch (IOException e) {
 						System.out.println("THREAD: APP RECEVE | File error");
-					} catch (numberOfBytesException |InterruptedException e) {
+					} catch (numberOfBytesException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+					}catch (InterruptedException e) {
+						runContinue= false;
 					}
 				}
+				System.out.println("\nTHREAD: APP RECEVE   | END");
 				ThSend.interrupt();
 			}
 		};
 
 		Runnable runSend = new Runnable() {
 			public void run() {
-				
+
 				boolean entrytested;
 				while (runContinue) {
 					entrytested = testEntry();
 
 					if (!entrytested) {
 						try {
-							String contenu = "REQ "+Message.longToStringRepresentation(input.length(),byteSizeNom)+ " " + input;
+							String contenu = "REQ " + Message.longToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
 							ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
 							synchronized (ROKisComeBack) {
-								REQ_AskFile=input;
-								ROKisComeBackBool=false;
+								REQ_AskFile = input;
+								ROKisComeBackBool = false;
 								ROKisComeBack.wait(5000);
-								if(!ROKisComeBackBool){
+								if (!ROKisComeBackBool) {
 									System.out.println("ROK is not comeback in time");
 								}
-								REQ_AskFile="";
+								REQ_AskFile = "";
 							}
-							
+
 						} catch (numberOfBytesException e) {
-							//TODO
+							// TODO
 							System.out.println("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
 						} catch (DOWNmessageException e) {
 							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
@@ -146,12 +149,9 @@ public class Trans extends Appl {
 							e.printStackTrace();
 						}
 					}
-					else{
-						if(!runContinue){
-							System.out.println("\nTHREAD: APP SEND   | END");
-						}
-					}
+
 				}
+				System.out.println("\nTHREAD: APP SEND   | END");
 				ThRecev.interrupt();
 			}
 		};

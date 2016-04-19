@@ -24,7 +24,7 @@ class servMULTI {
 						erreur = true;
 					}
 				}
-				ringoSocket.printVerbose("END thread MULTI");
+				ringoSocket.printVerbose("END");
 			}
 		};
 	}

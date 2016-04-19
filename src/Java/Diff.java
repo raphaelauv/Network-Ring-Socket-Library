@@ -11,7 +11,7 @@ public class Diff extends Appl {
 	
 	public Diff(Integer udpPort, Integer tcpPort,boolean verbose) throws BindException, IOException {
 		
-		super("DIFF####", udpPort, tcpPort, verbose);
+		super("DIFF####", udpPort, tcpPort,false,verbose);
 
 		Runnable runRecev = new Runnable() {
 			public void run() {
@@ -26,13 +26,13 @@ public class Diff extends Appl {
 
 						ringoSocket.send(msgIN);//renvoi sur l'anneau du message
 					} catch (DOWNmessageException e) {
-						System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
+						System.out.println("THREAD: APP RECEVE | DOWNmessageException");
 						runContinue = false;
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						runContinue = false;
 					}
 				}
+				System.out.println("\nTHREAD: APP RECEVE | END");
 				ThSend.interrupt();
 			}
 		};
@@ -44,7 +44,6 @@ public class Diff extends Appl {
 					entrytested = testEntry();
 					if (!entrytested) {
 						try {
-							ringoSocket.test(false);
 							String contenu = Message.longToStringRepresentation(input.length(), 3) + " " + input;
 							ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "DIFF####", contenu.getBytes()));
 						} catch (numberOfBytesException e) {
@@ -54,16 +53,11 @@ public class Diff extends Appl {
 							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 							runContinue = false;
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-					else{
-						if(!runContinue){
-							System.out.println("\nTHREAD: APP SEND   | END");
+							runContinue= false;
 						}
 					}
 				}
+				System.out.println("\nTHREAD: APP SEND   | END");
 				ThRecev.interrupt();
 			}
 		};
