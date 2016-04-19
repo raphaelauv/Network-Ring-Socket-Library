@@ -3,14 +3,12 @@ import Protocol.Exceptions.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,10 +16,6 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
-
-import javax.swing.plaf.synth.SynthSeparatorUI;
-
-import java.lang.Runnable;
 
 public class RingoSocket implements Ringo {
 
@@ -80,23 +74,21 @@ public class RingoSocket implements Ringo {
 	long ValTEST;
 
 	private Boolean boolClose;
+	private Boolean boolDisconnect;
 
 	/**
 	 * Ferme tout les Thread de la RingoSocket
 	 * @param modeDOWN if true envoi un DOWN en multi avant de fermer
+	 * @throws InterruptedException 
+	 * @throws IOException 
 	 */
-	void closeServ(boolean modeDOWN) {
+	void closeServ(boolean modeDOWN) throws InterruptedException, IOException {
 
 		this.boolClose = true;
 		this.sockRecever.close();
 		this.sockMultiRECEP.close();
-
-		try {
-			this.sockServerTCP.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-		}
+		this.sockServerTCP.close();
+		
 		this.ThRecev.interrupt();
 
 		this.ThServTCP.interrupt();
@@ -114,12 +106,8 @@ public class RingoSocket implements Ringo {
 			synchronized (listToSend) {
 				while (!listToSend.isEmpty()) {
 					listToSend.notify();
-					try {
-						listToSend.wait();
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					listToSend.wait();
+					
 				}
 				this.sockSender.close();
 				this.ThSend1.interrupt();
@@ -129,10 +117,9 @@ public class RingoSocket implements Ringo {
 		}
 	}
 
-	public void close() throws InterruptedException, DOWNmessageException {
-		isClose();
-		long idm = getUniqueIdm();//TODO
-		Message msg = Message.GBYE(idm, this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
+	public void disconnect() throws InterruptedException, DOWNmessageException{
+		testClose();
+		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
 
 		synchronized (listToSend) {
 			listToSend.add(msg);
@@ -143,31 +130,52 @@ public class RingoSocket implements Ringo {
 			printVerbose("WAITING for EYBG message");
 			this.EYBGisArrive.wait(5000); // attend que EYBG soit arriver a l'entite
 			printVerbose("EYBG comeback ? :"+EYBGisArriveBool);
-			if (EYBGisArriveBool) {
-				closeServ(false);
-				return;
-			}
+			boolDisconnect=true;
+			
+			UDP_ipPort_Acces.acquire();
+			this.ipPortUDP1=this.ip;
+			this.portUDP1=this.listenPortUDP;
+			UDP_ipPort_Acces.release();
+			
+			printVerbose("DISCONNECT DONE");
+			return;
 		}
-		
-		test(false);
-
-		closeServ(false);
+	}
+	
+	public void close() throws InterruptedException, DOWNmessageException, IOException {
+		testClose();
+		if(boolDisconnect){
+			closeServ(false);
+		}
+		else{
+			disconnect();
+			closeServ(false);
+		}
 	}
 
 	/**
 	 * Tester si la ringoSocket est fermer
 	 * @throws DOWNmessageException si la ringoSocket est fermer
 	 */
-	void isClose() throws DOWNmessageException {
+	void testClose() throws DOWNmessageException {
 		synchronized (boolClose) {
 			if (boolClose) {
 				throw new DOWNmessageException();
 			}
 		}
 	}
+		
+	public boolean isClose(){
+		try{
+			testClose();
+		}catch(DOWNmessageException e){
+			return true;
+		}
+		return false;
+	}
 
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
-		isClose();
+		testClose();
 		
 		long idm=getUniqueIdm();
 		Message test = Message.TEST(idm, this.ip_diff, this.port_diff);
@@ -194,7 +202,7 @@ public class RingoSocket implements Ringo {
 
 	public void connectTo(String adresse, int idTCP)
 			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException, InterruptedException {
-		isClose();
+		testClose();
 		
 		tcpAcces.acquire();	
 		
@@ -273,14 +281,14 @@ public class RingoSocket implements Ringo {
 		buffOut.close();
 		buffIn.close();
 		socket.close();
-		
+		boolDisconnect=false;
 		tcpAcces.release();
 	}
 
 	
 	public void send(Message msg) throws DOWNmessageException {
 		
-		isClose();
+		testClose();
 		if(msg==null){
 			return;
 		}
@@ -296,15 +304,13 @@ public class RingoSocket implements Ringo {
 		}
 	}
 
-	public Message receive() throws DOWNmessageException {
-		isClose();
+	public Message receive() throws DOWNmessageException, InterruptedException {
+		testClose();
 		synchronized (listForApply) {
 			while (listForApply.isEmpty()) {
-				isClose();// en cas de down durant l'attente
-				try {
-					listForApply.wait();
-				} catch (InterruptedException e) {
-				}
+				testClose();// en cas de down durant l'attente
+				listForApply.wait();
+
 			}
 			return listForApply.pop();
 		}
@@ -342,6 +348,7 @@ public class RingoSocket implements Ringo {
 		this.portUDP2 = null;
 		this.EYBGisArriveBool= false;
 		this.boolClose = false;
+		this.boolDisconnect =true;
 		this.tcpAcces=new Semaphore(1);
 		this.idmAcces=new Semaphore(1);
 		this.UDP_ipPort_Acces = new Semaphore(1);
@@ -445,22 +452,22 @@ public class RingoSocket implements Ringo {
 		return "THREAD: " + Thread.currentThread().getName() + " | ";
 	}
 	
-	public long getUniqueIdm(){
-		try {
-			idmAcces.acquire();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		idmAcces.release();
-		byte[] val=Arrays.copyOf(this.idmStart, Ringo.byteSizeIdm);
+	public long getUniqueIdm() throws DOWNmessageException, InterruptedException{
+		testClose();
+		
+		idmAcces.acquire();
 		
 		byte [] end_of_IDM= new byte[2];
-
 		this.idmActuel=this.idmActuel%65000;//~limite de 2^255;
 		end_of_IDM[0] = (byte)(this.idmActuel & 0xFF);
 		end_of_IDM[1] = (byte)((this.idmActuel >> 8) & 0xFF);
-		
 		idmActuel++;
+		idmAcces.release();
+		byte[] val=Arrays.copyOf(this.idmStart, Ringo.byteSizeIdm);
+		
+		
+		
+		
 		val[6]=end_of_IDM[0];
 		val[7]=end_of_IDM[1];
 		

@@ -57,15 +57,13 @@ class servUDPlisten {
 			if(msgR.getIp().equals(ringoSocket.ipPortUDP1) && msgR.getPort().equals(ringoSocket.portUDP1)){
 				ringoSocket.printVerbose("My next leave the RING");
 				ringoSocket.send(Message.EYBG(this.ringoSocket.getUniqueIdm()));
-				try{
-				ringoSocket.EYBG_Acces.acquire();
 				
-				}catch (InterruptedException e){
-					e.printStackTrace();//TODO
-				}
+				ringoSocket.EYBG_Acces.acquire(); //pour attendre que EYBG soit bien envoyer
+				
+				ringoSocket.UDP_ipPort_Acces.acquire();
 				ringoSocket.ipPortUDP1=msgR.getIp_succ();
 				ringoSocket.portUDP1=msgR.getPort_succ();
-				
+				ringoSocket.UDP_ipPort_Acces.release();
 				return;
 			}
 			

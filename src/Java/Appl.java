@@ -53,7 +53,6 @@ public class Appl {
 			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
 			System.exit(1);
 		}
-	
 		System.out.println("arg0 UDP : " + args[0]); // 4242
 		System.out.println("arg1 TCP : " + args[1]); // 5555
 		System.out.println("#########################################################");
@@ -79,6 +78,11 @@ public class Appl {
 			input = scan.nextLine();
 			if (input.equals("disconnecT")) {
 				System.out.println("##### ASK FOR DISCONNECT #####");
+				ringoSocket.disconnect();
+				return true;
+			}
+			else if(input.equals("closeAppl")){
+				System.out.println("##### ASK FOR CLOSING #####");
 				ringoSocket.close();
 				runContinue = false;
 				return true;
@@ -93,10 +97,10 @@ public class Appl {
 				String ip=info.substring(0,positionEspace);
 				ip=Message.convertIP(ip);
 				int port=Integer.parseInt(info.substring(positionEspace+1,info.length()));
-				System.out.println(" | TRY TO CONNECT " + ip + " " + port);
+				System.out.print(" | TRY TO CONNECT " + ip + " " + port);
 				
 				ringoSocket.connectTo(ip, port);
-				
+				System.out.println(" ---> SUCCES");
 				return true;
 			}
 		} catch (UnknownHostException e) {

@@ -3,7 +3,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Arrays;
 import Protocol.Exceptions.DOWNmessageException;
 import Protocol.Exceptions.ProtocolException;
 import Protocol.Exceptions.parseMessageException;
@@ -22,9 +21,9 @@ class servTCP {
 				while (!erreur) {
 					try {
 						serv();
-					} catch (ProtocolException | IOException e) {
+					} catch (ProtocolException | IOException | InterruptedException e) {
 						try {
-							ringoSocket.isClose();
+							ringoSocket.testClose();
 						} catch (DOWNmessageException e1) {
 							erreur = true;
 						}
@@ -38,22 +37,18 @@ class servTCP {
 	/**
 	 * Serv in TCP to accept an entrance TCP connection
 	 * 
-	 * @param idTCP
-	 *            port TCP of serv
 	 * @throws IOException
 	 * @throws ProtocolException
+	 * @throws InterruptedException 
 	 * @throws DOWNmessageException
 	 */
-	private void serv() throws IOException, ProtocolException {
+	private void serv() throws IOException, ProtocolException, InterruptedException {
 		
 			
 			Socket socket = ringoSocket.sockServerTCP.accept();
-			try {
-				ringoSocket.tcpAcces.acquire();
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();//TODO
-				return;
-			}
+			
+			ringoSocket.tcpAcces.acquire();
+			
 			ringoSocket.printVerbose("TCP connect");
 
 			BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
@@ -97,13 +92,8 @@ class servTCP {
 			
 			ringoSocket.printVerbose("TCP : message SEND   : " + msg3.toString());
 			
-			try {
-				ringoSocket.UDP_ipPort_Acces.acquire();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			
+			ringoSocket.UDP_ipPort_Acces.acquire();
 			
 			ringoSocket.portUDP1 = msg2.getPort();
 			ringoSocket.ipPortUDP1=msg2.getIp();

@@ -20,7 +20,7 @@ class servMULTI {
 				while (!erreur) {
 					try {
 						receveMULTI();
-					} catch (DOWNmessageException | IOException e) {
+					} catch (DOWNmessageException | IOException | InterruptedException e) {
 						erreur = true;
 					}
 				}
@@ -29,7 +29,7 @@ class servMULTI {
 		};
 	}
 	
-	private void receveMULTI() throws IOException, DOWNmessageException {
+	private void receveMULTI() throws IOException, DOWNmessageException, InterruptedException {
 		ringoSocket.sockMultiRECEP = new MulticastSocket(ringoSocket.port_diff);
 		ringoSocket.sockMultiRECEP.joinGroup(InetAddress.getByName(ringoSocket.ip_diff.toString()));
 

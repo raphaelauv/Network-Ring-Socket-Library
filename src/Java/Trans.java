@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.BindException;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
@@ -22,6 +21,7 @@ public class Trans extends Appl {
 		public long actual_no_mess;
 		public long num_mess;
 		public BufferedOutputStream outputStream;
+		public File file;
 
 		public infoTransfert( long actual_no_mess,long num_mess) {
 			super();
@@ -105,8 +105,7 @@ public class Trans extends Appl {
 						runContinue = false;
 					} catch (IOException e) {
 						System.out.println("THREAD: APP RECEVE | File error");
-						//e.printStackTrace();
-					} catch (numberOfBytesException e) {
+					} catch (numberOfBytesException |InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
@@ -133,6 +132,9 @@ public class Trans extends Appl {
 						} catch (DOWNmessageException e) {
 							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 							runContinue = false;
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 					}
 					else{
@@ -178,6 +180,7 @@ public class Trans extends Appl {
 		if(value.actual_no_mess==0){
 			System.out.println("premiere partie");
 			temp = File.createTempFile("tempfile", ".tmp");
+			value.file=temp;
 			value.outputStream=new BufferedOutputStream(new FileOutputStream(temp));	
 		}
 
@@ -190,6 +193,7 @@ public class Trans extends Appl {
 		if(value.actual_no_mess==value.num_mess){
 			System.out.println("transfert FINI");
 			value.outputStream.close();
+			updateFileList(value.file);
 			
 		}
 		
@@ -218,7 +222,7 @@ public class Trans extends Appl {
 		}
 	}
 	
-	private void req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, numberOfBytesException{
+	private void req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, numberOfBytesException, InterruptedException{
 		String size_nom_STR = new String(msgInByte,curseur,byteSizeNom);
 		int tailleNameFile = Integer.parseInt(size_nom_STR);
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;

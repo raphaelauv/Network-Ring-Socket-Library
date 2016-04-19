@@ -28,6 +28,9 @@ public class Diff extends Appl {
 					} catch (DOWNmessageException e) {
 						System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
 						runContinue = false;
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
 				ThSend.interrupt();
@@ -39,7 +42,6 @@ public class Diff extends Appl {
 				boolean entrytested;
 				while (runContinue) {
 					entrytested = testEntry();
-
 					if (!entrytested) {
 						try {
 							String contenu = Message.longToStringRepresentation(input.length(), 3) + " " + input;
@@ -50,6 +52,9 @@ public class Diff extends Appl {
 						} catch (DOWNmessageException e) {
 							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 							runContinue = false;
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 					}
 					else{
