@@ -26,8 +26,7 @@ public class Trans extends Appl implements ReceveSend {
 		public File file;
 
 		public infoTransfert( long actual_no_mess,long num_mess) {
-			super();
-			
+			super();		
 			this.actual_no_mess = actual_no_mess;
 			this.num_mess = num_mess;
 		}
@@ -60,7 +59,6 @@ public class Trans extends Appl implements ReceveSend {
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;
 	
-	
 	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException {
 		super("TRANS###", udpPort, tcpPort,false ,verbose);
 		
@@ -85,35 +83,48 @@ public class Trans extends Appl implements ReceveSend {
 		initThread(ThRecev, ThSend, "TRANS");
 	}
 	
-	public void doReceve(byte[] msgInByte) throws DOWNmessageException, IOException, numberOfBytesException, InterruptedException {
+	public void doReceve(Message msg) throws DOWNmessageException, IOException, numberOfBytesException, InterruptedException {
+		byte[] msgInByte =msg.getData_app();
 		int curseur;
 		String affichage=style + "\n"+LocalDateTime.now() +" -> " + "RECEVE : ";
 		
 		String type = new String(msgInByte, 0, byteSizeTransType);
 		
 		curseur=byteSizeTransType+Ringo.byteSizeSpace;
+		boolean msgForThisAPPL=false;
 		
 		if(type.equals("REQ")){
-			req(affichage,msgInByte,curseur);
+			msgForThisAPPL=req(affichage,msgInByte,curseur);
 		}
 		else if(type.equals("ROK")){
-			rok(affichage,msgInByte,curseur);
+			msgForThisAPPL=rok(affichage,msgInByte,curseur);
 		}
 		else if(type.equals("SEN")){
-			sen(affichage,msgInByte,curseur);
+			msgForThisAPPL=sen(affichage,msgInByte,curseur);
 		}
-
-		
+		if(!msgForThisAPPL){
+			ringoSocket.send(msg);
+		}
 	}
-	private void sen(String affichage, byte[] msgInByte, int curseur)throws DOWNmessageException, IOException{
+	
+	
+	/**
+	 * Procedure en cas de message SEN recu
+	 * @param affichage
+	 * @param msgInByte
+	 * @param curseur
+	 * @return true si le message etait destiner a cette entity
+	 * @throws DOWNmessageException
+	 * @throws IOException
+	 */
+	private boolean sen(String affichage, byte[] msgInByte, int curseur)throws DOWNmessageException, IOException{
 		affichage+= "SEN " ;
 		byte [] id_transByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeId_Trans);
 		Long id_trans=Message.byteArrayToLong(id_transByte, byteSizeId_Trans, ByteOrder.nativeOrder());
 		curseur+=byteSizeId_Trans+Ringo.byteSizeSpace;
 		infoTransfert value =id_TransMAP.get(id_trans);
 		if(value==null){
-			ringoSocket.send(msgIN);
-			return;
+			return false;
 		}
 		
 		byte [] no_messByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeNo_Mess);
@@ -129,7 +140,7 @@ public class Trans extends Appl implements ReceveSend {
 			System.out.println("problem d'ordre");
 			System.out.println("valeur attentdu "+value.actual_no_mess);
 			System.out.println("valeur recu "+no_mess);
-			return;
+			return true;//TODO quand ordre pas respecter
 		}
 		File temp;
 		if(value.actual_no_mess==0){
@@ -151,10 +162,18 @@ public class Trans extends Appl implements ReceveSend {
 			updateFileList(value.file);
 			
 		}
-		
+		return true;
 	}
 	
-	private void rok(String affichage, byte[] msgInByte, int curseur) throws DOWNmessageException{
+	/**
+	 * Procedure en cas de message ROK recu
+	 * @param affichage
+	 * @param msgInByte
+	 * @param curseur
+	 * @return true si le message etait destiner a cette entity
+	 * @throws DOWNmessageException
+	 */
+	private boolean rok(String affichage, byte[] msgInByte, int curseur) throws DOWNmessageException{
 		affichage+= "ROK " ;
 		byte [] id_transByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeId_Trans);
 		
@@ -175,14 +194,25 @@ public class Trans extends Appl implements ReceveSend {
 			Long num_mess=Message.byteArrayToLong(num_messByte, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
 			id_TransMAP.put(id_trans,new infoTransfert(0L,num_mess) );	
 			System.out.println("THE TRANSFERT CAN START");
-			return;
+			return true;
 		}
 		else{
-			ringoSocket.send(msgIN);// renvoi sur l'anneau du message
+			return false;
 		}
 	}
 	
-	private void req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, numberOfBytesException, InterruptedException{
+	/**
+	 * Procedure en cas de message REQ recu
+	 * @param affichage
+	 * @param msgInByte
+	 * @param curseur
+	 * @return true si le message etait destiner a cette entity
+	 * @throws IOException
+	 * @throws DOWNmessageException
+	 * @throws numberOfBytesException
+	 * @throws InterruptedException
+	 */
+	private boolean req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, numberOfBytesException, InterruptedException{
 		String size_nom_STR = new String(msgInByte,curseur,byteSizeNom);
 		int tailleNameFile = Integer.parseInt(size_nom_STR);
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;
@@ -231,8 +261,9 @@ public class Trans extends Appl implements ReceveSend {
 				
 			}
 			out.close();
+			return true;
 		}else{
-			ringoSocket.send(msgIN);// renvoi sur l'anneau du message
+			return false;
 		}
 	}
 	

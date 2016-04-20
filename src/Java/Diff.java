@@ -18,11 +18,12 @@ public class Diff extends Appl implements ReceveSend {
 		initThread(ThRecev, ThSend, "DIFF");
 	}
 
-	public void doReceve(byte[] msgInByte) throws DOWNmessageException {
+	public void doReceve(Message msg) throws DOWNmessageException {
+		byte[] msgInByte =msg.getData_app();
 		int taille = Integer.parseInt(new String(msgInByte, 0, byteSizeMess));
 		String message = new String(msgInByte, 4, taille);
 		System.out.println(style + "\n" + LocalDateTime.now() + " -> " + "RECEVE :" + message + "\n" + style);
-		ringoSocket.send(msgIN);// renvoi sur l'anneau du message
+		ringoSocket.send(msg);// renvoi sur l'anneau du message
 
 	}
 

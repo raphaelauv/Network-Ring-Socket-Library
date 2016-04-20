@@ -16,9 +16,7 @@ public class MyRunnableReceve implements Runnable {
 	public void run() {
 		while (appl.runContinue) {
 			try {
-				appl.msgIN = appl.ringoSocket.receive();
-				byte[] msgInByte = appl.msgIN.getData_app();
-				recever.doReceve(msgInByte);
+				recever.doReceve(appl.ringoSocket.receive());
 
 			} catch (DOWNmessageException e) {
 				System.out.println("THREAD: APP RECEVE | DOWNmessageException");

@@ -12,7 +12,7 @@ public class Appl {
 
 	protected final String style="#########################################################";
 	protected String input;
-	protected Message msgIN;
+	
 	boolean runContinue;
 	
 	Thread ThRecev;
@@ -42,7 +42,6 @@ public class Appl {
 		this.ThSend=ThSend;
 		this.ThRecev.setName(name+" RECE");
 		this.ThSend.setName(name+" SEND ");
-
 		this.ThRecev.start();
 		this.ThSend.start();
 	}
@@ -127,11 +126,9 @@ public class Appl {
 			System.out.println("\nERREUR connecTo : UnknownHost ");
 			return true;
 		} catch (AlreadyAllUdpPortSet e) {
-			e.printStackTrace();
 			System.out.println("\nERREUR connecTo : Already connect");
 			return true;
 		} catch (IOException e) {
-			//e.printStackTrace();
 			System.out.println("\nERREUR connecTo : IO - ConnectException");
 			return true;
 		} catch (InterruptedException e) {
@@ -145,13 +142,16 @@ public class Appl {
 		} catch (DOWNmessageException e) {
 			System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 			runContinue = false;
+			return true;
 		} catch(IpException |StringIndexOutOfBoundsException |NumberFormatException e){
-			System.out.println("\nTHREAD connecTo : Erreur format IP ou port invalide");
+			System.out.println("\nERREUR connecTo : Erreur format IP ou port invalide");
 			return true;
 		} catch (AlreadyConnectException e) {
-			System.out.println("\nTHREAD connecTo : deja connecter , utiliser disconnecT ou Dupl");
+			System.out.println("\nERREUR connecTo : deja connecter , utiliser disconnecT ou Dupl");
+			return true;
 		} catch (ImpossibleDUPLConnection e) {
-			System.out.println("\nTHREAD connecTo : impossible to connect To Dupl entity");
+			System.out.println("\nERREUR connecTo : impossible to connect To Dupl entity");
+			return true;
 		}
 		return false;
 	}
