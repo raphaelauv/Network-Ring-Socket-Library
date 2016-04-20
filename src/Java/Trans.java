@@ -57,7 +57,7 @@ public class Trans extends Appl implements ReceveSend {
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;
 	
-	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException {
+	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
 		super("TRANS###", udpPort, tcpPort,false ,verbose);
 		
 		this.id_TransMAP=new HashMap<Long, infoTransfert>(10);
@@ -294,6 +294,8 @@ public class Trans extends Appl implements ReceveSend {
 			System.out.println("The ports are already in use");
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (IpException e) {
+
 		}
 	}
 }

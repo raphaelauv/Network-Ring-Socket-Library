@@ -9,7 +9,7 @@ public class Diff extends Appl implements ReceveSend {
 
 	public final static int byteSizeMess = 3;
 
-	public Diff(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException {
+	public Diff(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
 		super("DIFF####", udpPort, tcpPort, false, verbose);
 		Thread ThRecev = new Thread(new MyRunnableReceve(this));
 		Thread ThSend = new Thread(new MyRunnableSend(this));
@@ -40,6 +40,7 @@ public class Diff extends Appl implements ReceveSend {
 			System.out.println("The ports are already in use");
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (IpException e) {
 		}
 	}
 }

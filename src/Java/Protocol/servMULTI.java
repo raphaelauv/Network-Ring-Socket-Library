@@ -13,6 +13,12 @@ class ServMULTI {
 	
 	ServMULTI(RingoSocket ringoSocket) {
 		this.ringoSocket=ringoSocket;
+		try {
+			this.updateMulti();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		this.runServMULTI = new Runnable() {
 			public void run() {
 				boolean erreur = false;
@@ -28,22 +34,22 @@ class ServMULTI {
 		};
 	}
 	
-	private void receveMULTI() throws IOException, DOWNmessageException, InterruptedException {
+	public void updateMulti() throws IOException{
 		ringoSocket.sockMultiRECEP = new MulticastSocket(ringoSocket.port_diff);
 		ringoSocket.sockMultiRECEP.joinGroup(InetAddress.getByName(ringoSocket.ip_diff.toString()));
+	}
+	
+	private void receveMULTI() throws IOException, DOWNmessageException, InterruptedException {
 
-		byte[] data = new byte[100];
+		byte[] data = new byte[Ringo.maxSizeMsg];
 		DatagramPacket paquet = new DatagramPacket(data, data.length);
 
 		ringoSocket.sockMultiRECEP.receive(paquet);
 		String st = new String(paquet.getData(), 0, paquet.getLength());
 		ringoSocket.printVerbose("message MULTI RECEVE : " + st);
 
-		if (st.equals("DOWN\n")) {
+		if (st.startsWith("DOWN")) {
 			ringoSocket.closeServ(true);
-			throw new DOWNmessageException(); // to the thread MULTI
 		}
-
 	}
-
 }

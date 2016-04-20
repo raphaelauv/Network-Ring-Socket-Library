@@ -2,7 +2,10 @@ package application;
 
 import protocol.*;
 import protocol.exceptions.*;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.BindException;
 import java.net.UnknownHostException;
 import java.util.NoSuchElementException;
@@ -15,10 +18,12 @@ public class Appl {
 	protected Thread ThRecev;
 	protected Thread ThSend;
 	protected Scanner scan;
+	protected boolean verboseMode;
 	protected RingoSocket ringoSocket;
 	protected final static String style="##############################################################";
 	
-	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException{
+	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException, IpException{
+		this.verboseMode=verboseMode;
 		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode);
 		this.scan = new Scanner(System.in);
 		this.runContinue=true;
@@ -85,8 +90,8 @@ public class Appl {
 			}
 			else if (input.equals("dowN")) {
 				System.out.println("##### ASK FOR DOWN #####");
-				ringoSocket.down();
 				runContinue = false;
+				ringoSocket.down();
 				return true;
 			}
 			else if (input.equals("disconnecT")) {
@@ -142,6 +147,7 @@ public class Appl {
 			return true;
 		} catch (InterruptedException e) {
 			System.out.println("\nERREUR connecTo : Interrupted");
+			return true;
 		} catch (NoSuchElementException e) {
 			System.out.println("\nERREUR connecTo : NoSuchElement");
 			return true;

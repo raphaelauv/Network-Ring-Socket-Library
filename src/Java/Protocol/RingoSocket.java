@@ -78,6 +78,8 @@ public class RingoSocket implements Ringo {
 	private Boolean boolClose;
 	private Boolean boolDisconnect;
 	Boolean isDUPL;
+	
+	ServMULTI servMulti;
 
 	/**
 	 * Ferme tout les Thread de la RingoSocket
@@ -89,7 +91,7 @@ public class RingoSocket implements Ringo {
 
 		this.boolClose = true;
 		this.sockRecever.close();
-		this.sockMultiRECEP.close();
+		
 		this.sockServerTCP.close();
 		
 		this.ThRecev.interrupt();
@@ -98,24 +100,23 @@ public class RingoSocket implements Ringo {
 		if (modeDOWN) {
 			this.sockSender.close();
 			this.ThSend.interrupt();
-			synchronized (listForApply) {
-				this.listForApply.notify();
-			}
-			// this.ThSend2.interrupt();
 		} else {
-
 			synchronized (listToSend) {
 				while (!listToSend.isEmpty()) {
 					listToSend.notify();
-					listToSend.wait();
-					
+					listToSend.wait();	
 				}
 				this.sockSender.close();
 				this.ThSend.interrupt();
 				// this.ThSend2.interrupt();
 			}
-			this.ThMULTIrecev.interrupt();
 		}
+		synchronized (listForApply) {
+			this.listForApply.notify();
+		}
+		
+		this.sockMultiRECEP.close();
+		this.ThMULTIrecev.interrupt();
 	}
 
 	public void disconnect() throws InterruptedException, DOWNmessageException{
@@ -310,6 +311,7 @@ public class RingoSocket implements Ringo {
 			this.portUDP1 = msg1.getPort();
 			this.ip_diff = msg1.getIp_diff();
 			this.port_diff = msg1.getPort_diff();
+			this.servMulti.updateMulti();
 			this.boolDisconnect=false;
 		}
 		
@@ -324,16 +326,10 @@ public class RingoSocket implements Ringo {
 
 	
 	public void send(Message msg) throws DOWNmessageException {
-		
 		testClose();
 		if(msg==null){
 			return;
 		}
-		/*if (IdAlreadyReceveUDP1.contains(msg.getIdm())) {
-			printVerbose(threadToString() + "Message DEJA ENVOYER OU RECU : " + msg.toString());
-			return;
-		} 
-			*/
 		IdAlreadyReceveUDP1.add(msg.getIdm());
 		synchronized (listToSend) {
 			this.listToSend.add(msg);
@@ -360,8 +356,9 @@ public class RingoSocket implements Ringo {
 	 * @param relayMSGAuto true -> APPL MSG automatiquement relayer
 	 * @param verboseMode true -> mode verbose 
 	 * @throws IOException
+	 * @throws IpException 
 	 */
-	public RingoSocket(String idApp, Integer LICENPortUDP, Integer portTcp,boolean relayMSGAuto ,boolean verboseMode) throws IOException
+	public RingoSocket(String idApp, Integer LICENPortUDP, Integer portTcp,boolean relayMSGAuto ,boolean verboseMode) throws IOException, IpException
 			 {
 
 		super();
@@ -373,8 +370,8 @@ public class RingoSocket implements Ringo {
 		}else{
 			this.idApp = idApp;
 		}
-		this.ip = "127.000.000.001";
-		this.ip_diff = "225.1.2.4";
+		this.ip = Message.convertIP("127.0.0.1");		
+		this.ip_diff =Message.convertIP("225.1.2.4");
 		this.port_diff = 9999;
 		this.portTcp = portTcp;
 		this.sockServerTCP = new ServerSocket(portTcp);
@@ -386,9 +383,9 @@ public class RingoSocket implements Ringo {
 		this.listForApply = new LinkedList<Message>();
 		this.verboseMode = verboseMode;
 		this.relayMSGAuto = relayMSGAuto;
-		this.ipPortUDP1 = "127.000.000.001";
-		this.ipPortUDP2 = "127.000.000.001";
-		this.portUDP1 = LICENPortUDP;
+		this.ipPortUDP1 = this.ip;
+		this.ipPortUDP2 = null;
+		this.portUDP1 = this.listenPortUDP;
 		this.portUDP2 = null;
 		this.EYBGisArriveBool= false;
 		this.boolClose = false;
@@ -402,14 +399,15 @@ public class RingoSocket implements Ringo {
 		
 		this.build_IDM_array();
 		
+		this.servMulti =new ServMULTI(this);
 		this.ThRecev = new Thread(new ServUDPlisten(this).runServUDPlisten);
 		this.ThSend = new Thread(new ServUDPsend(this).runServUDPsend);
 		this.ThServTCP = new Thread(new ServTCP(this).runServTcp);
-		this.ThMULTIrecev = new Thread(new ServMULTI(this).runServMULTI);
+		this.ThMULTIrecev = new Thread(servMulti.runServMULTI);
 
 		this.ThRecev.setName("Receve UDP");
-		this.ThSend.setName("Send UDP 1");
-		this.ThServTCP.setName("server TCP");
+		this.ThSend.setName("Send UDP  ");
+		this.ThServTCP.setName("Server TCP");
 		this.ThMULTIrecev.setName("MULTI-DIFF");
 
 		this.ThRecev.start();

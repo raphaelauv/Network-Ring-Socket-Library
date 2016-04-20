@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.BindException;
 import application.*;
+import protocol.exceptions.IpException;
 
 public class Entity{
 	/**
@@ -16,6 +17,8 @@ public class Entity{
 			System.out.println("The ports are already in use");
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (IpException e) {
+			
 		}
 	}
 }

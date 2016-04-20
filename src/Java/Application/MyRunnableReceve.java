@@ -17,7 +17,7 @@ public class MyRunnableReceve implements Runnable {
 				recever.doReceve(appl.ringoSocket.receive());
 
 			} catch (DOWNmessageException e) {
-				System.out.println("THREAD: APP RECEVE | DOWNmessageException");
+				System.out.println("the socket is CLOSE");
 				appl.runContinue = false;
 			} catch (InterruptedException e) {
 				appl.runContinue = false;
@@ -28,7 +28,9 @@ public class MyRunnableReceve implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("\nTHREAD: APP RECEVE | END");
+		if(appl.verboseMode){
+			System.out.println("THREAD: APP RECEVE | END");
+		}
 		appl.ThSend.interrupt();
 	}
 }
