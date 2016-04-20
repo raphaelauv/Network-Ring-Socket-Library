@@ -189,7 +189,7 @@ public class RingoSocket implements Ringo {
 			if (!TESTisComeBackBool) {
 				printVerbose("message TEST is NOT comeback");
 				if (sendDownIfBreak) {
-					send(Message.DOWN());
+					down();
 				}
 				return false;
 			}
@@ -198,6 +198,10 @@ public class RingoSocket implements Ringo {
 		}
 	}
 
+	public void down() throws DOWNmessageException{
+		send(Message.DOWN());
+	}
+	
 	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
 			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException, InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection {
 		testClose();

@@ -16,7 +16,7 @@ public class Appl {
 	protected Thread ThSend;
 	protected Scanner scan;
 	protected RingoSocket ringoSocket;
-	protected final String style="#########################################################";
+	protected final static String style="##############################################################";
 	
 	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException{
 		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode);
@@ -40,7 +40,6 @@ public class Appl {
 		this.ThSend.start();
 	}
 	
-	
 	/**
 	 * Test les arguments et affiche les informations de base des APPL
 	 * @param args les args du main
@@ -53,11 +52,16 @@ public class Appl {
 		}
 		System.out.println("arg0 UDP : " + args[0]); // 4242
 		System.out.println("arg1 TCP : " + args[1]); // 5555
-		System.out.println("#########################################################");
-		System.out.println("## add -v after the port argument for VERBOSE Mode     ##");
-		System.out.println("## To ask disconnect,type : disconnecT                 ##");
-		System.out.println("## To ask connection,type : connecTo Ip Port           ##");
-		System.out.println("#########################################################");
+		System.out.println(style);
+		System.out.println("## add -v after the port argument for VERBOSE Mode          ##");
+		System.out.println("## To ask connection      type : connecTo Ip Port           ##");
+		System.out.println("## To ask duplication     type : dupl Ip Port               ##");
+		System.out.println("## To ask test            type : testT                      ##");
+		System.out.println("## To ask disconnect      type : disconnecT                 ##");
+		System.out.println("## To ask down            type : dowN                       ##");
+		System.out.println("## For closing Appl       type : closeAppl                  ##");
+		
+		System.out.println(style);
 		if(args.length>2 && args[2].equals("-v")){
 			return true;
 		}
@@ -74,7 +78,18 @@ public class Appl {
 	public boolean testEntry(){
 		try {
 			input = scan.nextLine();
-			if (input.equals("disconnecT")) {
+			if (input.equals("tesT")) {
+				System.out.println("##### ASK FOR TEST #####");
+				ringoSocket.test(false);
+				return true;
+			}
+			else if (input.equals("dowN")) {
+				System.out.println("##### ASK FOR DOWN #####");
+				ringoSocket.down();
+				runContinue = false;
+				return true;
+			}
+			else if (input.equals("disconnecT")) {
 				System.out.println("##### ASK FOR DISCONNECT #####");
 				ringoSocket.disconnect();
 				return true;

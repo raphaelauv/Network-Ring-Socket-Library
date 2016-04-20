@@ -45,6 +45,12 @@ class ServUDPlisten {
 					ringoSocket.TESTisComeBack.notify();
 					return;
 				}
+				else{
+					if(msgR.getIp_diff()!=ringoSocket.ip_diff || 
+							msgR.getPort_diff() != ringoSocket.port_diff){
+						return;// si le message n'est pas pour cet anneau , pas renvoyer
+					}
+				}
 			}
 		}
 		if (ringoSocket.IdAlreadyReceveUDP1.contains(msgR.getIdm())) {

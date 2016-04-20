@@ -83,6 +83,12 @@ public interface Ringo {
 	public Message receive() throws DOWNmessageException, InterruptedException;
 	
 	/**
+	 * Envoyer un down sur multidiffusion
+	 * @throws DOWNmessageException
+	 */
+	public void down() throws DOWNmessageException;
+	
+	/**
 	 * Get an unique IDM message of the RINGO entiter
 	 * @return
 	 * @throws DOWNmessageException 
