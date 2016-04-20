@@ -1,5 +1,5 @@
-package Protocol;
-import Protocol.Exceptions.*;
+package protocol;
+import protocol.exceptions.*;
 import java.io.IOException;
 import java.net.UnknownHostException;
 

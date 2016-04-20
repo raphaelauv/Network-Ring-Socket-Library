@@ -1,5 +1,5 @@
-package Protocol;
-import Protocol.Exceptions.*;
+package protocol;
+import protocol.exceptions.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -45,20 +45,20 @@ public class Message {
 	/**
 	 * Create a new Message and Parse it from data
 	 * @param data le contenu du message a parser
-	 * @throws unknownTypeMesssage if the type Message is unknow
-	 * @throws parseMessageException if the data do no correcpond to the Type Message
+	 * @throws UnknownTypeMesssage if the type Message is unknow
+	 * @throws ParseMessageException if the data do no correcpond to the Type Message
 	 */
-	public static Message parseMessage(byte [] data) throws unknownTypeMesssage, parseMessageException {
+	public static Message parseMessage(byte [] data) throws UnknownTypeMesssage, ParseMessageException {
 		return new Message(data);
 	}
 	
-	private Message(byte[] data) throws unknownTypeMesssage, parseMessageException {
+	private Message(byte[] data) throws UnknownTypeMesssage, ParseMessageException {
 		super();
 		this.data = data;
 		try {
 			this.parse();
 		} catch (IndexOutOfBoundsException e) {
-			throw new unknownTypeMesssage();
+			throw new UnknownTypeMesssage();
 		}
 		this.convertALL();
 	}
@@ -126,11 +126,11 @@ public class Message {
 	/**
 	 * Parcer le contenu d'un nouveau message
 	 * 
-	 * @throws unknownTypeMesssage
+	 * @throws UnknownTypeMesssage
 	 * @throws IndexOutOfBoundsException
-	 * @throws parseMessageException
+	 * @throws ParseMessageException
 	 */
-	private void parse() throws unknownTypeMesssage ,IndexOutOfBoundsException, parseMessageException{
+	private void parse() throws UnknownTypeMesssage ,IndexOutOfBoundsException, ParseMessageException{
 		int curseur=0;
 		int sizeIp_SPACE_PORT=sizeIp+1+sizePort;
 		String strParsed=getDataFrom_N(curseur,sizeTypeMSG);
@@ -142,7 +142,7 @@ public class Message {
 		try{
 			this.type=TypeMessage.valueOf(strParsed);	
 		}catch(IllegalArgumentException e){
-			throw new unknownTypeMesssage();
+			throw new UnknownTypeMesssage();
 		}
 		
 		if(type==TypeMessage.DOWN){
@@ -241,9 +241,9 @@ public class Message {
 	 * Permet de parser une adrese IP puis un espace puis un port
 	 * @param start position de debut
 	 * @param FLAG_IP = IP_NORMAL || IP_DIFF || IP_SUCC
-	 * @throws parseMessageException
+	 * @throws ParseMessageException
 	 */
-	public void parse_IP_SPACE_Port(int start,int FLAG_IP) throws parseMessageException{
+	public void parse_IP_SPACE_Port(int start,int FLAG_IP) throws ParseMessageException{
 		
 		String strParsed;
 		int curseur= start+Ringo.byteSizeIP;
@@ -277,27 +277,27 @@ public class Message {
 	 * Pour parse
 	 * test si le message est fini
 	 * @param end
-	 * @throws parseMessageException souleve une erreur si message pas fini
+	 * @throws ParseMessageException souleve une erreur si message pas fini
 	 */
-	private void parseTestEnd(int end) throws parseMessageException{	
+	private void parseTestEnd(int end) throws ParseMessageException{	
 		if(this.data.length!=end){
-				throw new parseMessageException();
+				throw new ParseMessageException();
 			}
 	}
 	/**
 	 * Pour parse
 	 * test si le caractere start est un caractere d'espace
 	 * @param start
-	 * @throws parseMessageException souleve une erreur si ce n'est pas un espace
+	 * @throws ParseMessageException souleve une erreur si ce n'est pas un espace
 	 */
-	private void parseTestSpace(int start) throws parseMessageException{
+	private void parseTestSpace(int start) throws ParseMessageException{
 		if(! (new String(this.data,start,1).equals(" "))){
-			throw new parseMessageException();
+			throw new ParseMessageException();
 		}
 	}
-	private void parseBackslash_N(String strParsed) throws parseMessageException{
+	private void parseBackslash_N(String strParsed) throws ParseMessageException{
 		if(!strParsed.equals("\n")){
-			throw new parseMessageException();
+			throw new ParseMessageException();
 		}
 	}
 	
@@ -305,19 +305,19 @@ public class Message {
 	 * Pour parse
 	 * test si le parametre est un numero de port conventionel
 	 * @param portTest
-	 * @throws parseMessageException
+	 * @throws ParseMessageException
 	 */
-	public static void parseTestPort(String portTest)throws parseMessageException{
+	public static void parseTestPort(String portTest)throws ParseMessageException{
 		if(portTest.length()!=4){
-			throw new parseMessageException();
+			throw new ParseMessageException();
 		}
 		try{
 			int tmp=Integer.parseInt(portTest.substring(0,4));
 			if(tmp<0 || tmp>9999){
-				throw new parseMessageException();
+				throw new ParseMessageException();
 			}
 		}catch(NumberFormatException e){
-			throw new parseMessageException();
+			throw new ParseMessageException();
 		}
 		
 		
@@ -327,28 +327,28 @@ public class Message {
 	 * pour parse
 	 * test si le parametre est un numero d'adresse Ip conventionnel
 	 * @param ipTest
-	 * @throws parseMessageException
+	 * @throws ParseMessageException
 	 */
-	private void parseTestIp(String ipTest) throws parseMessageException{
+	private void parseTestIp(String ipTest) throws ParseMessageException{
 		if(ipTest.length()!=15){
-			throw new parseMessageException();
+			throw new ParseMessageException();
 		}
 		int tmp;
 		for(int i=0;i<15;i++){
 			if(i==3 || i==7 || i==11){
 				if(ipTest.charAt(i)!='.'){
-					throw new parseMessageException();
+					throw new ParseMessageException();
 				}
 			}
 			else{
 				try{
 					tmp=Integer.parseInt(ipTest.substring(i, i+3));
 					 if(tmp<0 || tmp>255){
-						 throw new parseMessageException();
+						 throw new ParseMessageException();
 					 }
 					 i=i+2;
 				}catch(NumberFormatException e){
-					throw new parseMessageException();
+					throw new ParseMessageException();
 				}
 			}
 		}
@@ -569,13 +569,13 @@ public class Message {
 	 * @return 
 	 * @throws Exception
 	 */
-	public static String longToStringRepresentation(long value,int numberOfBytes) throws numberOfBytesException{
+	public static String longToStringRepresentation(long value,int numberOfBytes) throws NumberOfBytesException{
 		if(value<0){
-			throw new numberOfBytesException();
+			throw new NumberOfBytesException();
 		}
 		int numberOfZERO = numberOfBytes - (Long.toString(value)).length();
 		if(numberOfZERO<0){
-			throw new numberOfBytesException();
+			throw new NumberOfBytesException();
 		}
 		String tmp="";
 		for(int i=0;i<numberOfZERO;i++){

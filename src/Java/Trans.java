@@ -11,11 +11,9 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
-import Protocol.Message;
-import Protocol.Ringo;
-import Protocol.Exceptions.DOWNmessageException;
-import Protocol.Exceptions.numberOfBytesException;
-import Application.*;
+import protocol.*;
+import protocol.exceptions.*;
+import application.*;
 
 public class Trans extends Appl implements ReceveSend {
 
@@ -83,7 +81,7 @@ public class Trans extends Appl implements ReceveSend {
 		initThread(ThRecev, ThSend, "TRANS");
 	}
 	
-	public void doReceve(Message msg) throws DOWNmessageException, IOException, numberOfBytesException, InterruptedException {
+	public void doReceve(Message msg) throws DOWNmessageException, IOException, NumberOfBytesException, InterruptedException {
 		byte[] msgInByte =msg.getData_app();
 		int curseur;
 		String affichage=style + "\n"+LocalDateTime.now() +" -> " + "RECEVE : ";
@@ -212,7 +210,7 @@ public class Trans extends Appl implements ReceveSend {
 	 * @throws numberOfBytesException
 	 * @throws InterruptedException
 	 */
-	private boolean req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, numberOfBytesException, InterruptedException{
+	private boolean req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, NumberOfBytesException, InterruptedException{
 		String size_nom_STR = new String(msgInByte,curseur,byteSizeNom);
 		int tailleNameFile = Integer.parseInt(size_nom_STR);
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;
@@ -272,7 +270,7 @@ public class Trans extends Appl implements ReceveSend {
 	}
 
 	
-	public void doSend() throws numberOfBytesException, DOWNmessageException, InterruptedException {
+	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException {
 		String contenu = "REQ " + Message.longToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
 		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
 		synchronized (ROKisComeBack) {

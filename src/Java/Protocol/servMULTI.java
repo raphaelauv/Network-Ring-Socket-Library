@@ -1,18 +1,17 @@
-package Protocol;
-
+package protocol;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
-import Protocol.Exceptions.DOWNmessageException;
+import protocol.exceptions.DOWNmessageException;
 
-class servMULTI {
+class ServMULTI {
 	
 	private RingoSocket ringoSocket;
 	Runnable runServMULTI;
 	
-	servMULTI(RingoSocket ringoSocket) {
+	ServMULTI(RingoSocket ringoSocket) {
 		this.ringoSocket=ringoSocket;
 		this.runServMULTI = new Runnable() {
 			public void run() {

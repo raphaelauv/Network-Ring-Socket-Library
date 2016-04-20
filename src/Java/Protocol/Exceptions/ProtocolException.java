@@ -1,4 +1,4 @@
-package Protocol.Exceptions;
+package protocol.exceptions;
 /*
  * Mauvvais message recu
  */

@@ -1,10 +1,9 @@
 import java.io.IOException;
 import java.net.BindException;
 import java.time.LocalDateTime;
-import Protocol.Message;
-import Protocol.Exceptions.DOWNmessageException;
-import Protocol.Exceptions.numberOfBytesException;
-import Application.*;
+import protocol.*;
+import protocol.exceptions.*;
+import application.*;
 
 public class Diff extends Appl implements ReceveSend {
 
@@ -27,7 +26,7 @@ public class Diff extends Appl implements ReceveSend {
 
 	}
 
-	public void doSend() throws numberOfBytesException, DOWNmessageException, InterruptedException {
+	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException {
 		String contenu = Message.longToStringRepresentation(input.length(), 3) + " " + input;
 		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "DIFF####", contenu.getBytes()));
 	}

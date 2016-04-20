@@ -1,5 +1,5 @@
-package Protocol.Exceptions;
-/*
+package protocol.exceptions;
+/**
  * Le message est trop grand
  */
 public class SizeMessageException extends Exception {

@@ -1,19 +1,16 @@
-package Protocol;
+package protocol;
+import protocol.exceptions.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import Protocol.Exceptions.DOWNmessageException;
-import Protocol.Exceptions.ProtocolException;
-import Protocol.Exceptions.parseMessageException;
-import Protocol.Exceptions.unknownTypeMesssage;
 
-class servTCP {
+class ServTCP {
 
 	private RingoSocket ringoSocket;
 	Runnable runServTcp;
 	
-	servTCP(RingoSocket ringoSocket) {
+	ServTCP(RingoSocket ringoSocket) {
 		this.ringoSocket=ringoSocket;
 		this.runServTcp= new Runnable() {
 			public void run() {
@@ -79,7 +76,7 @@ class servTCP {
 			Message msg2 = null;
 			try {
 				msg2 = Message.parseMessage(tmp);
-			} catch (parseMessageException | unknownTypeMesssage e) {
+			} catch (ParseMessageException | UnknownTypeMesssage e) {
 				ringoSocket.printVerbose("TCP : erreur protocol");
 				return;
 			}

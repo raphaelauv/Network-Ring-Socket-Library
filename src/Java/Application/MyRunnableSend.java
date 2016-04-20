@@ -1,9 +1,7 @@
-package Application;
+package application;
 
-import Protocol.Ringo;
-import Protocol.Exceptions.DOWNmessageException;
-import Protocol.Exceptions.numberOfBytesException;
-
+import protocol.Ringo;
+import protocol.exceptions.*;
 public class MyRunnableSend implements Runnable {
 	private final ReceveSend sender;
 	private Appl appl;
@@ -20,7 +18,7 @@ public class MyRunnableSend implements Runnable {
 			if (!entrytested) {
 				try {
 					sender.doSend();
-				} catch (numberOfBytesException e) {
+				} catch (NumberOfBytesException e) {
 					//TODO
 					System.out.println("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
 				} catch (DOWNmessageException e) {

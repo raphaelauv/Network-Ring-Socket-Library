@@ -1,5 +1,5 @@
-package Protocol;
-import Protocol.Exceptions.*;
+package protocol;
+import protocol.exceptions.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -231,7 +231,7 @@ public class RingoSocket implements Ringo {
 		Message msg1 = null;
 		try {
 			msg1 = Message.parseMessage(tmp);
-		} catch (parseMessageException |unknownTypeMesssage e1) {
+		} catch (ParseMessageException |UnknownTypeMesssage e1) {
 			e1.printStackTrace();//TODO a retirer apres tests
 			socket.close();
 			throw new ProtocolException();
@@ -271,7 +271,7 @@ public class RingoSocket implements Ringo {
 		Message msg3 = null;
 		try {
 			msg3 = Message.parseMessage(tmp);
-		} catch (parseMessageException | unknownTypeMesssage e) {
+		} catch (ParseMessageException | UnknownTypeMesssage e) {
 			socket.close();
 			this.UDP_ipPort_Acces.release();
 			throw new ProtocolException();
@@ -398,10 +398,10 @@ public class RingoSocket implements Ringo {
 		
 		this.build_IDM_array();
 		
-		this.ThRecev = new Thread(new servUDPlisten(this).runServUDPlisten);
-		this.ThSend = new Thread(new servUDPsend(this).runServUDPsend);
-		this.ThServTCP = new Thread(new servTCP(this).runServTcp);
-		this.ThMULTIrecev = new Thread(new servMULTI(this).runServMULTI);
+		this.ThRecev = new Thread(new ServUDPlisten(this).runServUDPlisten);
+		this.ThSend = new Thread(new ServUDPsend(this).runServUDPsend);
+		this.ThServTCP = new Thread(new ServTCP(this).runServTcp);
+		this.ThMULTIrecev = new Thread(new ServMULTI(this).runServMULTI);
 
 		this.ThRecev.setName("Receve UDP");
 		this.ThSend.setName("Send UDP 1");

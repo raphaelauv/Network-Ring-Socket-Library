@@ -1,8 +1,6 @@
-package Application;
-
+package application;
+import protocol.exceptions.*;
 import java.io.IOException;
-import Protocol.Exceptions.DOWNmessageException;
-import Protocol.Exceptions.numberOfBytesException;
 
 public class MyRunnableReceve implements Runnable {
 	private final ReceveSend recever;
@@ -25,7 +23,7 @@ public class MyRunnableReceve implements Runnable {
 				appl.runContinue = false;
 			} catch (IOException e) {
 				System.out.println("THREAD: APP RECEVE | File error");
-			} catch (numberOfBytesException e) {
+			} catch (NumberOfBytesException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

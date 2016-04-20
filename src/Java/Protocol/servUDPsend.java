@@ -1,13 +1,13 @@
-package Protocol;
+package protocol;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 
-class servUDPsend {
+class ServUDPsend {
 	private RingoSocket ringoSocket;
 	Runnable runServUDPsend;
 
-	public servUDPsend(RingoSocket ringoSocket) {
+	public ServUDPsend(RingoSocket ringoSocket) {
 		this.ringoSocket = ringoSocket;
 		this.runServUDPsend = new Runnable() {
 			public void run() {

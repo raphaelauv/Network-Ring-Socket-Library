@@ -1,19 +1,14 @@
-package Protocol;
-
-import Protocol.TypeMessage;
-
+package protocol;
+import protocol.exceptions.*;
+import protocol.TypeMessage;
 import java.io.IOException;
 import java.net.DatagramPacket;
 
-import Protocol.Exceptions.DOWNmessageException;
-import Protocol.Exceptions.parseMessageException;
-import Protocol.Exceptions.unknownTypeMesssage;
-
-class servUDPlisten {
+class ServUDPlisten {
 	private RingoSocket ringoSocket;
 	Runnable runServUDPlisten;
 	
-	public servUDPlisten(RingoSocket ringoSocket) {
+	public ServUDPlisten(RingoSocket ringoSocket) {
 		this.ringoSocket = ringoSocket;
 		this.runServUDPlisten=new Runnable() {
 			public void run() {
@@ -39,7 +34,7 @@ class servUDPlisten {
 		Message msgR = null;
 		try {
 			msgR = Message.parseMessage(paquet.getData());
-		} catch (parseMessageException | unknownTypeMesssage e) {
+		} catch (ParseMessageException | UnknownTypeMesssage e) {
 			e.printStackTrace();//TODO
 			return;
 		}

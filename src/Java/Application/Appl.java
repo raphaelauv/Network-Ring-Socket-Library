@@ -1,13 +1,13 @@
-package Application;
+package application;
 
+import protocol.*;
+import protocol.exceptions.*;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.UnknownHostException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import Protocol.Message;
-import Protocol.RingoSocket;
-import Protocol.Exceptions.*;
+
 public class Appl {
 
 	protected final String style="#########################################################";

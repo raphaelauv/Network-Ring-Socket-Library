@@ -1,13 +1,13 @@
-package Application;
+package application;
 
 import java.io.IOException;
 
-import Protocol.Message;
-import Protocol.Exceptions.DOWNmessageException;
-import Protocol.Exceptions.numberOfBytesException;
+import protocol.Message;
+import protocol.exceptions.DOWNmessageException;
+import protocol.exceptions.NumberOfBytesException;
 
 public interface ReceveSend {
 	
-	void doReceve(Message msg) throws DOWNmessageException, IOException, numberOfBytesException, InterruptedException;
-	void doSend() throws numberOfBytesException, DOWNmessageException, InterruptedException;
+	void doReceve(Message msg) throws DOWNmessageException, IOException, NumberOfBytesException, InterruptedException;
+	void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException;
 }
