@@ -35,5 +35,3 @@ public class MyRunnableSend implements Runnable {
 		appl.ThRecev.interrupt();
 	}
 }
-
-		

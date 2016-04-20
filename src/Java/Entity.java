@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.BindException;
 import Application.*;
+
 public class Entity{
 	/**
 	 * pour lancer une simple entite ringoSocket , denouer de toute interaction utilisateur 
