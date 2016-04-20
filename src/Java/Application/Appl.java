@@ -10,19 +10,13 @@ import java.util.Scanner;
 
 public class Appl {
 
-	protected final String style="#########################################################";
 	protected String input;
-	
 	boolean runContinue;
-	
-	Thread ThRecev;
-	Thread ThSend;
-	
-	Scanner scan;
+	protected Thread ThRecev;
+	protected Thread ThSend;
+	protected Scanner scan;
 	protected RingoSocket ringoSocket;
-	public Appl getAppl(){
-		return this;
-	}
+	protected final String style="#########################################################";
 	
 	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException{
 		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode);

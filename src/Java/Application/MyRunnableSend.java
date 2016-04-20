@@ -4,10 +4,10 @@ import protocol.Ringo;
 import protocol.exceptions.*;
 public class MyRunnableSend implements Runnable {
 	private final ReceveSend sender;
-	private Appl appl;
+	private final Appl appl;
 	
-	public MyRunnableSend(Appl appl,ReceveSend sender) {
-		this.appl=appl;
+	public MyRunnableSend(ReceveSend sender) {
+		this.appl=(Appl)sender;
 		this.sender = sender;
 	}
 

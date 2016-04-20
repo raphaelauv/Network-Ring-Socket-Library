@@ -150,6 +150,14 @@ public class Message {
 			return;
 		}
 		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
+			if(type==TypeMessage.ACKD){
+				parseTestSpace(curseur);
+				curseur++;
+				strParsed=getDataFrom_N(curseur, sizePort);
+				parseTestPort(strParsed);
+				this.port=Integer.parseInt(strParsed);
+				curseur+=sizePort;
+			}
 			strParsed=getDataFrom_N(curseur,1);
 			parseBackslash_N(strParsed);
 			curseur++;
@@ -158,7 +166,6 @@ public class Message {
 		}
 		
 		parseTestSpace(curseur);
-		
 		curseur++;
 		
 		if(type==TypeMessage.NEWC || type==TypeMessage.WELC || type==TypeMessage.DUPL){
@@ -365,6 +372,9 @@ public class Message {
 			return str;
 		}
 		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
+			if(type==TypeMessage.ACKD){
+				str+=" "+this.portString;
+			}
 			return str+"\\n";
 		}
 		
@@ -475,7 +485,7 @@ public class Message {
 		return tmp;
 	}
 	public static Message EYBG(long idm) {
-		byte[] EYBG = new byte[5+Ringo.byteSizeIdm];
+		byte[] EYBG = new byte[4+1+Ringo.byteSizeIdm];
 		Message tmp=new Message(EYBG,TypeMessage.EYBG);
 		tmp.idm=idm;
 		tmp.convertALL();;

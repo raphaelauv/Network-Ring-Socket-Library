@@ -11,9 +11,8 @@ public class Diff extends Appl implements ReceveSend {
 
 	public Diff(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException {
 		super("DIFF####", udpPort, tcpPort, false, verbose);
-		Appl appl = this.getAppl();
-		Thread ThRecev = new Thread(new MyRunnableReceve(appl, this));
-		Thread ThSend = new Thread(new MyRunnableSend(appl, this));
+		Thread ThRecev = new Thread(new MyRunnableReceve(this));
+		Thread ThSend = new Thread(new MyRunnableSend(this));
 		initThread(ThRecev, ThSend, "DIFF");
 	}
 

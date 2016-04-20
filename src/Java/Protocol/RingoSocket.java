@@ -277,6 +277,8 @@ public class RingoSocket implements Ringo {
 			throw new ProtocolException();
 		}
 		
+		printVerbose("TCP : message RECEVE : " + msg3.toString());
+		
 		boolean erreur=false;
 		if(modeDUPL){
 			if (msg3.getType() != TypeMessage.ACKD) {
@@ -293,8 +295,6 @@ public class RingoSocket implements Ringo {
 			this.UDP_ipPort_Acces.release();
 			throw new ProtocolException();
 		}
-		
-		printVerbose("TCP : message RECEVE : " + msg3.toString());
 
 		if(modeDUPL){
 			this.ipPortUDP2=msg1.getIp();

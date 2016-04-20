@@ -4,10 +4,10 @@ import java.io.IOException;
 
 public class MyRunnableReceve implements Runnable {
 	private final ReceveSend recever;
-	private Appl appl;
+	private final Appl appl;
 	
-	public MyRunnableReceve(Appl appl,ReceveSend recever) {
-		this.appl=appl;
+	public MyRunnableReceve(ReceveSend recever) {
+		this.appl=(Appl)recever;
 		this.recever = recever;
 	}
 

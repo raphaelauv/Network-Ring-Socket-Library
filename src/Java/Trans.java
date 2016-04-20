@@ -75,9 +75,8 @@ public class Trans extends Appl implements ReceveSend {
 			    }
 			}
 		}
-		Appl appl=this.getAppl();
-		Thread ThRecev = new Thread(new MyRunnableReceve(appl,this));
-		Thread ThSend = new Thread(new MyRunnableSend(appl,this));
+		Thread ThRecev = new Thread(new MyRunnableReceve(this));
+		Thread ThSend = new Thread(new MyRunnableSend(this));
 		initThread(ThRecev, ThSend, "TRANS");
 	}
 	
