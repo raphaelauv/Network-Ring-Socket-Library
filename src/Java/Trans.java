@@ -13,10 +13,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import Protocol.Message;
 import Protocol.Ringo;
-import Protocol.Exceptions.*;
+import Protocol.Exceptions.DOWNmessageException;
+import Protocol.Exceptions.numberOfBytesException;
 
-public class Trans extends Appl {
-	
+public class Trans extends Appl implements ReceveSend {
+
 	private class infoTransfert {
 		public long actual_no_mess;
 		public long num_mess;
@@ -57,8 +58,9 @@ public class Trans extends Appl {
 	private final int byteSizeStart=byteSizeTransType+Ringo.byteSizeSpace*4+byteSizeId_Trans;
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;
+	
+	
 	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException {
-
 		super("TRANS###", udpPort, tcpPort,false ,verbose);
 		
 		this.id_TransMAP=new HashMap<Long, infoTransfert>(10);
@@ -76,89 +78,32 @@ public class Trans extends Appl {
 			    }
 			}
 		}
-		
-		Runnable runRecev = new Runnable() {
-			public void run() {
-				while (runContinue) {
-					try {
-						msgIN = ringoSocket.receive();
-						byte[] msgInByte = msgIN.getData_app();
-						int curseur;
-						String affichage=style + "\n"+LocalDateTime.now() +" -> " + "RECEVE : ";
-						
-						String type = new String(msgInByte, 0, byteSizeTransType);
-						
-						curseur=byteSizeTransType+Ringo.byteSizeSpace;
-						
-						if(type.equals("REQ")){
-							req(affichage,msgInByte,curseur);
-						}
-						else if(type.equals("ROK")){
-							rok(affichage,msgInByte,curseur);
-						}
-						else if(type.equals("SEN")){
-							sen(affichage,msgInByte,curseur);
-						}
-
-					} catch (DOWNmessageException e) {
-						System.out.println("THREAD: APP RECEVE | DOWNmessageException , the socket is CLOSE");
-						runContinue = false;
-					} catch (IOException e) {
-						System.out.println("THREAD: APP RECEVE | File error");
-					} catch (numberOfBytesException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}catch (InterruptedException e) {
-						runContinue= false;
-					}
-				}
-				System.out.println("\nTHREAD: APP RECEVE   | END");
-				ThSend.interrupt();
-			}
-		};
-
-		Runnable runSend = new Runnable() {
-			public void run() {
-
-				boolean entrytested;
-				while (runContinue) {
-					entrytested = testEntry();
-
-					if (!entrytested) {
-						try {
-							String contenu = "REQ " + Message.longToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
-							ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
-							synchronized (ROKisComeBack) {
-								REQ_AskFile = input;
-								ROKisComeBackBool = false;
-								ROKisComeBack.wait(5000);
-								if (!ROKisComeBackBool) {
-									System.out.println("ROK is not comeback in time");
-								}
-								REQ_AskFile = "";
-							}
-
-						} catch (numberOfBytesException e) {
-							// TODO
-							System.out.println("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
-						} catch (DOWNmessageException e) {
-							System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
-							runContinue = false;
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-
-				}
-				System.out.println("\nTHREAD: APP SEND   | END");
-				ThRecev.interrupt();
-			}
-		};
-
-		initThread(runRecev,runSend,"TRANS");
+		Appl appl=this.getAppl();
+		Thread ThRecev = new Thread(new MyRunnableReceve(appl,this));
+		Thread ThSend = new Thread(new MyRunnableSend(appl,this));
+		initThread(ThRecev, ThSend, "TRANS");
 	}
 	
+	public void doReceve(byte[] msgInByte) throws DOWNmessageException, IOException, numberOfBytesException, InterruptedException {
+		int curseur;
+		String affichage=style + "\n"+LocalDateTime.now() +" -> " + "RECEVE : ";
+		
+		String type = new String(msgInByte, 0, byteSizeTransType);
+		
+		curseur=byteSizeTransType+Ringo.byteSizeSpace;
+		
+		if(type.equals("REQ")){
+			req(affichage,msgInByte,curseur);
+		}
+		else if(type.equals("ROK")){
+			rok(affichage,msgInByte,curseur);
+		}
+		else if(type.equals("SEN")){
+			sen(affichage,msgInByte,curseur);
+		}
+
+		
+	}
 	private void sen(String affichage, byte[] msgInByte, int curseur)throws DOWNmessageException, IOException{
 		affichage+= "SEN " ;
 		byte [] id_transByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeId_Trans);
@@ -290,17 +235,28 @@ public class Trans extends Appl {
 		}
 	}
 	
-	/**
-	 * Quand un fichier est nouvelement recu , il peut etre ajouter a la hashMap des fichiers du repertoire
-	 * @param newFile le nouveau fichier recu par le reseau
-	 */
 	private void updateFileList(File newFile){
 		this.files.put(newFile.getName(), newFile.toPath());
 	}
 
+	
+	public void doSend() throws numberOfBytesException, DOWNmessageException, InterruptedException {
+		String contenu = "REQ " + Message.longToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
+		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
+		synchronized (ROKisComeBack) {
+			REQ_AskFile = input;
+			ROKisComeBackBool = false;
+			ROKisComeBack.wait(5000);
+			if (!ROKisComeBackBool) {
+				System.out.println("ROK is not comeback in time");
+			}
+			REQ_AskFile = "";
+		}
+	}
+	
 	public static void main(String[] args) {
 
-		boolean verbose=Appl.start(args);
+		boolean verbose=Appl.testArgs(args);
 
 		try {
 			new Trans(Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
@@ -311,4 +267,5 @@ public class Trans extends Appl {
 			e.printStackTrace();
 		}
 	}
+
 }

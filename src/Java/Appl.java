@@ -18,6 +18,9 @@ public class Appl {
 	
 	Scanner scan;
 	RingoSocket ringoSocket;
+	public Appl getAppl(){
+		return this;
+	}
 	
 	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException{
 		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode);
@@ -31,10 +34,10 @@ public class Appl {
 	 * @param send
 	 * @param name nom de l'APPL
 	 */
-	public void initThread(Runnable receve,Runnable send,String name){
-		this.ThRecev = new Thread(receve);
-		this.ThSend = new Thread(send);
-
+	public void initThread(Thread ThRecev,Thread ThSend,String name){
+	
+		this.ThRecev=ThRecev;
+		this.ThSend=ThSend;
 		this.ThRecev.setName(name+" RECE");
 		this.ThSend.setName(name+" SEND ");
 
@@ -48,7 +51,7 @@ public class Appl {
 	 * @param args les args du main
 	 * @return 
 	 */
-	public static boolean start(String[] args){
+	public static boolean testArgs(String[] args){
 		if (args==null || args.length == 0 || args[0] == null || args[1] == null) {
 			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
 			System.exit(1);
@@ -140,18 +143,14 @@ public class Appl {
 		} catch (DOWNmessageException e) {
 			System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 			runContinue = false;
-		} catch (IpException e) {
-			System.out.println("\nTHREAD connecTo : Erreur format IP invalide");
-			return true;
-		} catch(StringIndexOutOfBoundsException |NumberFormatException e){
+		} catch(IpException |StringIndexOutOfBoundsException |NumberFormatException e){
 			System.out.println("\nTHREAD connecTo : Erreur format IP ou port invalide");
-			return false;
+			return true;
 		} catch (AlreadyConnectException e) {
 			System.out.println("\nTHREAD connecTo : deja connecter , utiliser disconnecT ou Dupl");
 		} catch (ImpossibleDUPLConnection e) {
 			System.out.println("\nTHREAD connecTo : impossible to connect To Dupl entity");
 		}
-		
 		return false;
 	}
 	
@@ -160,7 +159,7 @@ public class Appl {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean verboseMode=start(args);
+		boolean verboseMode=testArgs(args);
 		try {
 			new Appl(null,Integer.parseInt(args[0]), Integer.parseInt(args[1]),true,verboseMode);
 			
