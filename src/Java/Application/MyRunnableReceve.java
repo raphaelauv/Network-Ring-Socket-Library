@@ -1,12 +1,14 @@
+package Application;
+
 import java.io.IOException;
 import Protocol.Exceptions.DOWNmessageException;
 import Protocol.Exceptions.numberOfBytesException;
 
-class MyRunnableReceve implements Runnable {
+public class MyRunnableReceve implements Runnable {
 	private final ReceveSend recever;
 	private Appl appl;
 	
-	MyRunnableReceve(Appl appl,ReceveSend recever) {
+	public MyRunnableReceve(Appl appl,ReceveSend recever) {
 		this.appl=appl;
 		this.recever = recever;
 	}

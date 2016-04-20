@@ -15,7 +15,7 @@ import Protocol.Message;
 import Protocol.Ringo;
 import Protocol.Exceptions.DOWNmessageException;
 import Protocol.Exceptions.numberOfBytesException;
-
+import Application.*;
 public class Trans extends Appl implements ReceveSend {
 
 	private class infoTransfert {

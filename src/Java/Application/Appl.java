@@ -1,3 +1,5 @@
+package Application;
+
 import java.io.IOException;
 import java.net.BindException;
 import java.net.UnknownHostException;
@@ -8,16 +10,16 @@ import Protocol.RingoSocket;
 import Protocol.Exceptions.*;
 public class Appl {
 
-	final String style="#########################################################";
-	String input;
-	Message msgIN;
+	protected final String style="#########################################################";
+	protected String input;
+	protected Message msgIN;
 	boolean runContinue;
 	
 	Thread ThRecev;
 	Thread ThSend;
 	
 	Scanner scan;
-	RingoSocket ringoSocket;
+	protected RingoSocket ringoSocket;
 	public Appl getAppl(){
 		return this;
 	}
@@ -152,21 +154,5 @@ public class Appl {
 			System.out.println("\nTHREAD connecTo : impossible to connect To Dupl entity");
 		}
 		return false;
-	}
-	
-	/**
-	 * pour lancer une simple entite ringoSocket , denouer de toute interaction utilisateur 
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		boolean verboseMode=testArgs(args);
-		try {
-			new Appl(null,Integer.parseInt(args[0]), Integer.parseInt(args[1]),true,verboseMode);
-			
-		} catch (BindException e) {
-			System.out.println("The ports are already in use");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 }

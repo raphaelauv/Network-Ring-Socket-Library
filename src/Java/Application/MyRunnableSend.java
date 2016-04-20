@@ -1,12 +1,14 @@
+package Application;
+
 import Protocol.Ringo;
 import Protocol.Exceptions.DOWNmessageException;
 import Protocol.Exceptions.numberOfBytesException;
 
-class MyRunnableSend implements Runnable {
+public class MyRunnableSend implements Runnable {
 	private final ReceveSend sender;
 	private Appl appl;
 	
-	MyRunnableSend(Appl appl,ReceveSend sender) {
+	public MyRunnableSend(Appl appl,ReceveSend sender) {
 		this.appl=appl;
 		this.sender = sender;
 	}

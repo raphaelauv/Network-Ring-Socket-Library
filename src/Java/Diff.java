@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import Protocol.Message;
 import Protocol.Exceptions.DOWNmessageException;
 import Protocol.Exceptions.numberOfBytesException;
-
+import Application.*;
 public class Diff extends Appl implements ReceveSend {
 
 	public final static int byteSizeMess = 3;
