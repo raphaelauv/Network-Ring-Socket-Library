@@ -1,0 +1,16 @@
+pour compiler :
+
+il faut taper: make
+
+pour lancer le programme:
+  ./main port_tcp port_udp
+
+pour l'insertion :
+     connecTo ip port
+
+pour la duplication:
+      DUPL ip port
+
+
+reste à faire :
+		en udp pour l'instant j'envoie juste ce que je reçois je vais modifier pour que le programme se comporte de la meme maniere que ce qui est demandé dans le sujet et puis je vaistraiter tous les cas particuliers ou les cas où l'utilisateur tape des trucs pour faire cracher le programme .
