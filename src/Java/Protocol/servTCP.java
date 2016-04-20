@@ -1,20 +1,16 @@
-package Protocol;
+package protocol;
+import protocol.exceptions.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Arrays;
-import Protocol.Exceptions.DOWNmessageException;
-import Protocol.Exceptions.ProtocolException;
-import Protocol.Exceptions.parseMessageException;
-import Protocol.Exceptions.unknownTypeMesssage;
 
-class servTCP {
+class ServTCP {
 
 	private RingoSocket ringoSocket;
 	Runnable runServTcp;
 	
-	servTCP(RingoSocket ringoSocket) {
+	ServTCP(RingoSocket ringoSocket) {
 		this.ringoSocket=ringoSocket;
 		this.runServTcp= new Runnable() {
 			public void run() {
@@ -22,15 +18,15 @@ class servTCP {
 				while (!erreur) {
 					try {
 						serv();
-					} catch (ProtocolException | IOException e) {
+					} catch (ProtocolException | IOException | InterruptedException e) {
 						try {
-							ringoSocket.isClose();
+							ringoSocket.testClose();
 						} catch (DOWNmessageException e1) {
 							erreur = true;
 						}
 					}
 				}
-				ringoSocket.printVerbose("END thread TCP");
+				ringoSocket.printVerbose("END");
 			}
 		};
 	}
@@ -38,41 +34,49 @@ class servTCP {
 	/**
 	 * Serv in TCP to accept an entrance TCP connection
 	 * 
-	 * @param idTCP
-	 *            port TCP of serv
 	 * @throws IOException
 	 * @throws ProtocolException
+	 * @throws InterruptedException 
 	 * @throws DOWNmessageException
 	 */
-	private void serv() throws IOException, ProtocolException {
+	private void serv() throws IOException, ProtocolException, InterruptedException {
+
 			Socket socket = ringoSocket.sockServerTCP.accept();
-			try {
-				ringoSocket.tcpAcces.acquire();
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();//TODO
-			}
+			ringoSocket.tcpAcces.acquire();
 			ringoSocket.printVerbose("TCP connect");
+			
 
 			BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
 			BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
-
-			Message msg1 = Message.WELC(ringoSocket.ip, ringoSocket.portUDP1, ringoSocket.ip_diff, ringoSocket.port_diff);
+			Message msg1;
+			if(ringoSocket.isDUPL){
+				msg1=Message.NOTC();
+			}else{
+				msg1 = Message.WELC(ringoSocket.ip, ringoSocket.portUDP1, ringoSocket.ip_diff, ringoSocket.port_diff);
+			}
 			buffOut.write(msg1.getData());
 			buffOut.flush();
 
+			if(ringoSocket.isDUPL){
+				buffOut.close();
+				buffIn.close();
+				ringoSocket.tcpAcces.release();
+				return;
+			}
 			ringoSocket.printVerbose("TCP : message SEND   : " + msg1.toString());
 
 			byte[] tmp = new byte[Ringo.maxSizeMsg];
 			int sizeReturn = buffIn.read(tmp);
-			if (sizeReturn != 25) {
+			/*//TODO
+			if (sizeReturn != 26) {
 				throw new ProtocolException();
 			}
 			tmp = Arrays.copyOfRange(tmp, 0, 25);
-
+			 */
 			Message msg2 = null;
 			try {
-				msg2 = new Message(tmp);
-			} catch (parseMessageException | unknownTypeMesssage e) {
+				msg2 = Message.parseMessage(tmp);
+			} catch (ParseMessageException | UnknownTypeMesssage e) {
 				ringoSocket.printVerbose("TCP : erreur protocol");
 				return;
 			}
@@ -90,16 +94,13 @@ class servTCP {
 
 			buffOut.write(msg3.getData());
 			buffOut.flush();
-
 			
 			ringoSocket.printVerbose("TCP : message SEND   : " + msg3.toString());
 
-			synchronized (ringoSocket.ipPortUDP1) {
-				synchronized (ringoSocket.portUDP1) {
-					ringoSocket.portUDP1 = msg2.getPort();
-					ringoSocket.ipPortUDP1=msg2.getIp();
-				}
-			}
+			ringoSocket.UDP_ipPort_Acces.acquire();			
+			ringoSocket.portUDP1 = msg2.getPort();
+			ringoSocket.ipPortUDP1=msg2.getIp();
+			ringoSocket.UDP_ipPort_Acces.release();
 			buffOut.close();
 			buffIn.close();
 			

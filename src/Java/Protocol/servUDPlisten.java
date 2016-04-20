@@ -1,19 +1,14 @@
-package Protocol;
-
-import Protocol.TypeMessage;
-
+package protocol;
+import protocol.exceptions.*;
+import protocol.TypeMessage;
 import java.io.IOException;
 import java.net.DatagramPacket;
 
-import Protocol.Exceptions.DOWNmessageException;
-import Protocol.Exceptions.parseMessageException;
-import Protocol.Exceptions.unknownTypeMesssage;
-
-class servUDPlisten {
+class ServUDPlisten {
 	private RingoSocket ringoSocket;
 	Runnable runServUDPlisten;
 	
-	public servUDPlisten(RingoSocket ringoSocket) {
+	public ServUDPlisten(RingoSocket ringoSocket) {
 		this.ringoSocket = ringoSocket;
 		this.runServUDPlisten=new Runnable() {
 			public void run() {
@@ -25,10 +20,9 @@ class servUDPlisten {
 						erreur = true;
 					}
 				}
-				ringoSocket.printVerbose("END thread RECEV");
+				ringoSocket.printVerbose("END");
 			}
-		};
-		
+		};	
 	}
 	
 	private void receveMessage() throws IOException, InterruptedException, DOWNmessageException {
@@ -39,14 +33,28 @@ class servUDPlisten {
 		ringoSocket.sockRecever.receive(paquet);// attente passive
 		Message msgR = null;
 		try {
-			msgR = new Message(paquet.getData());
-		} catch (parseMessageException | unknownTypeMesssage e) {
-			e.printStackTrace();
+			msgR = Message.parseMessage(paquet.getData());
+		} catch (ParseMessageException | UnknownTypeMesssage e) {
+			e.printStackTrace();//TODO
 			return;
 		}
-
+		if (msgR.getType() == TypeMessage.TEST) {
+			synchronized (ringoSocket.TESTisComeBack) {
+				if (msgR.getIdm() == ringoSocket.ValTEST) {
+					ringoSocket.TESTisComeBackBool = true;
+					ringoSocket.TESTisComeBack.notify();
+					return;
+				}
+				else{
+					if(msgR.getIp_diff()!=ringoSocket.ip_diff || 
+							msgR.getPort_diff() != ringoSocket.port_diff){
+						return;// si le message n'est pas pour cet anneau , pas renvoyer
+					}
+				}
+			}
+		}
 		if (ringoSocket.IdAlreadyReceveUDP1.contains(msgR.getIdm())) {
-			ringoSocket.printVerbose("Message DEJA ENVOYER OU RECU : " + msgR.toString());
+			ringoSocket.printVerbose("Message DEJA ENVOYER OU RECU : " + msgR.getIdm());
 			return;
 		} else {
 			ringoSocket.IdAlreadyReceveUDP1.add(msgR.getIdm());
@@ -56,26 +64,29 @@ class servUDPlisten {
 		if (msgR.getType() == TypeMessage.GBYE) {
 			if(msgR.getIp().equals(ringoSocket.ipPortUDP1) && msgR.getPort().equals(ringoSocket.portUDP1)){
 				ringoSocket.printVerbose("My next leave the RING");
-				ringoSocket.send(Message.EYBG(300));
+				ringoSocket.send(Message.EYBG(this.ringoSocket.getUniqueIdm()));
+				ringoSocket.EYBG_Acces.acquire(); //pour attendre que EYBG soit bien envoyer
 				
-				synchronized(ringoSocket.ipPortUDP1){
-					ringoSocket.ipPortUDP1.wait();
-					synchronized (ringoSocket.portUDP1) {
-						ringoSocket.ipPortUDP1=msgR.getIp_succ();
-						ringoSocket.portUDP1=msgR.getPort_succ();
-					}
-					ringoSocket.ipPortUDP1.notify();
+				ringoSocket.UDP_ipPort_Acces.acquire();
+				ringoSocket.ipPortUDP1=msgR.getIp_succ();
+				ringoSocket.portUDP1=msgR.getPort_succ();
+				ringoSocket.UDP_ipPort_Acces.release();
+				return;
+			}
+		}
+		else if (msgR.getType() == TypeMessage.APPL) {
+			if (msgR.getId_app().equals(ringoSocket.idApp)) {
+				synchronized (ringoSocket.listForApply) {
+					ringoSocket.listForApply.add(msgR);
+					ringoSocket.listForApply.notifyAll();
 				}
-				return;
+				if(!ringoSocket.relayMSGAuto){
+					return;//pour ne pas renvoyer automatiquement le message sur le reseau
+				}
 			}
-			
-		} else if (msgR.getType() == TypeMessage.TEST) {
-			if (msgR.getIdm() == ringoSocket.ValTEST) {
-				ringoSocket.TESTisComeBack = true;
-				return;
-			}
+
 		}else if (msgR.getType() == TypeMessage.WHOS) {
-			ringoSocket.send(Message.MEMB(400,ringoSocket.id,ringoSocket.ip, ringoSocket.portUDP1));	
+			ringoSocket.send(Message.MEMB(this.ringoSocket.getUniqueIdm(),ringoSocket.idApp,ringoSocket.ip, ringoSocket.portUDP1));	
 			
 		} else if (msgR.getType() == TypeMessage.EYBG) {
 			synchronized (ringoSocket.EYBGisArrive) {
@@ -83,22 +94,10 @@ class servUDPlisten {
 				ringoSocket.EYBGisArrive.notify();
 			}
 			return;
-
-		} else if (msgR.getType() == TypeMessage.APPL) {
-
-			if (msgR.getId_app().equals(ringoSocket.id)) {
-				synchronized (ringoSocket.listForApply) {
-					ringoSocket.listForApply.add(msgR);
-					ringoSocket.listForApply.notifyAll();
-				}
-				// TODO renvoyer automatique ou pas
-			}
 		}
 		synchronized (ringoSocket.listToSend) {
 			ringoSocket.listToSend.add(msgR);
 			ringoSocket.listToSend.notifyAll();
 		}
 	}
-	
-
 }

@@ -1,5 +1,5 @@
-package Protocol;
-import Protocol.Exceptions.*;
+package protocol;
+import protocol.exceptions.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -9,7 +9,6 @@ import java.util.Arrays;
  */
 public class Message {
 	
-	//private String type;
 	private boolean multi;
 	private byte[] data;
 	
@@ -39,36 +38,29 @@ public class Message {
 	private final static Integer sizePort = Ringo.byteSizePort;
 	private final static Integer sizeTypeMSG = Ringo.byteSizeTypeMSG;
 	
-	public final static int FLAG_IP_DIFF = 1;
-	public final static int FLAG_IP_NORMAL = 2;
-	public final static int FLAG_IP_SUCC = 3;
-	
+	private final static int FLAG_IP_DIFF = 1;
+	private final static int FLAG_IP_NORMAL = 2;
+	private final static int FLAG_IP_SUCC = 3;
 
 	/**
-	 * Create a new Message and Parse it from unknown DATA
-	 * @param data
-	 * @throws unknownTypeMesssage
-	 * @throws parseMessageException
+	 * Create a new Message and Parse it from data
+	 * @param data le contenu du message a parser
+	 * @throws UnknownTypeMesssage if the type Message is unknow
+	 * @throws ParseMessageException if the data do no correcpond to the Type Message
 	 */
-	public Message(byte[] data) throws unknownTypeMesssage, parseMessageException {
+	public static Message parseMessage(byte [] data) throws UnknownTypeMesssage, ParseMessageException {
+		return new Message(data);
+	}
+	
+	private Message(byte[] data) throws UnknownTypeMesssage, ParseMessageException {
 		super();
 		this.data = data;
 		try {
 			this.parse();
 		} catch (IndexOutOfBoundsException e) {
-			throw new unknownTypeMesssage();
+			throw new UnknownTypeMesssage();
 		}
 		this.convertALL();
-	}
-	
-	/**
-	 * @deprecated
-	 * @param data
-	 * @param NOPARSE
-	 */
-	public Message(byte [] data,String NOPARSE){//TODO trouver plus jolie synthaxiquement
-		super();
-		this.data=data;
 	}
 	
 	/**
@@ -134,11 +126,11 @@ public class Message {
 	/**
 	 * Parcer le contenu d'un nouveau message
 	 * 
-	 * @throws unknownTypeMesssage
+	 * @throws UnknownTypeMesssage
 	 * @throws IndexOutOfBoundsException
-	 * @throws parseMessageException
+	 * @throws ParseMessageException
 	 */
-	private void parse() throws unknownTypeMesssage ,IndexOutOfBoundsException, parseMessageException{
+	private void parse() throws UnknownTypeMesssage ,IndexOutOfBoundsException, ParseMessageException{
 		int curseur=0;
 		int sizeIp_SPACE_PORT=sizeIp+1+sizePort;
 		String strParsed=getDataFrom_N(curseur,sizeTypeMSG);
@@ -150,41 +142,52 @@ public class Message {
 		try{
 			this.type=TypeMessage.valueOf(strParsed);	
 		}catch(IllegalArgumentException e){
-			throw new unknownTypeMesssage();
+			throw new UnknownTypeMesssage();
 		}
 		
 		if(type==TypeMessage.DOWN){
-			parseTestEnd(curseur);
+			//parseTestEnd(curseur);
 			return;
 		}
 		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
-			strParsed=getDataFrom_N(curseur,1);
-			if(!strParsed.equals("\n")){
-				throw new parseMessageException();
+			if(type==TypeMessage.ACKD){
+				parseTestSpace(curseur);
+				curseur++;
+				strParsed=getDataFrom_N(curseur, sizePort);
+				parseTestPort(strParsed);
+				this.port=Integer.parseInt(strParsed);
+				curseur+=sizePort;
 			}
-			parseTestEnd(curseur+1);
+			strParsed=getDataFrom_N(curseur,1);
+			parseBackslash_N(strParsed);
+			curseur++;
+			//parseTestEnd(curseur+1);
 			return;
 		}
 		
 		parseTestSpace(curseur);
-		
 		curseur++;
 		
-		
-		if(type==TypeMessage.NEWC || type==TypeMessage.WELC){
+		if(type==TypeMessage.NEWC || type==TypeMessage.WELC || type==TypeMessage.DUPL){
 			
 			parse_IP_SPACE_Port(curseur,FLAG_IP_NORMAL);
 			
 			curseur+=sizeIp_SPACE_PORT;
 			if(type==TypeMessage.NEWC){
-				parseTestEnd(curseur);
+				strParsed=getDataFrom_N(curseur,1);
+				parseBackslash_N(strParsed);
+				curseur++;
+				//parseTestEnd(curseur);
 				return;
 			}
 			parseTestSpace(curseur);
 			curseur++;
 			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
 			curseur+=sizeIp_SPACE_PORT;
-			parseTestEnd(curseur);
+			strParsed=getDataFrom_N(curseur,1);
+			parseBackslash_N(strParsed);
+			curseur++;
+			//parseTestEnd(curseur);
 			return;
 			
 		}
@@ -234,12 +237,6 @@ public class Message {
 		parseTestSpace(curseur);
 		curseur++;
 		
-		if(type==TypeMessage.DUPL){
-			parse_IP_SPACE_Port(curseur,FLAG_IP_DIFF);
-			curseur+=sizeIp_SPACE_PORT;
-			//parseTestEnd(curseur);
-			return;
-		}
 		if(type==TypeMessage.GBYE){
 			parse_IP_SPACE_Port(curseur,FLAG_IP_SUCC);
 			curseur+=sizeIp_SPACE_PORT;
@@ -251,9 +248,9 @@ public class Message {
 	 * Permet de parser une adrese IP puis un espace puis un port
 	 * @param start position de debut
 	 * @param FLAG_IP = IP_NORMAL || IP_DIFF || IP_SUCC
-	 * @throws parseMessageException
+	 * @throws ParseMessageException
 	 */
-	public void parse_IP_SPACE_Port(int start,int FLAG_IP) throws parseMessageException{
+	public void parse_IP_SPACE_Port(int start,int FLAG_IP) throws ParseMessageException{
 		
 		String strParsed;
 		int curseur= start+Ringo.byteSizeIP;
@@ -287,23 +284,27 @@ public class Message {
 	 * Pour parse
 	 * test si le message est fini
 	 * @param end
-	 * @throws parseMessageException souleve une erreur si message pas fini
+	 * @throws ParseMessageException souleve une erreur si message pas fini
 	 */
-	private void parseTestEnd(int end) throws parseMessageException{	
+	private void parseTestEnd(int end) throws ParseMessageException{	
 		if(this.data.length!=end){
-				throw new parseMessageException();
+				throw new ParseMessageException();
 			}
 	}
-	
 	/**
 	 * Pour parse
 	 * test si le caractere start est un caractere d'espace
 	 * @param start
-	 * @throws parseMessageException souleve une erreur si ce n'est pas un espace
+	 * @throws ParseMessageException souleve une erreur si ce n'est pas un espace
 	 */
-	private void parseTestSpace(int start) throws parseMessageException{
+	private void parseTestSpace(int start) throws ParseMessageException{
 		if(! (new String(this.data,start,1).equals(" "))){
-			throw new parseMessageException();
+			throw new ParseMessageException();
+		}
+	}
+	private void parseBackslash_N(String strParsed) throws ParseMessageException{
+		if(!strParsed.equals("\n")){
+			throw new ParseMessageException();
 		}
 	}
 	
@@ -311,19 +312,19 @@ public class Message {
 	 * Pour parse
 	 * test si le parametre est un numero de port conventionel
 	 * @param portTest
-	 * @throws parseMessageException
+	 * @throws ParseMessageException
 	 */
-	private void parseTestPort(String portTest)throws parseMessageException{
+	public static void parseTestPort(String portTest)throws ParseMessageException{
 		if(portTest.length()!=4){
-			throw new parseMessageException();
+			throw new ParseMessageException();
 		}
 		try{
 			int tmp=Integer.parseInt(portTest.substring(0,4));
 			if(tmp<0 || tmp>9999){
-				throw new parseMessageException();
+				throw new ParseMessageException();
 			}
 		}catch(NumberFormatException e){
-			throw new parseMessageException();
+			throw new ParseMessageException();
 		}
 		
 		
@@ -333,28 +334,28 @@ public class Message {
 	 * pour parse
 	 * test si le parametre est un numero d'adresse Ip conventionnel
 	 * @param ipTest
-	 * @throws parseMessageException
+	 * @throws ParseMessageException
 	 */
-	private void parseTestIp(String ipTest) throws parseMessageException{
+	private void parseTestIp(String ipTest) throws ParseMessageException{
 		if(ipTest.length()!=15){
-			throw new parseMessageException();
+			throw new ParseMessageException();
 		}
 		int tmp;
 		for(int i=0;i<15;i++){
 			if(i==3 || i==7 || i==11){
 				if(ipTest.charAt(i)!='.'){
-					throw new parseMessageException();
+					throw new ParseMessageException();
 				}
 			}
 			else{
 				try{
 					tmp=Integer.parseInt(ipTest.substring(i, i+3));
 					 if(tmp<0 || tmp>255){
-						 throw new parseMessageException();
+						 throw new ParseMessageException();
 					 }
 					 i=i+2;
 				}catch(NumberFormatException e){
-					throw new parseMessageException();
+					throw new ParseMessageException();
 				}
 			}
 		}
@@ -371,20 +372,22 @@ public class Message {
 			return str;
 		}
 		if(type==TypeMessage.ACKC || type==TypeMessage.ACKD || type==TypeMessage.NOTC){
+			if(type==TypeMessage.ACKD){
+				str+=" "+this.portString;
+			}
 			return str+"\\n";
 		}
 		
-		
-		if(type==TypeMessage.NEWC || type==TypeMessage.WELC){
+		if(type==TypeMessage.NEWC || type==TypeMessage.WELC ||type==TypeMessage.DUPL){
 			str+=" "+this.ip+" "+this.portString;
 			if(type==TypeMessage.NEWC){
-				return str;
+				return str+"\\n";
 			}
-			return str+" "+this.ip_diff+" "+this.port_diffString;
+			return str+" "+this.ip_diff+" "+this.port_diffString+"\\n";
 			
 		}	
 		try {
-			str=str+" "+longToStringRepresentation(this.idm, 8);
+			str=str+" "+new String(this.idmLITTLE_ENDIAN_8);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -405,9 +408,6 @@ public class Message {
 			return str+" "+this.id_app+" "+new String(this.data_app);
 		}
 		str=str+" "+this.ip+" "+this.portString+" ";
-		if(type==TypeMessage.DUPL){
-			return str+this.ip_diff+" "+this.port_diffString;
-		}
 		if(type==TypeMessage.GBYE){
 			return str+this.ip_succ+" "+this.port_succString;
 		}
@@ -419,7 +419,7 @@ public class Message {
 	
 	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
 		
-		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];
 		Message tmp=new Message(WELC,TypeMessage.WELC);
 		
 		tmp.ip=ip;
@@ -427,20 +427,20 @@ public class Message {
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
-		tmp.remplirData("WELC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString+" ").getBytes(),
-				tmp.ip_diff.getBytes(),(" "+tmp.port_diffString).getBytes());
+		remplirData(WELC,"WELC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString+" ").getBytes(),
+				tmp.ip_diff.getBytes(),(" "+tmp.port_diffString+"\n").getBytes());
 		return tmp;
 
 	}
 	
 	
 	public static Message NEWC(String ip ,int portUDP1) {
-		byte[] NEWC = new byte[4+1+sizeIp+1+sizePort];
+		byte[] NEWC = new byte[4+1+sizeIp+1+sizePort+1];
 		Message tmp=new Message(NEWC,TypeMessage.NEWC);
 		tmp.ip=ip;
 		tmp.port=portUDP1;
 		tmp.convertALL();;
-		tmp.remplirData("NEWC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString).getBytes());
+		remplirData(NEWC,"NEWC ".getBytes(),tmp.ip.getBytes(),(" "+tmp.portString+"\n").getBytes());
 		return tmp;
 	}
 	
@@ -452,7 +452,7 @@ public class Message {
 		tmp.ip=ip;
 		tmp.port=portUDP1;
 		tmp.convertALL();;
-		tmp.remplirData("MEMB ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id).getBytes(),(" "+tmp.ip+" ").getBytes(),tmp.portString.getBytes());
+		remplirData(MEMB,"MEMB ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id).getBytes(),(" "+tmp.ip+" ").getBytes(),tmp.portString.getBytes());
 		return tmp;
 	}
 	
@@ -466,31 +466,30 @@ public class Message {
 		tmp.port_succ=port_succ;
 		
 		tmp.convertALL();;
-		tmp.remplirData("GBYE ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
+		remplirData(GBYE,"GBYE ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
 				(" "+tmp.ip+" "+tmp.portString+" "+tmp.ip_succ+" "+tmp.port_succString).getBytes());
 		return tmp;
 	}
 	
-	public static Message DUPL(long idm, String ip, int listenPortUDP, String ip_diff ,int port_diff) {
-		byte[] DUPL = new byte[4+1+Ringo.byteSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
+	public static Message DUPL(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
+		byte[] DUPL = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];
 		
 		Message tmp=new Message(DUPL,TypeMessage.DUPL);
-		tmp.idm=idm;
 		tmp.ip=ip;
 		tmp.port=listenPortUDP;
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
-		tmp.remplirData("DUPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
-				(" "+tmp.ip+" "+tmp.portString+" "+tmp.ip_diff+" "+tmp.port_diffString).getBytes());
+		remplirData(DUPL,"DUPL ".getBytes(),
+				(tmp.ip+" "+tmp.portString+" "+tmp.ip_diff+" "+tmp.port_diffString+"\n").getBytes());
 		return tmp;
 	}
 	public static Message EYBG(long idm) {
-		byte[] EYBG = new byte[5+Ringo.byteSizeIdm];
+		byte[] EYBG = new byte[4+1+Ringo.byteSizeIdm];
 		Message tmp=new Message(EYBG,TypeMessage.EYBG);
 		tmp.idm=idm;
 		tmp.convertALL();;
-		tmp.remplirData("EYBG ".getBytes(),tmp.idmLITTLE_ENDIAN_8);
+		remplirData(EYBG,"EYBG ".getBytes(),tmp.idmLITTLE_ENDIAN_8);
 		return tmp;
 	}
 	public static Message WHOS(long idm) {
@@ -499,7 +498,7 @@ public class Message {
 		Message tmp=new Message(WHOS,TypeMessage.WHOS);
 		tmp.idm=idm;
 		tmp.convertALL();;
-		tmp.remplirData("WHOS ".getBytes(),tmp.idmLITTLE_ENDIAN_8);
+		remplirData(WHOS,"WHOS ".getBytes(),tmp.idmLITTLE_ENDIAN_8);
 		return tmp;
 	}
 	
@@ -510,7 +509,7 @@ public class Message {
 		tmp.id_app=id_app;
 		tmp.data_app=data_app;
 		tmp.convertALL();;
-		tmp.remplirData("APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id_app+" ").getBytes(),tmp.data_app);
+		remplirData(APPL,"APPL ".getBytes(),tmp.idmLITTLE_ENDIAN_8,(" "+tmp.id_app+" ").getBytes(),tmp.data_app);
 		return tmp;
 	}
 	
@@ -522,7 +521,7 @@ public class Message {
 		tmp.ip_diff=ip_diff;
 		tmp.port_diff=port_diff;
 		tmp.convertALL();;
-		tmp.remplirData("TEST ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
+		remplirData(TEST,"TEST ".getBytes(),tmp.idmLITTLE_ENDIAN_8,
 				(" "+tmp.ip_diff+" ").getBytes(),tmp.port_diffString.getBytes());
 		return tmp;
 	}
@@ -532,7 +531,7 @@ public class Message {
 		Message tmp = new Message(ACKD, TypeMessage.ACKD);
 		tmp.port=port;
 		tmp.convertALL();
-		tmp.remplirData("ACKD ".getBytes(),(tmp.portString+"\n").getBytes());
+		remplirData(ACKD,"ACKD ".getBytes(),(tmp.portString+"\n").getBytes());
 		return tmp;
 	}
 
@@ -556,14 +555,16 @@ public class Message {
 	}
 	
 	/**
-	 * Rempli this.data avec les args
+	 * Rempli data avec les args
 	 * @param args
 	 */
-	private void remplirData(byte[]... args) {
+	
+	//TODO EXCEPTION SORTI DE DATA
+	public static void remplirData(byte [] data ,byte[]... args) {
 		int i = 0;
 		for (byte[] arg1 : args) {
 			for (byte arg2 : arg1) {
-				this.data[i] = arg2;
+				data[i] = arg2;
 				i++;
 			}
 		}
@@ -578,13 +579,13 @@ public class Message {
 	 * @return 
 	 * @throws Exception
 	 */
-	public static String longToStringRepresentation(long value,int numberOfBytes) throws numberOfBytesException{
+	public static String longToStringRepresentation(long value,int numberOfBytes) throws NumberOfBytesException{
 		if(value<0){
-			throw new numberOfBytesException();
+			throw new NumberOfBytesException();
 		}
 		int numberOfZERO = numberOfBytes - (Long.toString(value)).length();
 		if(numberOfZERO<0){
-			throw new numberOfBytesException();
+			throw new NumberOfBytesException();
 		}
 		String tmp="";
 		for(int i=0;i<numberOfZERO;i++){
@@ -595,7 +596,7 @@ public class Message {
 	}
 	
 	public static byte[] longToByteArray(Long val,int numberOfByte,ByteOrder ENDIAN){
-		if(val<0){		
+		if(val<0){
 		}
 		//long values = Long.parseUnsignedLong("18446744073709551615");
 		return ByteBuffer.allocate(numberOfByte).order(ENDIAN).putLong(val).array();
@@ -634,10 +635,9 @@ public class Message {
 	 * @return 
 	 * @throws Exception
 	 */
-	private static String convertIP(String ip) throws Exception{
+	public static String convertIP(String ip) throws IpException{
 		
-		if(ip=="localhost"){
-			
+		if(ip.equals("localhost")){
 			return "127.000.000.001";
 		}
 		String[]tmp=ip.split("\\.");
@@ -656,10 +656,6 @@ public class Message {
 		}
 		String tmp2=tmp[0]+"."+tmp[1]+"."+tmp[2]+"."+tmp[3];
 		
-		//TODO pour test , a retirer
-		if(tmp2.length()!=15){
-			throw new Exception();
-		}
 		return tmp2;
 	}
 	

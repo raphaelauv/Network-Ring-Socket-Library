@@ -1,18 +1,12 @@
 Etat :
 
-* Finir Message() -> data
-
 * Recuperer Addresse IP automatiquement
 
-* Ecrire DUPPLICATION
+* Ecrire DUPPLICATION  ---50%
 
-* Deployer algo pour unicité des ID de messages
+* Deployer algo pour unicité des ID de messages  --- 90%
 
-* Integrer les hashmap pour tester les ID de messages
-
-* Faire un audit des thread et des situation d'interblocage et famine 
-
-* Ecrire les deux applications attendu par le sujet
+* Finir application TRANS --- 90%
 
 * Traduire en C le code Java
 

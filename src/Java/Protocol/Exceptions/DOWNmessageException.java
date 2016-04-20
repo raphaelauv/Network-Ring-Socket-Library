@@ -1,4 +1,4 @@
-package Protocol.Exceptions;
+package protocol.exceptions;
 
 /**
  * Exception l'entite reseaux a recu un DOWN et donc est deconnecter

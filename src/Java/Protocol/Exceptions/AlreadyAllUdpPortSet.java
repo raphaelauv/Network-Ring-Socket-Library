@@ -1,4 +1,4 @@
-package Protocol.Exceptions;
+package protocol.exceptions;
 
 /*
  * L'entite est deja connecte

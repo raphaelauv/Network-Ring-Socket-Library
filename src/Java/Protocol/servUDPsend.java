@@ -1,16 +1,22 @@
-package Protocol;
-
+package protocol;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 
-class servUDPsend {
+class ServUDPsend {
 	private RingoSocket ringoSocket;
 	Runnable runServUDPsend;
+	private String str;
+	private Message msg;
+
+	private DatagramPacket paquetMulti;
+	private DatagramPacket paquet1;
+	private DatagramPacket paquet2;
+	private byte[] dataTosend;
 	
-	public servUDPsend(RingoSocket ringoSocket) {
+	public ServUDPsend(RingoSocket ringoSocket) {
 		this.ringoSocket = ringoSocket;
-		this.runServUDPsend= new Runnable() {
+		this.runServUDPsend = new Runnable() {
 			public void run() {
 				boolean erreur = false;
 				while (!erreur) {
@@ -20,70 +26,49 @@ class servUDPsend {
 						erreur = true;
 					}
 				}
-				ringoSocket.printVerbose("END thread SEND");
+				ringoSocket.printVerbose("END");
 			}
 		};
 	}
-	
 
 	private void sendMessage() throws IOException, InterruptedException {
 
-		Message msg;
 		synchronized (ringoSocket.listToSend) {
 			while (ringoSocket.listToSend.isEmpty()) {
 				ringoSocket.listToSend.notifyAll(); // pour le wait de closeServ
 				ringoSocket.listToSend.wait();
 			}
-			msg = ringoSocket.listToSend.pop();
+			this.msg = ringoSocket.listToSend.pop();
 		}
-
-		byte[] dataTosend = msg.getData();
+		this.dataTosend = msg.getData();
 
 		if (msg.isMulti()) {
-			DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
-					InetAddress.getByName(ringoSocket.ip_diff.toString()),ringoSocket.port_diff);
+			this.paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
+					InetAddress.getByName(ringoSocket.ip_diff.toString()), ringoSocket.port_diff);
+			
+			ringoSocket.printVerbose("Message Envoyer DIFF : "+ msg.toString());
 			ringoSocket.sockSender.send(paquetMulti);
+			
+			return;
 		} else {
-
-			if (ringoSocket.portUDP1 != null) {
-
-				String ipTemp;
-				synchronized(ringoSocket.ipPortUDP1){
-					ipTemp=new String(ringoSocket.ipPortUDP1);
-				}
-				
-				
-				DatagramPacket paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
-						InetAddress.getByName(ipTemp), ringoSocket.portUDP1);
-
-				ringoSocket.sockSender.send(paquet1);
-
-			}
-			if (ringoSocket.portUDP2 != null) {
-				
-				String ipTemp;
-				synchronized(ringoSocket.ipPortUDP2){
-					ipTemp=new String(ringoSocket.ipPortUDP2);
-				}
-				DatagramPacket paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
-						InetAddress.getByName(ipTemp), ringoSocket.portUDP2);
-
+			ringoSocket.printVerbose("Message Envoyer : "+ msg.toString());
+			
+			this.paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
+					InetAddress.getByName(ringoSocket.ipPortUDP1), ringoSocket.portUDP1);
+			ringoSocket.sockSender.send(paquet1);
+			
+			if (ringoSocket.isDUPL){
+				this.paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
+						InetAddress.getByName(ringoSocket.ipPortUDP2), ringoSocket.portUDP2);
 				ringoSocket.sockSender.send(paquet2);
 			}
 		}
 		
-		//Pour debloquer l'attente de changement de port
-		if(msg.getType()==TypeMessage.EYBG){
-			synchronized(ringoSocket.ipPortUDP1){
-				ringoSocket.ipPortUDP1.notifyAll();
-				ringoSocket.ipPortUDP1.wait();//attent le changement de port
-			}
+		// Pour debloquer l'attente de changement de port
+		if (this.msg.getType() == TypeMessage.EYBG) {
+			ringoSocket.EYBG_Acces.release();
 		}
 		
-		ringoSocket.printVerbose("Message Envoyer : " + msg.toString());
 
 	}
-
-	
-	
 }

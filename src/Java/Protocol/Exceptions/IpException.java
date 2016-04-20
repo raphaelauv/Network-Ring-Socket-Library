@@ -1,4 +1,4 @@
-package Protocol.Exceptions;
+package protocol.exceptions;
 
 public class IpException extends Exception{
 
