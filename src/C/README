@@ -10,7 +10,7 @@ pour l'insertion :
 
 pour la duplication:
       DUPL ip port
-
+l adresse de multi diffusion est 225.1.2.4 et le port de multidiffusion est 9999 (par défaut pour le moment);
 
 reste à faire :
 		en udp pour l'instant j'envoie juste ce que je reçois je vais modifier pour que le programme se comporte de la meme maniere que ce qui est demandé dans le sujet et puis je vaistraiter tous les cas particuliers ou les cas où l'utilisateur tape des trucs pour faire cracher le programme .
