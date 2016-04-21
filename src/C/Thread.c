@@ -68,7 +68,7 @@ void*  serveur_tcp(void *_port){
 int insertion(char* _lu,int flag){
   char *split[3];
   int i=tokenize_string(_lu,split);
-  if((i!=3)||(strcmp(split[0],"connecTo")!=0)){
+  if((i!=3)||((strcmp(split[0],"connecTo")!=0)&&(strcmp(split[0],"connecTo")!=0))){
     fprintf(stderr,"l'instruction %s ne respect pas le format\n",_lu); 
     printf("i vaut %d \n",i);
     return -1;
