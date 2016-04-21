@@ -83,6 +83,10 @@ public class Appl {
 	public boolean testEntry(){
 		try {
 			input = scan.nextLine();
+			
+			if(ringoSocket.isClose()){
+				return true;//si l'entity a fermer pendant le nextline()
+			}
 			if (input.equals("tesT")) {
 				System.out.println("##### ASK FOR TEST #####");
 				ringoSocket.test(false);
