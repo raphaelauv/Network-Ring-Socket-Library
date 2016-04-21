@@ -10,10 +10,8 @@ public class Diff extends Appl implements ReceveSend {
 	public final static int byteSizeMess = 3;
 
 	public Diff(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
-		super("DIFF####", udpPort, tcpPort, false, verbose);
-		Thread ThRecev = new Thread(new MyRunnableReceve(this));
-		Thread ThSend = new Thread(new MyRunnableSend(this));
-		initThread(ThRecev, ThSend, "DIFF");
+		super("DIFF####", udpPort, tcpPort, false, verbose);	
+		initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 	}
 
 	public void doReceve(Message msg) throws DOWNmessageException {
@@ -21,13 +19,13 @@ public class Diff extends Appl implements ReceveSend {
 		int taille = Integer.parseInt(new String(msgInByte, 0, byteSizeMess));
 		String message = new String(msgInByte, 4, taille);
 		System.out.println(style + "\n" + LocalDateTime.now() + " -> " + "RECEVE :" + message + "\n" + style);
-		ringoSocket.send(msg);// renvoi sur l'anneau du message
-
+		super.ringoSocket.send(msg);// renvoi sur l'anneau du message
 	}
 
 	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException {
 		String contenu = Message.longToStringRepresentation(input.length(), 3) + " " + input;
-		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "DIFF####", contenu.getBytes()));
+		Message msg=Message.APPL(ringoSocket.getUniqueIdm(), "DIFF####", contenu.getBytes());
+		super.ringoSocket.send(msg);
 	}
 
 	public static void main(String[] args) {

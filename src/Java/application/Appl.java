@@ -13,8 +13,9 @@ import java.util.Scanner;
 
 public class Appl {
 
+	protected String APPLID;
 	protected String input;
-	boolean runContinue;
+	protected boolean runContinue;
 	protected Thread ThRecev;
 	protected Thread ThSend;
 	protected Scanner scan;
@@ -23,6 +24,7 @@ public class Appl {
 	protected final static String style="##############################################################";
 	
 	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException, IpException{
+		this.APPLID=APPLID;
 		this.verboseMode=verboseMode;
 		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode);
 		this.scan = new Scanner(System.in);
@@ -35,12 +37,12 @@ public class Appl {
 	 * @param send
 	 * @param name nom de l'APPL
 	 */
-	public void initThread(Thread ThRecev,Thread ThSend,String name){
+	protected void initThread(MyRunnableReceve runnableReceve,MyRunnableSend runnableSend){
 	
-		this.ThRecev=ThRecev;
-		this.ThSend=ThSend;
-		this.ThRecev.setName(name+" RECE");
-		this.ThSend.setName(name+" SEND ");
+		this.ThRecev=new Thread(runnableReceve);
+		this.ThSend=new Thread(runnableSend);
+		this.ThRecev.setName(APPLID+" RECE");
+		this.ThSend.setName(APPLID+" SEND ");
 		this.ThRecev.start();
 		this.ThSend.start();
 	}

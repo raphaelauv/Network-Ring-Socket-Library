@@ -59,12 +59,15 @@ public class Trans extends Appl implements ReceveSend {
 	
 	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
 		super("TRANS###", udpPort, tcpPort,false ,verbose);
-		
 		this.id_TransMAP=new HashMap<Long, infoTransfert>(10);
-		
-		/*
-		 * Remplir la HashMap contenant les fichiers du repertoire courant
-		 */
+		initFileHash();
+		initThread(new MyRunnableReceve(this),new MyRunnableSend(this));
+	}
+	
+	/*
+	 * Remplir la HashMap contenant les fichiers du repertoire courant
+	 */
+	private void initFileHash(){
 		File[] fileList= new File("").getAbsoluteFile().listFiles();
 		files= new HashMap<String,Path>();
 		if(fileList!=null){
@@ -75,9 +78,6 @@ public class Trans extends Appl implements ReceveSend {
 			    }
 			}
 		}
-		Thread ThRecev = new Thread(new MyRunnableReceve(this));
-		Thread ThSend = new Thread(new MyRunnableSend(this));
-		initThread(ThRecev, ThSend, "TRANS");
 	}
 	
 	public void doReceve(Message msg) throws DOWNmessageException, IOException, NumberOfBytesException, InterruptedException {
@@ -100,7 +100,7 @@ public class Trans extends Appl implements ReceveSend {
 			msgForThisAPPL=sen(affichage,msgInByte,curseur);
 		}
 		if(!msgForThisAPPL){
-			ringoSocket.send(msg);
+			super.ringoSocket.send(msg);
 		}
 	}
 	
