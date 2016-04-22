@@ -61,14 +61,20 @@ public class Appl {
 		this.runContinue=true;
 	}
 	
-	public void input(byte [] content){
+	public void input(byte [] content) throws Exception{
+		if(this.listInput==null){
+			throw new Exception();
+		}
 		synchronized (this.listInput) {
 			this.listInput.add(content);
 			this.listInput.notify();
 		}
 	}
 	
-	public byte[] output() throws InterruptedException{
+	public byte[] output() throws Exception, InterruptedException{
+		if(this.listOutput==null){
+			throw new Exception();
+		}
 		synchronized (listOutput) {
 			while (listOutput.isEmpty()) {
 				listOutput.wait();
@@ -77,7 +83,10 @@ public class Appl {
 		}
 	}
 	
-	public void close() throws DOWNmessageException{
+	public void close() throws DOWNmessageException ,Exception{
+		if(this.listInput==null){
+			throw new Exception();
+		}
 		runContinue = false;
 		ringoSocket.down();
 	}
@@ -239,8 +248,8 @@ public class Appl {
 	}
 	
 	/**
-	 * Print uniquement en mode Application
-	 * @param toPrint
+	 * Print uniquement AFFICHER sur la STDIN en mode Application
+	 * @param toPrint contenu a afficher
 	 */
 	protected void printModeApplication(String toPrint) {
 		if (listInput!=null) {
