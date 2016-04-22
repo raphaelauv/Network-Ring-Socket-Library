@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.BindException;
 import java.net.UnknownHostException;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -23,12 +24,52 @@ public class Appl {
 	protected RingoSocket ringoSocket;
 	protected final static String style="##############################################################";
 	
+	private LinkedList<String> listInput;
+	
+	/**
+	 * Constructeur pour application independante , ecoute sur STDIN
+	 * @param APPLID
+	 * @param udpPort
+	 * @param tcpPort
+	 * @param relayMSGAuto
+	 * @param verboseMode
+	 * @throws BindException
+	 * @throws IOException
+	 * @throws IpException
+	 */
 	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException, IpException{
 		this.APPLID=APPLID;
 		this.verboseMode=verboseMode;
 		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode);
 		this.scan = new Scanner(System.in);
 		this.runContinue=true;
+	}
+	
+	/**
+	 * Constructeur pour objet ecoute sur la methode input()
+	 * @param APPLID
+	 * @param relayMSGAuto
+	 * @param verboseMode
+	 * @param ringoSocket
+	 */
+	public Appl(String APPLID,boolean relayMSGAuto ,boolean verboseMode,RingoSocket ringoSocket){
+		this.APPLID=APPLID;
+		this.verboseMode=verboseMode;
+		this.ringoSocket=ringoSocket;
+		this.listInput = new LinkedList<String>();
+		this.runContinue=true;
+	}
+	
+	public void input(String content){
+		synchronized (this.listInput) {
+			this.listInput.add(content);
+			this.listInput.notify();
+		}
+	}
+	
+	public void close() throws DOWNmessageException{
+		runContinue = false;
+		ringoSocket.down();
 	}
 	
 	/**
@@ -84,7 +125,17 @@ public class Appl {
 	 */
 	public boolean testEntry(){
 		try {
-			input = scan.nextLine();
+			if(scan!=null){
+				input = scan.nextLine();
+			}else{
+				synchronized (this.listInput) {
+					while (this.listInput.isEmpty()) {
+						this.listInput.wait();
+					}
+					input = this.listInput.pop();
+				}
+			}
+			
 			
 			if(ringoSocket.isClose()){
 				return true;//si l'entity a fermer pendant le nextline()

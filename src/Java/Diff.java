@@ -11,7 +11,12 @@ public class Diff extends Appl implements ReceveSend {
 
 	public Diff(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
 		super("DIFF####", udpPort, tcpPort, false, verbose);	
-		initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
+		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
+	}
+	
+	public Diff( boolean verbose,RingoSocket ringosocket){
+		super("DIFF####",false,verbose,ringosocket);
+		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 	}
 
 	public void doReceve(Message msg) throws DOWNmessageException {

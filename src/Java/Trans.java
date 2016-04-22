@@ -1,13 +1,18 @@
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.BindException;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,12 +26,15 @@ public class Trans extends Appl implements ReceveSend {
 		public long actual_no_mess;
 		public long num_mess;
 		public BufferedOutputStream outputStream;
-		public File file;
+		public Path path;
+		public String nameFile;
 
-		public infoTransfert( long actual_no_mess,long num_mess) {
+		public infoTransfert( long actual_no_mess,long num_mess,String nameFile) {
 			super();		
+			
 			this.actual_no_mess = actual_no_mess;
 			this.num_mess = num_mess;
+			this.nameFile=nameFile;
 		}
 	}
 	
@@ -62,6 +70,11 @@ public class Trans extends Appl implements ReceveSend {
 		this.id_TransMAP=new HashMap<Long, infoTransfert>(10);
 		initFileHash();
 		initThread(new MyRunnableReceve(this),new MyRunnableSend(this));
+	}
+	
+	public Trans( boolean verbose,RingoSocket ringosocket){
+		super("TRANS###",false,verbose,ringosocket);
+		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 	}
 	
 	/*
@@ -125,7 +138,8 @@ public class Trans extends Appl implements ReceveSend {
 		}
 		
 		byte [] no_messByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeNo_Mess);
-		Long no_mess=Message.byteArrayToLong(no_messByte, byteSizeNo_Mess, ByteOrder.nativeOrder());
+		Long no_mess=Message.byteArrayToLong(no_messByte, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
+		
 		curseur+=byteSizeNo_Mess+Ringo.byteSizeSpace;
 		
 		String size_contentSTR = new String(msgInByte,curseur,byteSizeContent);
@@ -142,22 +156,26 @@ public class Trans extends Appl implements ReceveSend {
 		File temp;
 		if(value.actual_no_mess==0){
 			System.out.println("premiere partie");
-			temp = File.createTempFile("tempfile", ".tmp");
-			value.file=temp;
-			value.outputStream=new BufferedOutputStream(new FileOutputStream(temp));	
+			Path pathNewFile = Paths.get("./"+value.nameFile+LocalDateTime.now().getNano());
+			BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(pathNewFile, CREATE, APPEND));
+			value.outputStream=out;
+			value.path =pathNewFile;
 		}
 
 		value.outputStream.write(msgInByte,curseur,size_content);
-		value.outputStream.flush();
+		
 		value.actual_no_mess++;
-		System.out.println("val nomess "+value.actual_no_mess);
-		System.out.println("val nummess "+value.num_mess);
-		System.out.println("ecris dedans "+new String(msgInByte,curseur,size_content));
+		double p1=(double)(value.actual_no_mess);
+		double p2=(double)(value.num_mess);
+		int pourcentage =(int) ((p1/p2)*100.0);
+		System.out.println(style+"\n"+pourcentage+"% TRANSMIS");
+		//System.out.println("ecris dedans "+new String(msgInByte,curseur,size_content));
 		if(value.actual_no_mess==value.num_mess){
-			System.out.println("transfert FINI");
-			value.outputStream.close();
-			updateFileList(value.file);
 			
+			value.outputStream.flush();
+			value.outputStream.close();
+			updateFileList(value.nameFile,value.path);
+			System.out.println(style+"\ntransfert FINI | new File : "+value.path.getFileName()+"\n"+style);
 		}
 		return true;
 	}
@@ -181,6 +199,7 @@ public class Trans extends Appl implements ReceveSend {
 		int tailleNameFile = Integer.parseInt(size_nom_STR);
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;
 		String name_fileSTR = new String(msgInByte, curseur,tailleNameFile);
+		curseur+=tailleNameFile+Ringo.byteSizeSpace;
 		
 		if(name_fileSTR.equals(REQ_AskFile)){
 			synchronized (ROKisComeBack) {
@@ -189,7 +208,8 @@ public class Trans extends Appl implements ReceveSend {
 			}
 			byte [] num_messByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeNum_Mess);
 			Long num_mess=Message.byteArrayToLong(num_messByte, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
-			id_TransMAP.put(id_trans,new infoTransfert(0L,num_mess) );	
+			
+			id_TransMAP.put(id_trans,new infoTransfert(0L,num_mess,name_fileSTR) );	
 			System.out.println("THE TRANSFERT CAN START");
 			return true;
 		}
@@ -231,7 +251,7 @@ public class Trans extends Appl implements ReceveSend {
 			System.out.println("SIZE OF FILE :"+Files.size(pathFile));
 			long num_messLong = Files.size(pathFile)/maxSizeContent;
 			if(num_messLong<1){
-				num_messLong=1;
+				num_messLong=1L;
 			}
 			byte [] num_mess =Message.longToByteArray(num_messLong, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
 			byte [] SPACE =" ".getBytes();
@@ -252,7 +272,7 @@ public class Trans extends Appl implements ReceveSend {
 				size_contentVal=out.read(content);
 				no_mess=Message.longToByteArray( i, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
 				size_content=Message.longToStringRepresentation(size_contentVal, 3).getBytes();
-				data= new byte[500];
+				data= new byte[500];//TODO
 				Message.remplirData(data, debutMsg,SPACE,idTrans,SPACE,no_mess,SPACE,size_content,SPACE,content);
 				ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
 				
@@ -264,20 +284,29 @@ public class Trans extends Appl implements ReceveSend {
 		}
 	}
 	
-	private void updateFileList(File newFile){
-		this.files.put(newFile.getName(), newFile.toPath());
+	private void updateFileList(String name , Path path){
+		this.files.put(name,path);
 	}
 
 	
 	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException {
 		String contenu = "REQ " + Message.longToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
+		
 		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
+		
 		synchronized (ROKisComeBack) {
 			REQ_AskFile = input;
 			ROKisComeBackBool = false;
-			ROKisComeBack.wait(5000);
+			int timeMax=5000;
+			
+			long startTime = System.currentTimeMillis();
+			ROKisComeBack.wait(timeMax);
+			long endTime   = System.currentTimeMillis();
 			if (!ROKisComeBackBool) {
-				System.out.println("ROK is not comeback in time");
+				System.out.println("ROK is not comeback in time : "+timeMax);
+			}else{
+				long totalTime = endTime - startTime;
+				System.out.println(style+"\nTIME WAITED :"+totalTime+"\n");
 			}
 			REQ_AskFile = "";
 		}

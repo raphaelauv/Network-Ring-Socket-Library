@@ -17,8 +17,6 @@ public class Entity{
 			System.out.println("The ports are already in use");
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (IpException e) {
-			
 		}
 	}
 }
