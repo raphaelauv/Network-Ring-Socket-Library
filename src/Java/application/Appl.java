@@ -24,7 +24,8 @@ public class Appl {
 	protected RingoSocket ringoSocket;
 	protected final static String style="##############################################################";
 	
-	private LinkedList<String> listInput;
+	private LinkedList<byte []> listInput;	// mode service
+	protected LinkedList<byte []> listOutput; // mode service
 	
 	/**
 	 * Constructeur pour application independante , ecoute sur STDIN
@@ -49,21 +50,30 @@ public class Appl {
 	 * Constructeur pour objet ecoute sur la methode input()
 	 * @param APPLID
 	 * @param relayMSGAuto
-	 * @param verboseMode
 	 * @param ringoSocket
 	 */
-	public Appl(String APPLID,boolean relayMSGAuto ,boolean verboseMode,RingoSocket ringoSocket){
+	public Appl(String APPLID,boolean relayMSGAuto,RingoSocket ringoSocket){
 		this.APPLID=APPLID;
-		this.verboseMode=verboseMode;
+		this.verboseMode=false;
 		this.ringoSocket=ringoSocket;
-		this.listInput = new LinkedList<String>();
+		this.listInput = new LinkedList<byte []>();
+		this.listOutput=new LinkedList<byte []>();
 		this.runContinue=true;
 	}
 	
-	public void input(String content){
+	public void input(byte [] content){
 		synchronized (this.listInput) {
 			this.listInput.add(content);
 			this.listInput.notify();
+		}
+	}
+	
+	public byte[] output() throws InterruptedException{
+		synchronized (listOutput) {
+			while (listOutput.isEmpty()) {
+				listOutput.wait();
+			}
+			return listOutput.pop();
 		}
 	}
 	
@@ -132,7 +142,7 @@ public class Appl {
 					while (this.listInput.isEmpty()) {
 						this.listInput.wait();
 					}
-					input = this.listInput.pop();
+					input = new String(this.listInput.pop());
 				}
 			}
 			
@@ -141,23 +151,23 @@ public class Appl {
 				return true;//si l'entity a fermer pendant le nextline()
 			}
 			if (input.equals("tesT")) {
-				System.out.println("##### ASK FOR TEST #####");
+				printModeApplication("##### ASK FOR TEST #####");
 				ringoSocket.test(false);
 				return true;
 			}
 			else if (input.equals("dowN")) {
-				System.out.println("##### ASK FOR DOWN #####");
+				printModeApplication("##### ASK FOR DOWN #####");
 				runContinue = false;
 				ringoSocket.down();
 				return true;
 			}
 			else if (input.equals("disconnecT")) {
-				System.out.println("##### ASK FOR DISCONNECT #####");
+				printModeApplication("##### ASK FOR DISCONNECT #####");
 				ringoSocket.disconnect();
 				return true;
 			}
 			else if(input.equals("closeAppl")){
-				System.out.println("##### ASK FOR CLOSING #####");
+				printModeApplication("##### ASK FOR CLOSING #####");
 				ringoSocket.close();
 				runContinue = false;
 				return true;
@@ -170,10 +180,10 @@ public class Appl {
 					dupl=true;
 				}
 				if(dupl){
-					System.out.println("##### ASK FOR DUPLICATION #####");
+					printModeApplication("##### ASK FOR DUPLICATION #####");
 					curseur+=5;
 				}else{
-					System.out.println("##### ASK FOR CONNECTION #####");
+					printModeApplication("##### ASK FOR CONNECTION #####");
 					curseur+=9;
 				}
 				
@@ -183,48 +193,59 @@ public class Appl {
 				String ip=info.substring(0,positionEspace);
 				ip=Message.convertIP(ip);
 				int port=Integer.parseInt(info.substring(positionEspace+1,info.length()));
-				System.out.println(" | TRY TO CONNECT " + ip + " " + port);
+				printModeApplication(" | TRY TO CONNECT " + ip + " " + port);
 				if(dupl){
 					ringoSocket.connectTo(ip, port, true);
 				}else{
 					ringoSocket.connectTo(ip, port,false);
 				}
 				
-				System.out.println(" ---> SUCCES");
+				printModeApplication(" ---> SUCCES");
 				return true;
 			}
 		} catch (UnknownHostException e) {
-			System.out.println("\nERREUR connecTo : UnknownHost ");
+			printModeApplication("\nERREUR connecTo : UnknownHost ");
 			return true;
 		} catch (AlreadyAllUdpPortSet e) {
-			System.out.println("\nERREUR connecTo : Already connect");
+			printModeApplication("\nERREUR connecTo : Already connect");
 			return true;
 		} catch (IOException e) {
-			System.out.println("\nERREUR connecTo : IO - ConnectException");
+			printModeApplication("\nERREUR connecTo : IO - ConnectException");
 			return true;
 		} catch (InterruptedException e) {
-			System.out.println("\nERREUR connecTo : Interrupted");
+			printModeApplication("\nERREUR connecTo : Interrupted");
 			return true;
 		} catch (NoSuchElementException e) {
-			System.out.println("\nERREUR connecTo : NoSuchElement");
+			printModeApplication("\nERREUR connecTo : NoSuchElement");
 			return true;
 		} catch (ProtocolException e) {
-			System.out.println("\nERREUR connecTo : Erreur de protocol");
+			printModeApplication("\nERREUR connecTo : Erreur de protocol");
 			return true;
 		} catch (DOWNmessageException e) {
-			System.out.println("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
+			printModeApplication("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 			runContinue = false;
 			return true;
 		} catch(IpException |StringIndexOutOfBoundsException |NumberFormatException e){
-			System.out.println("\nERREUR connecTo : Erreur format IP ou port invalide");
+			printModeApplication("\nERREUR connecTo : Erreur format IP ou port invalide");
 			return true;
 		} catch (AlreadyConnectException e) {
-			System.out.println("\nERREUR connecTo : deja connecter , utiliser disconnecT ou Dupl");
+			printModeApplication("\nERREUR connecTo : deja connecter , utiliser disconnecT ou Dupl");
 			return true;
 		} catch (ImpossibleDUPLConnection e) {
-			System.out.println("\nERREUR connecTo : impossible to connect To Dupl entity");
+			printModeApplication("\nERREUR connecTo : impossible to connect To Dupl entity");
 			return true;
 		}
 		return false;
 	}
+	
+	/**
+	 * Print uniquement en mode Application
+	 * @param toPrint
+	 */
+	protected void printModeApplication(String toPrint) {
+		if (listInput!=null) {
+			System.out.println(toPrint);
+		}
+	}
+	
 }

@@ -72,8 +72,8 @@ public class Trans extends Appl implements ReceveSend {
 		initThread(new MyRunnableReceve(this),new MyRunnableSend(this));
 	}
 	
-	public Trans( boolean verbose,RingoSocket ringosocket){
-		super("TRANS###",false,verbose,ringosocket);
+	public Trans(RingoSocket ringosocket){
+		super("TRANS###",false,ringosocket);
 		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 	}
 	
@@ -86,7 +86,7 @@ public class Trans extends Appl implements ReceveSend {
 		if(fileList!=null){
 			for (File f : fileList) {
 			    if (f.isFile()) {
-			    	System.out.println("nom du fichier present "+f.getName());
+			    	printModeApplication("nom du fichier present "+f.getName());
 			    	files.put(f.getName(),f.toPath());
 			    }
 			}
@@ -148,14 +148,14 @@ public class Trans extends Appl implements ReceveSend {
 		
 		
 		if(!(value.actual_no_mess==no_mess)){
-			System.out.println("problem d'ordre");
-			System.out.println("valeur attentdu "+value.actual_no_mess);
-			System.out.println("valeur recu "+no_mess);
+			printModeApplication("problem d'ordre");
+			printModeApplication("valeur attentdu "+value.actual_no_mess);
+			printModeApplication("valeur recu "+no_mess);
 			return true;//TODO quand ordre pas respecter
 		}
 		File temp;
 		if(value.actual_no_mess==0){
-			System.out.println("premiere partie");
+			printModeApplication("premiere partie");
 			Path pathNewFile = Paths.get("./"+value.nameFile+LocalDateTime.now().getNano());
 			BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(pathNewFile, CREATE, APPEND));
 			value.outputStream=out;
@@ -168,14 +168,14 @@ public class Trans extends Appl implements ReceveSend {
 		double p1=(double)(value.actual_no_mess);
 		double p2=(double)(value.num_mess);
 		int pourcentage =(int) ((p1/p2)*100.0);
-		System.out.println(style+"\n"+pourcentage+"% TRANSMIS");
-		//System.out.println("ecris dedans "+new String(msgInByte,curseur,size_content));
+		printModeApplication(style+"\n"+pourcentage+"% TRANSMIS");
+		//printModeApplication("ecris dedans "+new String(msgInByte,curseur,size_content));
 		if(value.actual_no_mess==value.num_mess){
 			
 			value.outputStream.flush();
 			value.outputStream.close();
 			updateFileList(value.nameFile,value.path);
-			System.out.println(style+"\ntransfert FINI | new File : "+value.path.getFileName()+"\n"+style);
+			printModeApplication(style+"\ntransfert FINI | new File : "+value.path.getFileName()+"\n"+style);
 		}
 		return true;
 	}
@@ -210,7 +210,7 @@ public class Trans extends Appl implements ReceveSend {
 			Long num_mess=Message.byteArrayToLong(num_messByte, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
 			
 			id_TransMAP.put(id_trans,new infoTransfert(0L,num_mess,name_fileSTR) );	
-			System.out.println("THE TRANSFERT CAN START");
+			printModeApplication("THE TRANSFERT CAN START");
 			return true;
 		}
 		else{
@@ -236,7 +236,7 @@ public class Trans extends Appl implements ReceveSend {
 		String name_fileSTR = new String(msgInByte, curseur,tailleNameFile);
 		
 		affichage+= "REQ " + name_fileSTR;
-		System.out.println(affichage+ "\n" + style);
+		printModeApplication(affichage+ "\n" + style);
 		
 		Path pathFile=files.get(name_fileSTR);
 		if(pathFile!=null){
@@ -244,11 +244,11 @@ public class Trans extends Appl implements ReceveSend {
 			
 			byte []  debutMsg= "ROK".getBytes();
 			long idt= ringoSocket.getUniqueIdm();
-			System.out.println("id transaction "+idt);
+			printModeApplication("id transaction "+idt);
 			byte [] idTrans=Message.longToByteArray(idt, byteSizeId_Trans,ByteOrder.LITTLE_ENDIAN );
 			byte [] size_nom=size_nom_STR.getBytes();
 			byte [] name_file=name_fileSTR.getBytes();
-			System.out.println("SIZE OF FILE :"+Files.size(pathFile));
+			printModeApplication("SIZE OF FILE :"+Files.size(pathFile));
 			long num_messLong = Files.size(pathFile)/maxSizeContent;
 			if(num_messLong<1){
 				num_messLong=1L;
@@ -303,10 +303,10 @@ public class Trans extends Appl implements ReceveSend {
 			ROKisComeBack.wait(timeMax);
 			long endTime   = System.currentTimeMillis();
 			if (!ROKisComeBackBool) {
-				System.out.println("ROK is not comeback in time : "+timeMax);
+				printModeApplication("ROK is not comeback in time : "+timeMax);
 			}else{
 				long totalTime = endTime - startTime;
-				System.out.println(style+"\nTIME WAITED :"+totalTime+"\n");
+				printModeApplication(style+"\nTIME WAITED :"+totalTime+"\n");
 			}
 			REQ_AskFile = "";
 		}
