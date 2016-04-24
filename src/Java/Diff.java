@@ -25,11 +25,11 @@ public class Diff extends Appl implements ReceveSend {
 		String message = new String(msgInByte, 4, taille);
 		if(super.listOutput!=null){
 			synchronized (listOutput) {
-				listOutput.add(msgInByte);
+				listOutput.add(message.getBytes());
 				listOutput.notify();
 			}
 		}else{
-			System.out.println(style + "\n" + LocalDateTime.now() + " -> " + "RECEVE :" + message + "\n" + style);
+			printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "RECEVE :" + message + "\n" + style);
 		}
 		super.ringoSocket.send(msg);// renvoi sur l'anneau du message
 	}

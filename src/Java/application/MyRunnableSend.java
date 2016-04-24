@@ -21,9 +21,9 @@ public class MyRunnableSend implements Runnable {
 					sender.doSend();
 				} catch (NumberOfBytesException e) {
 					//TODO
-					System.out.println("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
+					appl.printModeApplication("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
 				} catch (DOWNmessageException e) {
-					System.out.println("the socket is CLOSE");
+					appl.printModeApplication("the socket is CLOSE");
 					appl.runContinue = false;
 				} catch (InterruptedException e) {
 					appl.runContinue= false;
@@ -31,7 +31,7 @@ public class MyRunnableSend implements Runnable {
 			}
 		}
 		if(appl.verboseMode){
-			System.out.println("\nTHREAD: APP SEND   | END");
+			appl.printModeApplication("\nTHREAD: APP SEND   | END");
 		}
 		appl.ThRecev.interrupt();
 	}

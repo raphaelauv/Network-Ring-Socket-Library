@@ -18,19 +18,19 @@ public class MyRunnableReceve implements Runnable {
 				recever.doReceve(appl.ringoSocket.receive());
 
 			} catch (DOWNmessageException e) {
-				System.out.println("the socket is CLOSE");
+				appl.printModeApplication("the socket is CLOSE");
 				appl.runContinue = false;
 			} catch (InterruptedException e) {
 				appl.runContinue = false;
 			} catch (IOException e) {
-				System.out.println("THREAD: APP RECEVE | File error");
+				appl.printModeApplication("THREAD: APP RECEVE | File error");
 			} catch (NumberOfBytesException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		if(appl.verboseMode){
-			System.out.println("THREAD: APP RECEVE | END");
+			appl.printModeApplication("THREAD: APP RECEVE | END");
 		}
 		appl.ThSend.interrupt();
 	}

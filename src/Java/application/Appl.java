@@ -2,10 +2,7 @@ package application;
 
 import protocol.*;
 import protocol.exceptions.*;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.BindException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
@@ -109,6 +106,7 @@ public class Appl {
 	
 	/**
 	 * Test les arguments et affiche les informations de base des APPL
+	 * pour le  mode Application
 	 * @param args les args du main
 	 * @return 
 	 */
@@ -138,13 +136,13 @@ public class Appl {
 	
 	
 	/**
-	 * Test if the user ask for connecTo or disconnecT 
+	 * Test if the user ask for connecTo or disconnecT or other action 
 	 * 
-	 * @return true if the user asked for 1 or this action else false
+	 * @return true if the user asked for an action, else false
 	 */
 	public boolean testEntry(){
 		try {
-			if(scan!=null){
+			if(scan!=null){//mode application
 				input = scan.nextLine();
 			}else{
 				synchronized (this.listInput) {
@@ -152,6 +150,7 @@ public class Appl {
 						this.listInput.wait();
 					}
 					input = new String(this.listInput.pop());
+					return false;// mode service
 				}
 			}
 			
@@ -252,7 +251,7 @@ public class Appl {
 	 * @param toPrint contenu a afficher
 	 */
 	protected void printModeApplication(String toPrint) {
-		if (listInput!=null) {
+		if (this.scan!=null) {
 			System.out.println(toPrint);
 		}
 	}

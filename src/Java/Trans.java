@@ -29,9 +29,8 @@ public class Trans extends Appl implements ReceveSend {
 		public Path path;
 		public String nameFile;
 
-		public infoTransfert( long actual_no_mess,long num_mess,String nameFile) {
-			super();		
-			
+	public infoTransfert( long actual_no_mess,long num_mess,String nameFile) {
+			super();
 			this.actual_no_mess = actual_no_mess;
 			this.num_mess = num_mess;
 			this.nameFile=nameFile;
@@ -42,8 +41,8 @@ public class Trans extends Appl implements ReceveSend {
 	
 	private HashMap<String, Path> files;
 	
-	Object ROKisComeBack=new Object();//mutex
-	boolean ROKisComeBackBool;
+	private Object ROKisComeBack=new Object();//mutex
+	private boolean ROKisComeBackBool;
 	private volatile String REQ_AskFile;
 	
 	public final static int byteSizeNom = 2;
@@ -67,14 +66,18 @@ public class Trans extends Appl implements ReceveSend {
 	
 	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
 		super("TRANS###", udpPort, tcpPort,false ,verbose);
-		this.id_TransMAP=new HashMap<Long, infoTransfert>(10);
-		initFileHash();
-		initThread(new MyRunnableReceve(this),new MyRunnableSend(this));
+		this.initTrans();
 	}
 	
 	public Trans(RingoSocket ringosocket){
 		super("TRANS###",false,ringosocket);
-		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
+		this.initTrans();
+	}
+	
+	private void initTrans(){
+		this.id_TransMAP=new HashMap<Long, infoTransfert>(10);
+		initFileHash();
+		initThread(new MyRunnableReceve(this),new MyRunnableSend(this));
 	}
 	
 	/*
@@ -171,7 +174,6 @@ public class Trans extends Appl implements ReceveSend {
 		printModeApplication(style+"\n"+pourcentage+"% TRANSMIS");
 		//printModeApplication("ecris dedans "+new String(msgInByte,curseur,size_content));
 		if(value.actual_no_mess==value.num_mess){
-			
 			value.outputStream.flush();
 			value.outputStream.close();
 			updateFileList(value.nameFile,value.path);
@@ -240,7 +242,7 @@ public class Trans extends Appl implements ReceveSend {
 		
 		Path pathFile=files.get(name_fileSTR);
 		if(pathFile!=null){
-			System.out.print("FILE IS HERE | ");
+			printModeApplication("FILE IS HERE | ");
 			
 			byte []  debutMsg= "ROK".getBytes();
 			long idt= ringoSocket.getUniqueIdm();
@@ -288,7 +290,6 @@ public class Trans extends Appl implements ReceveSend {
 		this.files.put(name,path);
 	}
 
-	
 	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException {
 		String contenu = "REQ " + Message.longToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
 		
@@ -296,6 +297,8 @@ public class Trans extends Appl implements ReceveSend {
 		
 		synchronized (ROKisComeBack) {
 			REQ_AskFile = input;
+			
+			printModeApplication("fichier attendu "+ REQ_AskFile);
 			ROKisComeBackBool = false;
 			int timeMax=5000;
 			
