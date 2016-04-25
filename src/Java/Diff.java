@@ -9,11 +9,17 @@ public class Diff extends Appl implements ReceveSend {
 
 	public final static int byteSizeMess = 3;
 
+	/**
+	 * Application
+	 */
 	public Diff(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
 		super("DIFF####", udpPort, tcpPort, false, verbose);	
 		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 	}
 	
+	/**
+	 * Service
+	 */
 	public Diff(RingoSocket ringosocket){
 		super("DIFF####",false,ringosocket);
 		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));

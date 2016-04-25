@@ -21,6 +21,7 @@ public class Appl {
 	protected RingoSocket ringoSocket;
 	protected final static String style="##############################################################";
 	
+	private boolean modeService;
 	private LinkedList<byte []> listInput;	// mode service
 	protected LinkedList<byte []> listOutput; // mode service
 	
@@ -41,10 +42,11 @@ public class Appl {
 		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode);
 		this.scan = new Scanner(System.in);
 		this.runContinue=true;
+		this.modeService=false;
 	}
 	
 	/**
-	 * Constructeur pour objet ecoute sur la methode input()
+	 * Constructeur pour service
 	 * @param APPLID
 	 * @param relayMSGAuto
 	 * @param ringoSocket
@@ -56,10 +58,11 @@ public class Appl {
 		this.listInput = new LinkedList<byte []>();
 		this.listOutput=new LinkedList<byte []>();
 		this.runContinue=true;
+		this.modeService=true;
 	}
 	
 	public void input(byte [] content) throws Exception{
-		if(this.listInput==null){
+		if(!modeService){
 			throw new Exception();
 		}
 		synchronized (this.listInput) {
@@ -69,7 +72,7 @@ public class Appl {
 	}
 	
 	public byte[] output() throws Exception, InterruptedException{
-		if(this.listOutput==null){
+		if(!modeService){
 			throw new Exception();
 		}
 		synchronized (listOutput) {
@@ -81,7 +84,7 @@ public class Appl {
 	}
 	
 	public void close() throws DOWNmessageException ,Exception{
-		if(this.listInput==null){
+		if(!modeService){
 			throw new Exception();
 		}
 		runContinue = false;
@@ -142,7 +145,7 @@ public class Appl {
 	 */
 	public boolean testEntry(){
 		try {
-			if(scan!=null){//mode application
+			if(!modeService){//mode application
 				input = scan.nextLine();
 			}else{
 				synchronized (this.listInput) {
@@ -251,7 +254,7 @@ public class Appl {
 	 * @param toPrint contenu a afficher
 	 */
 	protected void printModeApplication(String toPrint) {
-		if (this.scan!=null) {
+		if (!modeService) {
 			System.out.println(toPrint);
 		}
 	}

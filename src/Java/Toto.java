@@ -34,5 +34,7 @@ public class Toto {
 		System.out.println(new String(diff1.output()));
 		
 		trans1.input("coco.txt".getBytes());
+		
+	
 	}
 }
