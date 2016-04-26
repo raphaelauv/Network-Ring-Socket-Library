@@ -1,5 +1,7 @@
 package protocol;
 import protocol.exceptions.*;
+
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
@@ -7,7 +9,7 @@ import java.net.UnknownHostException;
  * Cette interface defini les actions realisable par une applicationa avec cette implementation reseaux
  * 
  */
-public interface Ringo {
+public interface Ringo extends Closeable{
 
 	public final static int maxSizeMsg = 512;
 	public final static int byteSizeType = 4;
@@ -47,10 +49,9 @@ public interface Ringo {
 	
 	/**
 	 * Permet de quitter un anneau
-	 * @throws DOWNmessageException 
 	 * @throws IOException 
 	 */
-	public void close() throws InterruptedException, DOWNmessageException, IOException;
+	public void close() throws IOException;
 	
 	/**
 	 * Pour s'inserer dans un anneau

@@ -26,7 +26,7 @@ public class Appl {
 	protected LinkedList<byte []> listOutput; // mode service
 	
 	/**
-	 * Constructeur pour application independante , ecoute sur STDIN
+	 * Constructeur pour application independante , ecoute sur STDIN et ecris sur STDOUT
 	 * @param APPLID
 	 * @param udpPort
 	 * @param tcpPort
@@ -39,7 +39,7 @@ public class Appl {
 	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException, IpException{
 		this.APPLID=APPLID;
 		this.verboseMode=verboseMode;
-		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode);
+		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode,false);
 		this.scan = new Scanner(System.in);
 		this.runContinue=true;
 		this.modeService=false;
@@ -103,8 +103,14 @@ public class Appl {
 		this.ThSend=new Thread(runnableSend);
 		this.ThRecev.setName(APPLID+" RECE");
 		this.ThSend.setName(APPLID+" SEND ");
+		if(modeService){
+			this.ThRecev.setDaemon(true);
+			this.ThSend.setDaemon(true);
+		}
 		this.ThRecev.start();
 		this.ThSend.start();
+		
+		
 	}
 	
 	/**
@@ -115,7 +121,7 @@ public class Appl {
 	 */
 	public static boolean testArgs(String[] args){
 		if (args==null || args.length == 0 || args[0] == null || args[1] == null) {
-			System.out.println("ATTENTION IL MANQUE ARGUMENT !!");
+			System.out.println("ATTENTION IL MANQUE ARGUMENT , entrer les deux ports  !!");
 			System.exit(1);
 		}
 		System.out.println("arg0 UDP : " + args[0]); // 4242

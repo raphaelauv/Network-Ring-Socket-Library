@@ -87,7 +87,7 @@ public class RingoSocket implements Ringo {
 	 * @throws InterruptedException 
 	 * @throws IOException 
 	 */
-	void closeServ(boolean modeDOWN) throws InterruptedException, IOException {
+	void closeServ(boolean modeDOWN) throws IOException {
 
 		this.boolClose = true;
 		this.sockRecever.close();
@@ -104,7 +104,12 @@ public class RingoSocket implements Ringo {
 			synchronized (listToSend) {
 				while (!listToSend.isEmpty()) {
 					listToSend.notify();
-					listToSend.wait();	
+					try {
+						listToSend.wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}	
 				}
 				this.sockSender.close();
 				this.ThSend.interrupt();
@@ -142,13 +147,22 @@ public class RingoSocket implements Ringo {
 		}
 	}
 	
-	public void close() throws InterruptedException, DOWNmessageException, IOException {
-		testClose();
+	public void close() throws IOException {
+		if(isClose()){
+			return;
+		}
 		if(boolDisconnect){
+			//already disconnect of an other ringoSocket
 			closeServ(false);
 		}
 		else{
-			disconnect();
+			//not yet disconnect
+			try {
+				disconnect();
+			} catch (InterruptedException | DOWNmessageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			closeServ(false);
 		}
 	}
@@ -358,7 +372,7 @@ public class RingoSocket implements Ringo {
 	 * @throws IOException
 	 * @throws IpException 
 	 */
-	public RingoSocket(String idApp, Integer LICENPortUDP, Integer portTcp,boolean relayMSGAuto ,boolean verboseMode) throws IOException, IpException
+	public RingoSocket(String idApp, Integer LICENPortUDP, Integer portTcp,boolean relayMSGAuto ,boolean verboseMode,boolean modeService) throws IOException, IpException
 			 {
 
 		super();
@@ -374,6 +388,7 @@ public class RingoSocket implements Ringo {
 		this.ip_diff =Message.convertIP("225.1.2.4");
 		this.port_diff = 9999;
 		this.portTcp = portTcp;
+		
 		this.sockServerTCP = new ServerSocket(portTcp);
 		this.sockSender = new DatagramSocket();
 		this.listenPortUDP = LICENPortUDP;
@@ -410,11 +425,19 @@ public class RingoSocket implements Ringo {
 		this.ThServTCP.setName("Server TCP");
 		this.ThMULTIrecev.setName("MULTI-DIFF");
 
+		if(modeService){
+			this.ThRecev.setDaemon(true);
+			this.ThSend.setDaemon(true);
+			this.ThServTCP.setDaemon(true);
+			this.ThMULTIrecev.setDaemon(true);
+		}
+		
 		this.ThRecev.start();
 		this.ThSend.start();
 		this.ThServTCP.start();
 		this.ThMULTIrecev.start();
 
+		
 	}
 	
 	/**

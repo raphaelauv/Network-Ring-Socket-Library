@@ -35,6 +35,7 @@ class ServMULTI {
 	}
 	
 	public void updateMulti() throws IOException{
+		
 		ringoSocket.sockMultiRECEP = new MulticastSocket(ringoSocket.port_diff);
 		ringoSocket.sockMultiRECEP.joinGroup(InetAddress.getByName(ringoSocket.ip_diff.toString()));
 	}
