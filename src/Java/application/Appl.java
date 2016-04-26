@@ -2,6 +2,8 @@ package application;
 
 import protocol.*;
 import protocol.exceptions.*;
+
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.UnknownHostException;
@@ -9,20 +11,23 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class Appl {
+public class Appl implements Closeable{
 
+	private boolean modeService;
+	protected boolean runContinue;
+	protected boolean verboseMode;
+	
 	protected String APPLID;
 	protected String input;
-	protected boolean runContinue;
+	
 	protected Thread ThRecev;
 	protected Thread ThSend;
 	protected Scanner scan;
-	protected boolean verboseMode;
+	
 	protected RingoSocket ringoSocket;
 	protected final static String style="##############################################################";
 	
-	private boolean modeService;
-	private LinkedList<byte []> listInput;	// mode service
+	protected LinkedList<byte []> listInput;	// mode service
 	protected LinkedList<byte []> listOutput; // mode service
 	
 	/**
@@ -36,10 +41,10 @@ public class Appl {
 	 * @throws IOException
 	 * @throws IpException
 	 */
-	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean relayMSGAuto ,boolean verboseMode) throws BindException,IOException, IpException{
+	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean verboseMode) throws BindException,IOException, IpException{
 		this.APPLID=APPLID;
 		this.verboseMode=verboseMode;
-		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort,relayMSGAuto ,verboseMode,false);
+		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort ,verboseMode,false);
 		this.scan = new Scanner(System.in);
 		this.runContinue=true;
 		this.modeService=false;
@@ -51,7 +56,7 @@ public class Appl {
 	 * @param relayMSGAuto
 	 * @param ringoSocket
 	 */
-	public Appl(String APPLID,boolean relayMSGAuto,RingoSocket ringoSocket){
+	public Appl(String APPLID,RingoSocket ringoSocket){
 		this.APPLID=APPLID;
 		this.verboseMode=false;
 		this.ringoSocket=ringoSocket;
@@ -83,12 +88,10 @@ public class Appl {
 		}
 	}
 	
-	public void close() throws DOWNmessageException ,Exception{
-		if(!modeService){
-			throw new Exception();
-		}
+	public void close() throws IOException{
 		runContinue = false;
-		ringoSocket.down();
+		ringoSocket.close();
+		
 	}
 	
 	/**
@@ -148,6 +151,8 @@ public class Appl {
 	 * Test if the user ask for connecTo or disconnecT or other action 
 	 * 
 	 * @return true if the user asked for an action, else false
+	 * @throws UnknownTypeMesssage 
+	 * @throws ParseMessageException 
 	 */
 	public boolean testEntry(){
 		try {
@@ -235,7 +240,7 @@ public class Appl {
 		} catch (NoSuchElementException e) {
 			printModeApplication("\nERREUR connecTo : NoSuchElement");
 			return true;
-		} catch (ProtocolException e) {
+		} catch (ProtocolException  |ParseMessageException | UnknownTypeMesssage e ) {
 			printModeApplication("\nERREUR connecTo : Erreur de protocol");
 			return true;
 		} catch (DOWNmessageException e) {

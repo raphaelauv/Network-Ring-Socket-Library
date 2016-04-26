@@ -20,7 +20,7 @@ public class MyRunnableSend implements Runnable {
 				try {
 					sender.doSend();
 				} catch (NumberOfBytesException e) {
-					//TODO
+					//TODO	
 					appl.printModeApplication("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
 				} catch (DOWNmessageException e) {
 					appl.printModeApplication("the socket is CLOSE");

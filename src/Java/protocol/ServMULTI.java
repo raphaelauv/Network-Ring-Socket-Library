@@ -27,6 +27,7 @@ class ServMULTI {
 						receveMULTI();
 					} catch (DOWNmessageException | IOException | InterruptedException e) {
 						erreur = true;
+						//TODO prevenir de fermeture
 					}
 				}
 				ringoSocket.printVerbose("END");
@@ -35,7 +36,9 @@ class ServMULTI {
 	}
 	
 	public void updateMulti() throws IOException{
-		
+		if(ringoSocket.sockMultiRECEP!=null){
+			ringoSocket.sockMultiRECEP.close();
+		}
 		ringoSocket.sockMultiRECEP = new MulticastSocket(ringoSocket.port_diff);
 		ringoSocket.sockMultiRECEP.joinGroup(InetAddress.getByName(ringoSocket.ip_diff.toString()));
 	}
@@ -50,7 +53,7 @@ class ServMULTI {
 		ringoSocket.printVerbose("message MULTI RECEVE : " + st);
 
 		if (st.startsWith("DOWN")) {
-			ringoSocket.closeServ(true);
+			ringoSocket.closeRingoSocket(true);
 		}
 	}
 }

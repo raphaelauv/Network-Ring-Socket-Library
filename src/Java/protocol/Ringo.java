@@ -63,9 +63,11 @@ public interface Ringo extends Closeable{
 	 * @throws DOWNmessageException 
 	 * @throws ProtocolException 
 	 * @throws AlreadyConnectException 
+	 * @throws UnknownTypeMesssage 
+	 * @throws ParseMessageException 
 	 */
 	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
-			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException, InterruptedException, AlreadyConnectException ,ImpossibleDUPLConnection;
+			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException, InterruptedException, AlreadyConnectException ,ImpossibleDUPLConnection, UnknownTypeMesssage, ParseMessageException;
 
 	/**
 	 * Pour demander l'envoi d'un message a l'entite id

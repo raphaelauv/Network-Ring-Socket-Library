@@ -1,13 +1,10 @@
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.BindException;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
@@ -65,12 +62,12 @@ public class Trans extends Appl implements ReceveSend {
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;
 	
 	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
-		super("TRANS###", udpPort, tcpPort,false ,verbose);
+		super("TRANS###", udpPort, tcpPort ,verbose);
 		this.initTrans();
 	}
 	
 	public Trans(RingoSocket ringosocket){
-		super("TRANS###",false,ringosocket);
+		super("TRANS###",ringosocket);
 		this.initTrans();
 	}
 	

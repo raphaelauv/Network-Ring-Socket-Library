@@ -48,17 +48,17 @@ public class Message {
 	 * @throws UnknownTypeMesssage if the type Message is unknow
 	 * @throws ParseMessageException if the data do no correcpond to the Type Message
 	 */
-	public static Message parseMessage(byte [] data) throws UnknownTypeMesssage, ParseMessageException {
+	public static Message parseMessage(byte [] data) throws ParseMessageException, UnknownTypeMesssage {
 		return new Message(data);
 	}
 	
-	private Message(byte[] data) throws UnknownTypeMesssage, ParseMessageException {
+	private Message(byte[] data) throws ParseMessageException, UnknownTypeMesssage {
 		super();
 		this.data = data;
 		try {
 			this.parse();
 		} catch (IndexOutOfBoundsException e) {
-			throw new UnknownTypeMesssage();
+			throw new ParseMessageException();
 		}
 		this.convertALL();
 	}
@@ -130,7 +130,7 @@ public class Message {
 	 * @throws IndexOutOfBoundsException
 	 * @throws ParseMessageException
 	 */
-	private void parse() throws UnknownTypeMesssage ,IndexOutOfBoundsException, ParseMessageException{
+	private void parse() throws IndexOutOfBoundsException,UnknownTypeMesssage, ParseMessageException{
 		int curseur=0;
 		int sizeIp_SPACE_PORT=sizeIp+1+sizePort;
 		String strParsed=getDataFrom_N(curseur,sizeTypeMSG);

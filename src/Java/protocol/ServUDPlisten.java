@@ -80,9 +80,7 @@ class ServUDPlisten {
 					ringoSocket.listForApply.add(msgR);
 					ringoSocket.listForApply.notifyAll();
 				}
-				if(!ringoSocket.relayMSGAuto){
-					return;//pour ne pas renvoyer automatiquement le message sur le reseau
-				}
+				return;
 			}
 
 		}else if (msgR.getType() == TypeMessage.WHOS) {

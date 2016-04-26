@@ -3,13 +3,13 @@ import protocol.RingoSocket;
 public class Toto {
 
 	public static void main(String[] args) throws Exception {
-		RingoSocket ringo1 = new RingoSocket("DIFF####", 4444, 5555, false, false,true);
+		RingoSocket ringo1 = new RingoSocket("DIFF####", 4444, 5555, false,true);
 		
-		RingoSocket ringo2 = new RingoSocket("DIFF####", 6666, 7777, false, false,true);
+		RingoSocket ringo2 = new RingoSocket("DIFF####", 6666, 7777, false,true);
 		
-		RingoSocket ringo3 = new RingoSocket("TRANS###", 8888, 9999, false, false,true);
+		RingoSocket ringo3 = new RingoSocket("TRANS###", 8888, 9999, false,true);
 		
-		RingoSocket ringo4 = new RingoSocket("TRANS###", 8899, 9988, false, false,true);
+		RingoSocket ringo4 = new RingoSocket("TRANS###", 8899, 9988, false,true);
 		
 		ringo1.connectTo("localhost",7777 , false);
 		
@@ -35,6 +35,10 @@ public class Toto {
 		
 		trans1.input("coco.txt".getBytes());
 		
+		diff1.close();
+		diff2.close();
+		trans1.close();
+		trans2.close();
 	
 	}
 }
