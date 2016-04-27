@@ -333,10 +333,9 @@ public class Trans extends Appl implements ReceveSend {
 
 		} catch (BindException e) {
 			System.out.println("The ports are already in use");
-		} catch (IOException e) {
+		} catch (IOException |NumberFormatException | IpException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IpException e) {
-
 		}
 	}
 }

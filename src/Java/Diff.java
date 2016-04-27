@@ -1,7 +1,5 @@
 import java.io.IOException;
 import java.net.BindException;
-import java.net.InetAddress;
-import java.net.SocketException;
 import java.time.LocalDateTime;
 import protocol.*;
 import protocol.exceptions.*;
@@ -55,8 +53,9 @@ public class Diff extends Appl implements ReceveSend {
 			new Diff(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]), verbose);
 		} catch (BindException e) {
 			System.out.println("The ports are already in use");
-		} catch (IOException | IpException e) {
-			e.printStackTrace();//TODO
+		} catch (IOException |NumberFormatException | IpException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }
