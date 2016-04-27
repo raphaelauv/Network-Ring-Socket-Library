@@ -56,18 +56,23 @@ public interface Ringo extends Closeable{
 	/**
 	 * Pour s'inserer dans un anneau
 	 * @param adresse
-	 * @param udp
+	 * @param idTCP
+	 * @param modeDUPL
 	 * @throws AlreadyAllUdpPortSet
 	 * @throws UnknownHostException
 	 * @throws IOException
-	 * @throws DOWNmessageException 
-	 * @throws ProtocolException 
-	 * @throws AlreadyConnectException 
-	 * @throws UnknownTypeMesssage 
-	 * @throws ParseMessageException 
+	 * @throws DOWNmessageException
+	 * @throws ProtocolException
+	 * @throws InterruptedException
+	 * @throws AlreadyConnectException
+	 * @throws ImpossibleDUPLConnection
+	 * @throws UnknownTypeMesssage
+	 * @throws ParseMessageException
 	 */
 	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
-			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, ProtocolException, InterruptedException, AlreadyConnectException ,ImpossibleDUPLConnection, UnknownTypeMesssage, ParseMessageException;
+			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, 
+			ProtocolException, InterruptedException, AlreadyConnectException ,ImpossibleDUPLConnection, 
+			UnknownTypeMesssage, ParseMessageException;
 
 	/**
 	 * Pour demander l'envoi d'un message a l'entite id

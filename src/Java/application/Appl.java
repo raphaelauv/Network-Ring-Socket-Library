@@ -6,6 +6,7 @@ import protocol.exceptions.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.BindException;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -36,15 +37,16 @@ public class Appl implements Closeable{
 	 * @param udpPort
 	 * @param tcpPort
 	 * @param relayMSGAuto
-	 * @param verboseMode
+	 * @param verbose
 	 * @throws BindException
 	 * @throws IOException
 	 * @throws IpException
 	 */
-	public Appl(String APPLID,Integer udpPort, Integer tcpPort,boolean verboseMode) throws BindException,IOException, IpException{
+	public Appl(String ip,String APPLID,Integer udpPort, Integer tcpPort,boolean verbose) throws BindException,IOException, IpException{
 		this.APPLID=APPLID;
-		this.verboseMode=verboseMode;
-		this.ringoSocket= new RingoSocket(APPLID,udpPort,tcpPort ,verboseMode,false);
+		this.verboseMode=verbose;
+		this.ringoSocket= new RingoSocket(ip,APPLID,udpPort,tcpPort,false);
+		this.ringoSocket.setVerbose(verbose);
 		this.scan = new Scanner(System.in);
 		this.runContinue=true;
 		this.modeService=false;
@@ -146,6 +148,32 @@ public class Appl implements Closeable{
 		
 	}
 	
+	public static String selectIp () throws SocketException{
+		LinkedList<String> allIp=OwnIp.getAllIp();
+		int i=0;
+		System.out.println("select an IP between 0 and "+(allIp.size()-1));
+		for(String tmp : allIp){
+			System.out.println(i+") "+tmp);
+			i++;
+		}
+		String ipSelect = null;
+		Scanner scanner= new Scanner(System.in);
+		boolean notGoodSelect=true;
+		int input=-1;
+		while(notGoodSelect){
+			try{input = Integer.parseInt(scanner.nextLine());}
+			catch(NumberFormatException e){
+				System.out.println("input incorrect , just tape a number");
+			}
+			if(input>=0 && input<i){
+				notGoodSelect=false;
+				ipSelect=allIp.get(input);;
+				System.out.println("IP SELECT : "+ipSelect);
+			}
+			
+		}
+		return ipSelect;
+	}
 	
 	/**
 	 * Test if the user ask for connecTo or disconnecT or other action 

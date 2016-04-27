@@ -1,5 +1,7 @@
 import java.io.IOException;
 import java.net.BindException;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.time.LocalDateTime;
 import protocol.*;
 import protocol.exceptions.*;
@@ -12,8 +14,8 @@ public class Diff extends Appl implements ReceveSend {
 	/**
 	 * Application
 	 */
-	public Diff(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
-		super("DIFF####", udpPort, tcpPort, verbose);	
+	public Diff(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
+		super(ip,"DIFF####", udpPort, tcpPort, verbose);	
 		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 	}
 	
@@ -49,7 +51,8 @@ public class Diff extends Appl implements ReceveSend {
 	public static void main(String[] args) {
 		boolean verbose = Appl.testArgs(args);
 		try {
-			new Diff(Integer.parseInt(args[0]), Integer.parseInt(args[1]), verbose);
+			String ip = Appl.selectIp();
+			new Diff(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]), verbose);
 		} catch (BindException e) {
 			System.out.println("The ports are already in use");
 		} catch (IOException | IpException e) {

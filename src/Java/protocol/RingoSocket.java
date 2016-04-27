@@ -376,20 +376,23 @@ public class RingoSocket implements Ringo {
 		}
 	}
 
+	
+	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, IpException{
+		this("localhost",idApp,listenUDPport,portTcp,modeService);
+	}
+	
+	
 	/**
 	 * Creer une entite RINGO
 	 * @param idApp le nom de l'application
 	 * @param listenUDPport port d'ecoute UDP
 	 * @param portTcp port TCP 
-	 * @param relayMSGAuto true -> APPL MSG automatiquement relayer
-	 * @param verboseMode true -> mode verbose 
+	 * @param modeService  
 	 * @throws IOException
 	 * @throws IpException 
 	 */
-	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp ,boolean verboseMode,boolean modeService) throws IOException, IpException
+	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, IpException
 			 {
-
-		super();
 		if(idApp==null){
 			this.idApp ="";
 		}else{
@@ -400,7 +403,7 @@ public class RingoSocket implements Ringo {
 		 * NETWORK
 		 */
 		
-		this.ip = Message.convertIP("127.0.0.1");		
+		this.ip = Message.convertIP(ip);		
 		this.ip_diff =Message.convertIP("225.1.2.4");
 		this.port_diff = 9999;
 		this.portTcp = portTcp;
@@ -422,7 +425,6 @@ public class RingoSocket implements Ringo {
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
 		this.IdAlreadyReceveUDP1 = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
-		this.verboseMode = verboseMode;
 		this.EYBGisArriveBool= false;
 		this.isDUPL=false;
 		this.boolClose = false;
@@ -464,6 +466,10 @@ public class RingoSocket implements Ringo {
 		this.ThMULTIrecev.start();
 
 		
+	}
+	
+	public void setVerbose(boolean verbose){
+		this.verboseMode=verbose;
 	}
 	
 	/**

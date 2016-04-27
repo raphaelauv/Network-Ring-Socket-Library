@@ -11,7 +11,8 @@ public class Entity{
 	public static void main(String[] args) {
 		boolean verbose=Appl.testArgs(args);
 		try {
-			new Appl(null,Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
+			String ip = Appl.selectIp();
+			new Appl(ip,null,Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
 			
 		} catch (BindException e) {
 			System.out.println("The ports are already in use");

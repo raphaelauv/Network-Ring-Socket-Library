@@ -61,8 +61,8 @@ public class Trans extends Appl implements ReceveSend {
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;
 	
-	public Trans(Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
-		super("TRANS###", udpPort, tcpPort ,verbose);
+	public Trans(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
+		super(ip,"TRANS###", udpPort, tcpPort ,verbose);
 		this.initTrans();
 	}
 	
@@ -153,10 +153,20 @@ public class Trans extends Appl implements ReceveSend {
 			printModeApplication("valeur recu "+no_mess);
 			return true;//TODO quand ordre pas respecter
 		}
-		File temp;
 		if(value.actual_no_mess==0){
 			printModeApplication("premiere partie");
-			Path pathNewFile = Paths.get("./"+value.nameFile+LocalDateTime.now().getNano());
+			Path pathNewFile;
+			
+			if(new File("./"+value.nameFile).isFile()){
+				int i=1;
+				while(new File("./"+value.nameFile+i).isFile()){
+					i++;
+				}
+				pathNewFile = Paths.get("./"+value.nameFile+i);
+			}else{
+				pathNewFile = Paths.get("./"+value.nameFile);
+			}
+
 			BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(pathNewFile, CREATE, APPEND));
 			value.outputStream=out;
 			value.path =pathNewFile;
@@ -268,6 +278,7 @@ public class Trans extends Appl implements ReceveSend {
 			byte [] no_mess;
 			byte [] size_content;
 			for(long i=0; i<num_messLong ; i++){
+				Thread.sleep(100);
 				size_contentVal=out.read(content);
 				no_mess=Message.longToByteArray( i, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
 				size_content=Message.longToStringRepresentation(size_contentVal, 3).getBytes();
@@ -317,7 +328,8 @@ public class Trans extends Appl implements ReceveSend {
 		boolean verbose=Appl.testArgs(args);
 
 		try {
-			new Trans(Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
+			String ip = Appl.selectIp();
+			new Trans(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
 
 		} catch (BindException e) {
 			System.out.println("The ports are already in use");
