@@ -101,9 +101,6 @@ public class Message {
 			if(this.idm!=-1){
 				this.idmLITTLE_ENDIAN_8=Message.longToByteArray(this.idm,8, ByteOrder.LITTLE_ENDIAN);
 			} 
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	

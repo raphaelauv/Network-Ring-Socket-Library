@@ -61,11 +61,17 @@ public class Trans extends Appl implements ReceveSend {
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;
 	
+	/**
+	 * Application
+	 */
 	public Trans(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
 		super(ip,"TRANS###", udpPort, tcpPort ,verbose);
 		this.initTrans();
 	}
 	
+	/**
+	 * Service
+	 */
 	public Trans(RingoSocket ringosocket){
 		super("TRANS###",ringosocket);
 		this.initTrans();

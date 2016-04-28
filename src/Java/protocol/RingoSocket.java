@@ -539,9 +539,6 @@ public class RingoSocket implements Ringo {
 		    System.out.print(" ");
 		}
 		*/
-		
 		return Message.byteArrayToLong(val,Ringo.byteSizeIdm, ByteOrder.nativeOrder());
-	}
-
-	
+	}	
 }
