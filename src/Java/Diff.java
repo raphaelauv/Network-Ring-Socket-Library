@@ -25,7 +25,7 @@ public class Diff extends Appl implements ReceveSend {
 		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 	}
 
-	public void doReceve(Message msg) throws DOWNmessageException {
+	public void doReceve(Message msg) throws RingoSocketCloseException {
 		byte[] msgInByte =msg.getData_app();
 		int taille = Integer.parseInt(new String(msgInByte, 0, byteSizeMess));
 		String message = new String(msgInByte, 4, taille);
@@ -40,7 +40,7 @@ public class Diff extends Appl implements ReceveSend {
 		super.ringoSocket.send(msg);// renvoi sur l'anneau du message
 	}
 
-	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException, ParseException {
+	public void doSend() throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException {
 		String contenu = Message.longToStringRepresentation(super.input.length(), 3) + " " + input;
 		Message msg=Message.APPL(ringoSocket.getUniqueIdm(), "DIFF####", contenu.getBytes());
 		super.ringoSocket.send(msg);

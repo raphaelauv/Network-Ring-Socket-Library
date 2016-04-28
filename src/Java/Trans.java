@@ -99,7 +99,7 @@ public class Trans extends Appl implements ReceveSend {
 		}
 	}
 	
-	public void doReceve(Message msg) throws DOWNmessageException, IOException, NumberOfBytesException, InterruptedException, ParseException {
+	public void doReceve(Message msg) throws RingoSocketCloseException, IOException, NumberOfBytesException, InterruptedException, ParseException {
 		byte[] msgInByte =msg.getData_app();
 		int curseur;
 		String affichage=style + "\n"+LocalDateTime.now() +" -> " + "RECEVE : ";
@@ -130,10 +130,10 @@ public class Trans extends Appl implements ReceveSend {
 	 * @param msgInByte
 	 * @param curseur
 	 * @return true si le message etait destiner a cette entity
-	 * @throws DOWNmessageException
+	 * @throws RingoSocketCloseException
 	 * @throws IOException
 	 */
-	private boolean sen(String affichage, byte[] msgInByte, int curseur)throws DOWNmessageException, IOException{
+	private boolean sen(String affichage, byte[] msgInByte, int curseur)throws RingoSocketCloseException, IOException{
 		affichage+= "SEN " ;
 		byte [] id_transByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeId_Trans);
 		Long id_trans=Message.byteArrayToLong(id_transByte, byteSizeId_Trans, ByteOrder.nativeOrder());
@@ -201,9 +201,9 @@ public class Trans extends Appl implements ReceveSend {
 	 * @param msgInByte
 	 * @param curseur
 	 * @return true si le message etait destiner a cette entity
-	 * @throws DOWNmessageException
+	 * @throws RingoSocketCloseException
 	 */
-	private boolean rok(String affichage, byte[] msgInByte, int curseur) throws DOWNmessageException{
+	private boolean rok(String affichage, byte[] msgInByte, int curseur) throws RingoSocketCloseException{
 		affichage+= "ROK " ;
 		byte [] id_transByte=Arrays.copyOfRange(msgInByte,curseur, curseur+byteSizeId_Trans);
 		
@@ -240,12 +240,12 @@ public class Trans extends Appl implements ReceveSend {
 	 * @param curseur
 	 * @return true si le message etait destiner a cette entity
 	 * @throws IOException
-	 * @throws DOWNmessageException
+	 * @throws RingoSocketCloseException
 	 * @throws numberOfBytesException
 	 * @throws InterruptedException
 	 * @throws ParseException 
 	 */
-	private boolean req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, NumberOfBytesException, InterruptedException, ParseException{
+	private boolean req(String affichage, byte[] msgInByte, int curseur) throws IOException, RingoSocketCloseException, NumberOfBytesException, InterruptedException, ParseException{
 		String size_nom_STR = new String(msgInByte,curseur,byteSizeNom);
 		int tailleNameFile = Integer.parseInt(size_nom_STR);
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;
@@ -305,7 +305,7 @@ public class Trans extends Appl implements ReceveSend {
 		this.files.put(name,path);
 	}
 
-	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException, ParseException {
+	public void doSend() throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException {
 		String contenu = "REQ " + Message.longToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
 		
 		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));

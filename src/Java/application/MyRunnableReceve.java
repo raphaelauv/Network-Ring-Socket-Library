@@ -17,7 +17,7 @@ public class MyRunnableReceve implements Runnable {
 			try {
 				recever.doReceve(appl.ringoSocket.receive());
 
-			} catch (DOWNmessageException e) {
+			} catch (RingoSocketCloseException e) {
 				appl.printModeApplication("the socket is CLOSE");
 				appl.runContinue = false;
 			} catch (InterruptedException e) {

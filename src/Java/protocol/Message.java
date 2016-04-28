@@ -82,27 +82,27 @@ public class Message {
 	 * @throws IpException 
 	 */
 	private void convertALL() throws ParseException{
-			if(this.ip!=null){
-				this.ip=convertIP(this.ip);
-			}
-			if(this.port!=null){
-				this.portString=convertPort(this.port);
-			}
-			if(this.port_diff!=null){
-				this.port_diffString=convertPort(this.port_diff);
-			}
-			if(this.port_succ!=null){
-				this.port_succString=convertPort(this.port_succ);
-			}
-			if(this.ip_diff!=null){
-				this.ip_diff=convertIP(this.ip_diff);
-			}
-			if(this.ip_succ!=null){
-				this.ip_succ=convertIP(this.ip_succ);
-			}
-			if(this.idm!=-1){
-				this.idmLITTLE_ENDIAN_8=Message.longToByteArray(this.idm,8, ByteOrder.LITTLE_ENDIAN);
-			}
+		if(this.ip!=null){
+			this.ip=convertIP(this.ip);
+		}
+		if(this.port!=null){
+			this.portString=convertPort(this.port);
+		}
+		if(this.port_diff!=null){
+			this.port_diffString=convertPort(this.port_diff);
+		}
+		if(this.port_succ!=null){
+			this.port_succString=convertPort(this.port_succ);
+		}
+		if(this.ip_diff!=null){
+			this.ip_diff=convertIP(this.ip_diff);
+		}
+		if(this.ip_succ!=null){
+			this.ip_succ=convertIP(this.ip_succ);
+		}
+		if(this.idm!=-1){
+			this.idmLITTLE_ENDIAN_8=Message.longToByteArray(this.idm,8, ByteOrder.LITTLE_ENDIAN);
+		}
 	}
 	
 	/**

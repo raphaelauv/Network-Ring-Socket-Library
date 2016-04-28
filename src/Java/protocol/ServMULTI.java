@@ -4,28 +4,24 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
-import protocol.exceptions.DOWNmessageException;
+import protocol.exceptions.RingoSocketCloseException;
 
 class ServMULTI {
 	
 	private RingoSocket ringoSocket;
 	Runnable runServMULTI;
+	boolean erreur;
 	
-	ServMULTI(RingoSocket ringoSocket) {
+	ServMULTI(RingoSocket ringoSocket) throws IOException{
 		this.ringoSocket=ringoSocket;
-		try {
-			this.updateMulti();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		this.erreur = false;
+		this.updateMulti();
 		this.runServMULTI = new Runnable() {
 			public void run() {
-				boolean erreur = false;
 				while (!erreur) {
 					try {
 						receveMULTI();
-					} catch (DOWNmessageException | IOException | InterruptedException e) {
+					} catch (RingoSocketCloseException | IOException | InterruptedException e) {
 						erreur = true;
 						ringoSocket.boolClose=true;
 					}
@@ -43,7 +39,7 @@ class ServMULTI {
 		ringoSocket.sockMultiRECEP.joinGroup(InetAddress.getByName(ringoSocket.ip_diff.toString()));
 	}
 	
-	private void receveMULTI() throws IOException, DOWNmessageException, InterruptedException {
+	private void receveMULTI() throws IOException, RingoSocketCloseException, InterruptedException {
 
 		byte[] data = new byte[Ringo.maxSizeMsg];
 		DatagramPacket paquet = new DatagramPacket(data, data.length);

@@ -77,6 +77,91 @@ public class RingoSocket implements Ringo {
 	/*********************************************************************/
 
 
+	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseException{
+		this("localhost",idApp,listenUDPport,portTcp,modeService);
+	}
+	
+	
+	/**
+	 * Creer une entite RINGO
+	 * @param idApp le nom de l'application
+	 * @param listenUDPport port d'ecoute UDP
+	 * @param portTcp port TCP port d'ecoute TCP
+	 */
+	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseException
+			 {
+		if(idApp==null){
+			this.idApp ="";
+		}else{
+			this.idApp = idApp;
+		}
+		
+		/********************************************************************
+		 * NETWORK
+		 */
+		
+		this.ip = Message.convertIP(ip);		
+		this.ip_diff =Message.convertIP("225.1.2.4");
+		this.port_diff = 9999;
+		this.portTcp = portTcp;
+		this.listenPortUDP = listenUDPport;
+		
+		this.ipPortUDP1 = this.ip;
+		this.ipPortUDP2 = null;
+		this.portUDP1 = this.listenPortUDP;
+		this.portUDP2 = null;
+		
+		this.sockServerTCP = new ServerSocket(portTcp);
+		this.sockSender = new DatagramSocket();
+		this.sockRecever = new DatagramSocket(listenUDPport);
+
+		
+		/********************************************************************
+		 * boolean , semaphores , set , listes
+		 */
+		this.listToSend = new LinkedList<Message>();
+		this.listForApply = new LinkedList<Message>();
+		this.IdAlreadyReceveUDP1 = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
+		this.EYBGisArriveBool= false;
+		this.isDUPL=false;
+		this.boolClose = false;
+		this.boolDisconnect =true;
+		this.tcpAcces=new Semaphore(1);
+		this.idmAcces=new Semaphore(1);
+		this.UDP_ipPort_Acces = new Semaphore(1);
+		this.EYBG_Acces= new Semaphore(0);
+		this.idmActuel=0L;
+		
+		this.build_IDM_array();
+		
+		/********************************************************************
+		 * THREADS
+		 */
+		this.servMulti =new ServMULTI(this);
+		this.ThRecev = new Thread(new ServUDPlisten(this).runServUDPlisten);
+		this.ThSend = new Thread(new ServUDPsend(this).runServUDPsend);
+		this.ThServTCP = new Thread(new ServTCP(this).runServTcp);
+		this.ThMULTIrecev = new Thread(servMulti.runServMULTI);
+
+		this.ThRecev.setName("Receve UDP");
+		this.ThSend.setName("Send UDP  ");
+		this.ThServTCP.setName("Server TCP");
+		this.ThMULTIrecev.setName("MULTI-DIFF");
+
+		if(modeService){
+			this.ThRecev.setDaemon(true);
+			this.ThSend.setDaemon(true);
+			this.ThServTCP.setDaemon(true);
+			this.ThMULTIrecev.setDaemon(true);
+		}
+		this.ThRecev.start();
+		this.ThSend.start();
+		this.ThServTCP.start();
+		this.ThMULTIrecev.start();
+	}
+
+	
+	
 	/**
 	 * Ferme tout les Thread de la RingoSocket
 	 * @param modeDOWN if true envoi un DOWN en multi avant de fermer
@@ -96,6 +181,7 @@ public class RingoSocket implements Ringo {
 			this.sockSender.close();
 			this.ThSend.interrupt();
 		} else {
+			//finish to send all message inside the RingoSocket
 			synchronized (listToSend) {
 				while (!listToSend.isEmpty()) {
 					listToSend.notify();
@@ -110,6 +196,7 @@ public class RingoSocket implements Ringo {
 				this.ThSend.interrupt();
 			}
 		}
+		
 		synchronized (listForApply) {
 			this.listForApply.notify();
 		}
@@ -119,7 +206,7 @@ public class RingoSocket implements Ringo {
 		
 	}
 
-	public void disconnect() throws InterruptedException, DOWNmessageException, ParseException{
+	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException{
 		testClose();
 		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
 
@@ -147,16 +234,15 @@ public class RingoSocket implements Ringo {
 			return;
 		}
 		if(boolDisconnect){
-			//already disconnect of an other ringoSocket
+			//already disconnect
 			closeRingoSocket(false);
 		}
 		else{
 			//not yet disconnect
 			try {
 				disconnect();
-			} catch (InterruptedException | DOWNmessageException | ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (InterruptedException | RingoSocketCloseException | ParseException e) {
+				//erreur during disconnect
 			}
 			closeRingoSocket(false);
 		}
@@ -164,24 +250,24 @@ public class RingoSocket implements Ringo {
 
 	/**
 	 * Tester si la ringoSocket est fermer
-	 * @throws DOWNmessageException si la ringoSocket est fermer
+	 * @throws RingoSocketCloseException si la ringoSocket est fermer
 	 */
-	void testClose() throws DOWNmessageException {
+	void testClose() throws RingoSocketCloseException {
 		if (boolClose) {
-			throw new DOWNmessageException();
+			throw new RingoSocketCloseException();
 		}
 	}
 
 	public boolean isClose(){
 		try{
 			testClose();
-		}catch(DOWNmessageException e){
+		}catch(RingoSocketCloseException e){
 			return true;
 		}
 		return false;
 	}
 
-	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException, ParseException {
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, RingoSocketCloseException, ParseException {
 		testClose();
 		
 		long idm=getUniqueIdm();
@@ -208,12 +294,14 @@ public class RingoSocket implements Ringo {
 		}
 	}
 
-	public void down() throws DOWNmessageException{
+	public void down() throws RingoSocketCloseException{
 		send(Message.DOWN());
 	}
 	
 	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
-			throws AlreadyAllUdpPortSet, ParseException, DOWNmessageException, ProtocolException, InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException ,UnknownTypeMesssage {
+			throws AlreadyAllUdpPortSet, ParseException, RingoSocketCloseException, ProtocolException, 
+			InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException ,UnknownTypeMesssage {
+		
 		testClose();
 		
 		if(!modeDUPL){
@@ -355,7 +443,7 @@ public class RingoSocket implements Ringo {
 	}
 
 	
-	public void send(Message msg) throws DOWNmessageException {
+	public void send(Message msg) throws RingoSocketCloseException {
 		testClose();
 		if(msg==null){
 			return;
@@ -367,7 +455,7 @@ public class RingoSocket implements Ringo {
 		}
 	}
 
-	public Message receive() throws DOWNmessageException, InterruptedException {
+	public Message receive() throws RingoSocketCloseException, InterruptedException {
 		testClose();
 		synchronized (listForApply) {
 			while (listForApply.isEmpty()) {
@@ -378,99 +466,7 @@ public class RingoSocket implements Ringo {
 		}
 	}
 
-	
-	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseException{
-		this("localhost",idApp,listenUDPport,portTcp,modeService);
-	}
-	
-	
-	/**
-	 * Creer une entite RINGO
-	 * @param idApp le nom de l'application
-	 * @param listenUDPport port d'ecoute UDP
-	 * @param portTcp port TCP 
-	 * @param modeService  
-	 * @throws IOException
-	 * @throws IpException 
-	 * @throws ParseException 
-	 */
-	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseException
-			 {
-		if(idApp==null){
-			this.idApp ="";
-		}else{
-			this.idApp = idApp;
-		}
 		
-		/********************************************************************
-		 * NETWORK
-		 */
-		
-		this.ip = Message.convertIP(ip);		
-		this.ip_diff =Message.convertIP("225.1.2.4");
-		this.port_diff = 9999;
-		this.portTcp = portTcp;
-		this.listenPortUDP = listenUDPport;
-		
-		this.ipPortUDP1 = this.ip;
-		this.ipPortUDP2 = null;
-		this.portUDP1 = this.listenPortUDP;
-		this.portUDP2 = null;
-		
-		this.sockServerTCP = new ServerSocket(portTcp);
-		this.sockSender = new DatagramSocket();
-		this.sockRecever = new DatagramSocket(listenUDPport);
-
-		
-		/********************************************************************
-		 * boolean , semaphores , set , listes
-		 */
-		this.listToSend = new LinkedList<Message>();
-		this.listForApply = new LinkedList<Message>();
-		this.IdAlreadyReceveUDP1 = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
-		this.EYBGisArriveBool= false;
-		this.isDUPL=false;
-		this.boolClose = false;
-		this.boolDisconnect =true;
-		this.tcpAcces=new Semaphore(1);
-		this.idmAcces=new Semaphore(1);
-		this.UDP_ipPort_Acces = new Semaphore(1);
-		this.EYBG_Acces= new Semaphore(0);
-		this.idmActuel=0L;
-		
-		this.build_IDM_array();
-		
-		
-		
-		/********************************************************************
-		 * THREADS
-		 */
-		this.servMulti =new ServMULTI(this);
-		this.ThRecev = new Thread(new ServUDPlisten(this).runServUDPlisten);
-		this.ThSend = new Thread(new ServUDPsend(this).runServUDPsend);
-		this.ThServTCP = new Thread(new ServTCP(this).runServTcp);
-		this.ThMULTIrecev = new Thread(servMulti.runServMULTI);
-
-		this.ThRecev.setName("Receve UDP");
-		this.ThSend.setName("Send UDP  ");
-		this.ThServTCP.setName("Server TCP");
-		this.ThMULTIrecev.setName("MULTI-DIFF");
-
-		if(modeService){
-			this.ThRecev.setDaemon(true);
-			this.ThSend.setDaemon(true);
-			this.ThServTCP.setDaemon(true);
-			this.ThMULTIrecev.setDaemon(true);
-		}
-		
-		this.ThRecev.start();
-		this.ThSend.start();
-		this.ThServTCP.start();
-		this.ThMULTIrecev.start();
-
-		
-	}
-	
 	public void setVerbose(boolean verbose){
 		this.verboseMode=verbose;
 	}
@@ -519,7 +515,7 @@ public class RingoSocket implements Ringo {
 		return "THREAD: " + Thread.currentThread().getName() + " | ";
 	}
 	
-	public long getUniqueIdm() throws DOWNmessageException, InterruptedException{
+	public long getUniqueIdm() throws RingoSocketCloseException, InterruptedException{
 		testClose();
 		
 		byte [] end_of_IDM= new byte[2];

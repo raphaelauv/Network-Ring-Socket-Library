@@ -52,24 +52,32 @@ class ServUDPsend {
 			
 			return;
 		} else {
-			ringoSocket.printVerbose("Message Envoyer : "+ msg.toString());
 			
-			this.paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
-					InetAddress.getByName(ringoSocket.ipPortUDP1), ringoSocket.portUDP1);
-			ringoSocket.sockSender.send(paquet1);
+			ringoSocket.UDP_ipPort_Acces.acquire();
 			
-			if (ringoSocket.isDUPL){
-				this.paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
-						InetAddress.getByName(ringoSocket.ipPortUDP2), ringoSocket.portUDP2);
-				ringoSocket.sockSender.send(paquet2);
+			try{
+				ringoSocket.printVerbose("Message Envoyer : "+ msg.toString());
+				
+				this.paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
+						InetAddress.getByName(ringoSocket.ipPortUDP1), ringoSocket.portUDP1);
+				ringoSocket.sockSender.send(paquet1);
+				
+				if (ringoSocket.isDUPL){
+					this.paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
+							InetAddress.getByName(ringoSocket.ipPortUDP2), ringoSocket.portUDP2);
+					ringoSocket.sockSender.send(paquet2);
+				}
+				
+			}catch(IOException e){
+				ringoSocket.UDP_ipPort_Acces.release();
+				throw e;
 			}
+			ringoSocket.UDP_ipPort_Acces.release();
 		}
 		
 		// Pour debloquer l'attente de changement de port
 		if (this.msg.getType() == TypeMessage.EYBG) {
 			ringoSocket.EYBG_Acces.release();
 		}
-		
-
 	}
 }

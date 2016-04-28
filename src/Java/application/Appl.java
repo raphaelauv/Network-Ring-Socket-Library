@@ -272,7 +272,7 @@ public class Appl implements Closeable{
 		} catch (ProtocolException  |ParseException | UnknownTypeMesssage e ) {
 			printModeApplication("\nERREUR connecTo : Erreur de protocol");
 			return true;
-		} catch (DOWNmessageException e) {
+		} catch (RingoSocketCloseException e) {
 			printModeApplication("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 			runContinue = false;
 			return true;

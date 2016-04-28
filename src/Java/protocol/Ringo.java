@@ -35,18 +35,18 @@ public interface Ringo extends Closeable{
 	 * @param sendDownIfBreak true -> si l'anneau est cassee alors averti sur multi diffusion | else -> pas d'alert
 	 * @return true -> anneau pas casse
 	 * @throws InterruptedException
-	 * @throws DOWNmessageException
+	 * @throws RingoSocketCloseException
 	 * @throws ParseException 
 	 */
-	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException, ParseException;
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, RingoSocketCloseException, ParseException;
 	
 	/**
 	 * demande la deconnection de l'entiter ,elle boucle sur elle meme
 	 * @throws InterruptedException
-	 * @throws DOWNmessageException
+	 * @throws RingoSocketCloseException
 	 * @throws ParseException 
 	 */
-	public void disconnect() throws InterruptedException, DOWNmessageException, ParseException;
+	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException;
 	
 	
 	/**
@@ -63,7 +63,7 @@ public interface Ringo extends Closeable{
 	 * @throws AlreadyAllUdpPortSet
 	 * @throws UnknownHostException
 	 * @throws IOException
-	 * @throws DOWNmessageException
+	 * @throws RingoSocketCloseException
 	 * @throws ProtocolException
 	 * @throws InterruptedException
 	 * @throws AlreadyConnectException
@@ -72,7 +72,7 @@ public interface Ringo extends Closeable{
 	 * @throws ParseException
 	 */
 	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
-			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, 
+			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, RingoSocketCloseException, 
 			ProtocolException, InterruptedException, AlreadyConnectException ,ImpossibleDUPLConnection, 
 			UnknownTypeMesssage, ParseException;
 
@@ -82,7 +82,7 @@ public interface Ringo extends Closeable{
 	 * @param id
 	 * @throws SizeException
 	 */
-	public void send(Message msg) throws DOWNmessageException, SizeMessageException;
+	public void send(Message msg) throws RingoSocketCloseException, SizeMessageException;
 
 	/**
 	 * Demande un message en attente de lecture par l'apply
@@ -90,19 +90,19 @@ public interface Ringo extends Closeable{
 	 * @return Contenu du message
 	 * @throws InterruptedException 
 	 */
-	public Message receive() throws DOWNmessageException, InterruptedException;
+	public Message receive() throws RingoSocketCloseException, InterruptedException;
 	
 	/**
 	 * Envoyer un down sur multidiffusion
-	 * @throws DOWNmessageException
+	 * @throws RingoSocketCloseException
 	 */
-	public void down() throws DOWNmessageException;
+	public void down() throws RingoSocketCloseException;
 	
 	/**
 	 * Get an unique IDM message of the RINGO entiter
 	 * @return
-	 * @throws DOWNmessageException 
+	 * @throws RingoSocketCloseException 
 	 * @throws InterruptedException 
 	 */
-	public long getUniqueIdm() throws DOWNmessageException, InterruptedException;
+	public long getUniqueIdm() throws RingoSocketCloseException, InterruptedException;
 }

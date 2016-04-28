@@ -16,7 +16,7 @@ class ServUDPlisten {
 				while (!erreur) {
 					try {
 						receveMessage();
-					} catch (IOException | InterruptedException | DOWNmessageException | ParseException e) {
+					} catch (IOException | InterruptedException | RingoSocketCloseException | ParseException e) {
 						erreur = true;
 						ringoSocket.boolClose=true;
 					}
@@ -26,7 +26,7 @@ class ServUDPlisten {
 		};	
 	}
 	
-	private void receveMessage() throws IOException, InterruptedException, DOWNmessageException, ParseException {
+	private void receveMessage() throws IOException, InterruptedException, RingoSocketCloseException, ParseException {
 
 		byte[] dataToReceve = new byte[Ringo.maxSizeMsg];
 		DatagramPacket paquet = new DatagramPacket(dataToReceve, dataToReceve.length);
@@ -66,6 +66,7 @@ class ServUDPlisten {
 			if(msgR.getIp().equals(ringoSocket.ipPortUDP1) && msgR.getPort().equals(ringoSocket.portUDP1)){
 				ringoSocket.printVerbose("My next leave the RING");
 				ringoSocket.send(Message.EYBG(this.ringoSocket.getUniqueIdm()));
+				
 				ringoSocket.EYBG_Acces.acquire(); //pour attendre que EYBG soit bien envoyer
 				
 				ringoSocket.UDP_ipPort_Acces.acquire();
@@ -96,7 +97,7 @@ class ServUDPlisten {
 		}
 		synchronized (ringoSocket.listToSend) {
 			ringoSocket.listToSend.add(msgR);
-			ringoSocket.listToSend.notifyAll();
+			ringoSocket.listToSend.notify();
 		}
 	}
 }

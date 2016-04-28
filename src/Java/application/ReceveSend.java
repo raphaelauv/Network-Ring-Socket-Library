@@ -2,14 +2,14 @@ package application;
 
 import java.io.IOException;
 import protocol.Message;
-import protocol.exceptions.DOWNmessageException;
+import protocol.exceptions.RingoSocketCloseException;
 import protocol.exceptions.NumberOfBytesException;
 import protocol.exceptions.ParseException;
 
 public interface ReceveSend {
 	
-	public void doReceve(Message msg) throws DOWNmessageException, IOException, NumberOfBytesException, InterruptedException, ParseException;
-	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException, ParseException;
+	public void doReceve(Message msg) throws RingoSocketCloseException, IOException, NumberOfBytesException, InterruptedException, ParseException;
+	public void doSend() throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException;
 	
 	/**
 	 * Mode service
@@ -27,8 +27,8 @@ public interface ReceveSend {
 	
 	/**
 	 * Mode service , demande fermeture du service
-	 * @throws DOWNmessageException
+	 * @throws RingoSocketCloseException
 	 * @throws Exception
 	 */
-	public void close() throws DOWNmessageException ,Exception;
+	public void close() throws RingoSocketCloseException ,Exception;
 }
