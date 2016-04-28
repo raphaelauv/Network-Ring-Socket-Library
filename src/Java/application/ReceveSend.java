@@ -4,12 +4,12 @@ import java.io.IOException;
 import protocol.Message;
 import protocol.exceptions.DOWNmessageException;
 import protocol.exceptions.NumberOfBytesException;
-import protocol.exceptions.ParseMessageException;
+import protocol.exceptions.ParseException;
 
 public interface ReceveSend {
 	
-	public void doReceve(Message msg) throws DOWNmessageException, IOException, NumberOfBytesException, InterruptedException, ParseMessageException;
-	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException, ParseMessageException;
+	public void doReceve(Message msg) throws DOWNmessageException, IOException, NumberOfBytesException, InterruptedException, ParseException;
+	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException, ParseException;
 	
 	/**
 	 * Mode service

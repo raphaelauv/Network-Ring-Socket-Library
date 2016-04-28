@@ -41,9 +41,9 @@ public class Appl implements Closeable{
 	 * @throws BindException
 	 * @throws IOException
 	 * @throws IpException
-	 * @throws ParseMessageException 
+	 * @throws ParseException 
 	 */
-	public Appl(String ip,String APPLID,Integer udpPort, Integer tcpPort,boolean verbose) throws BindException,IOException, ParseMessageException{
+	public Appl(String ip,String APPLID,Integer udpPort, Integer tcpPort,boolean verbose) throws BindException,IOException, ParseException{
 		this.APPLID=APPLID;
 		this.verboseMode=verbose;
 		this.ringoSocket= new RingoSocket(ip,APPLID,udpPort,tcpPort,false);
@@ -181,7 +181,7 @@ public class Appl implements Closeable{
 	 * 
 	 * @return true if the user asked for an action, else false
 	 * @throws UnknownTypeMesssage 
-	 * @throws ParseMessageException 
+	 * @throws ParseException 
 	 */
 	public boolean testEntry(){
 		try {
@@ -269,7 +269,7 @@ public class Appl implements Closeable{
 		} catch (NoSuchElementException e) {
 			printModeApplication("\nERREUR connecTo : NoSuchElement");
 			return true;
-		} catch (ProtocolException  |ParseMessageException | UnknownTypeMesssage e ) {
+		} catch (ProtocolException  |ParseException | UnknownTypeMesssage e ) {
 			printModeApplication("\nERREUR connecTo : Erreur de protocol");
 			return true;
 		} catch (DOWNmessageException e) {

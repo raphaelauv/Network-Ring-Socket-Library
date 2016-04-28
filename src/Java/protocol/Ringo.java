@@ -36,17 +36,17 @@ public interface Ringo extends Closeable{
 	 * @return true -> anneau pas casse
 	 * @throws InterruptedException
 	 * @throws DOWNmessageException
-	 * @throws ParseMessageException 
+	 * @throws ParseException 
 	 */
-	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException, ParseMessageException;
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException, ParseException;
 	
 	/**
 	 * demande la deconnection de l'entiter ,elle boucle sur elle meme
 	 * @throws InterruptedException
 	 * @throws DOWNmessageException
-	 * @throws ParseMessageException 
+	 * @throws ParseException 
 	 */
-	public void disconnect() throws InterruptedException, DOWNmessageException, ParseMessageException;
+	public void disconnect() throws InterruptedException, DOWNmessageException, ParseException;
 	
 	
 	/**
@@ -69,12 +69,12 @@ public interface Ringo extends Closeable{
 	 * @throws AlreadyConnectException
 	 * @throws ImpossibleDUPLConnection
 	 * @throws UnknownTypeMesssage
-	 * @throws ParseMessageException
+	 * @throws ParseException
 	 */
 	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
 			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, DOWNmessageException, 
 			ProtocolException, InterruptedException, AlreadyConnectException ,ImpossibleDUPLConnection, 
-			UnknownTypeMesssage, ParseMessageException;
+			UnknownTypeMesssage, ParseException;
 
 	/**
 	 * Pour demander l'envoi d'un message a l'entite id

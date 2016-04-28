@@ -119,7 +119,7 @@ public class RingoSocket implements Ringo {
 		
 	}
 
-	public void disconnect() throws InterruptedException, DOWNmessageException, ParseMessageException{
+	public void disconnect() throws InterruptedException, DOWNmessageException, ParseException{
 		testClose();
 		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
 
@@ -154,7 +154,7 @@ public class RingoSocket implements Ringo {
 			//not yet disconnect
 			try {
 				disconnect();
-			} catch (InterruptedException | DOWNmessageException | ParseMessageException e) {
+			} catch (InterruptedException | DOWNmessageException | ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -181,7 +181,7 @@ public class RingoSocket implements Ringo {
 		return false;
 	}
 
-	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException, ParseMessageException {
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException, ParseException {
 		testClose();
 		
 		long idm=getUniqueIdm();
@@ -213,7 +213,7 @@ public class RingoSocket implements Ringo {
 	}
 	
 	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
-			throws AlreadyAllUdpPortSet, ParseMessageException, DOWNmessageException, ProtocolException, InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException ,UnknownTypeMesssage {
+			throws AlreadyAllUdpPortSet, ParseException, DOWNmessageException, ProtocolException, InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException ,UnknownTypeMesssage {
 		testClose();
 		
 		if(!modeDUPL){
@@ -254,7 +254,7 @@ public class RingoSocket implements Ringo {
 			
 			try {
 				msg1 = Message.parseMessage(tmp);
-			} catch (ParseMessageException | UnknownTypeMesssage e1) {
+			} catch (ParseException | UnknownTypeMesssage e1) {
 				e1.printStackTrace();// TODO a retirer apres tests
 				throw new ProtocolException();
 			}
@@ -297,7 +297,7 @@ public class RingoSocket implements Ringo {
 		try {
 			sizeReturn = buffIn.read(tmp);
 			msg3 = Message.parseMessage(tmp);
-		} catch (UnknownTypeMesssage | ParseMessageException | IOException e) {
+		} catch (UnknownTypeMesssage | ParseException | IOException e) {
 			this.tcpAcces.release();
 			this.UDP_ipPort_Acces.release();
 			buffOut.close();
@@ -379,7 +379,7 @@ public class RingoSocket implements Ringo {
 	}
 
 	
-	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseMessageException{
+	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseException{
 		this("localhost",idApp,listenUDPport,portTcp,modeService);
 	}
 	
@@ -392,9 +392,9 @@ public class RingoSocket implements Ringo {
 	 * @param modeService  
 	 * @throws IOException
 	 * @throws IpException 
-	 * @throws ParseMessageException 
+	 * @throws ParseException 
 	 */
-	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseMessageException
+	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseException
 			 {
 		if(idApp==null){
 			this.idApp ="";

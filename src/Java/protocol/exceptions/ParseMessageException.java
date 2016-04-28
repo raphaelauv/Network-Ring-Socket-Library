@@ -1,5 +1,5 @@
 package protocol.exceptions;
-public class ParseMessageException extends Exception{
+public class ParseException extends Exception{
 
 	private static final long serialVersionUID = 1L;	
 }

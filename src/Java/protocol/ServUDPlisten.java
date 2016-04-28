@@ -16,7 +16,7 @@ class ServUDPlisten {
 				while (!erreur) {
 					try {
 						receveMessage();
-					} catch (IOException | InterruptedException | DOWNmessageException | ParseMessageException e) {
+					} catch (IOException | InterruptedException | DOWNmessageException | ParseException e) {
 						erreur = true;
 						ringoSocket.boolClose=true;
 					}
@@ -26,7 +26,7 @@ class ServUDPlisten {
 		};	
 	}
 	
-	private void receveMessage() throws IOException, InterruptedException, DOWNmessageException, ParseMessageException {
+	private void receveMessage() throws IOException, InterruptedException, DOWNmessageException, ParseException {
 
 		byte[] dataToReceve = new byte[Ringo.maxSizeMsg];
 		DatagramPacket paquet = new DatagramPacket(dataToReceve, dataToReceve.length);
@@ -35,8 +35,8 @@ class ServUDPlisten {
 		Message msgR = null;
 		try {
 			msgR = Message.parseMessage(paquet.getData());
-		} catch (ParseMessageException | UnknownTypeMesssage e) {
-			e.printStackTrace();//TODO
+		} catch (ParseException | UnknownTypeMesssage e) {
+			ringoSocket.printVerbose("MESSAGE INCORRECT : "+new String(paquet.getData()));
 			return;
 		}
 		if (msgR.getType() == TypeMessage.TEST) {

@@ -27,7 +27,7 @@ public class MyRunnableReceve implements Runnable {
 			} catch (NumberOfBytesException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (ParseMessageException e) {
+			} catch (ParseException e) {
 				appl.printModeApplication("the MSG is incorrect");
 				appl.runContinue= false;
 			}
