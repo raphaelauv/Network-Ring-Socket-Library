@@ -299,19 +299,14 @@ public class RingoSocket implements Ringo {
 	}
 	
 	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
-			throws AlreadyAllUdpPortSet, ParseException, RingoSocketCloseException, ProtocolException, 
+			throws ParseException, RingoSocketCloseException, ProtocolException, 
 			InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException ,UnknownTypeMesssage {
 		
 		testClose();
+		adresse=Message.convertIP(adresse);
 		
-		if(!modeDUPL){
-			if(!boolDisconnect){
-				throw new AlreadyConnectException();
-			}
-		}else{
-			if(this.isDUPL){
-				throw new AlreadyAllUdpPortSet();
-			}
+		if(!boolDisconnect){
+			throw new AlreadyConnectException();
 		}
 		tcpAcces.acquire();
 		
@@ -333,7 +328,6 @@ public class RingoSocket implements Ringo {
 		Message msg1 = null;
 		int sizeReturn;
 		try {
-
 			sizeReturn = buffIn.read(tmp);
 			/*
 			 * //TODO if (sizeReturn != 47) { socket.close(); throw new
@@ -343,13 +337,13 @@ public class RingoSocket implements Ringo {
 			try {
 				msg1 = Message.parseMessage(tmp);
 			} catch (ParseException | UnknownTypeMesssage e1) {
-				e1.printStackTrace();// TODO a retirer apres tests
+				printVerbose("TCP : erreur de protocol\n    message recu : "+new String(tmp));
 				throw new ProtocolException();
 			}
 			if (msg1.getType() == TypeMessage.NOTC) {
 				throw new ImpossibleDUPLConnection();
 			}
-			if (msg1.getType() != TypeMessage.WELC) {
+			else if (msg1.getType() != TypeMessage.WELC) {
 				throw new ProtocolException();
 			}
 
@@ -398,48 +392,39 @@ public class RingoSocket implements Ringo {
 		
 		boolean erreur=false;
 		if(modeDUPL){
-			if (msg3.getType() != TypeMessage.ACKD) {
+			if(msg3.getType() != TypeMessage.ACKD){
 				erreur=true;
 			}
 		}
-		else{
-			if (msg3.getType() != TypeMessage.ACKC) {
+		else if(msg3.getType() != TypeMessage.ACKC){
 				erreur=true;
-			}
 		}
+		System.out.println(" valeur erreur : "+erreur+" type message :"+msg3.getType());
 		if(erreur){
-			
 			buffOut.close();
 			buffIn.close();
 			socket.close();
 			this.UDP_ipPort_Acces.release();
 			this.tcpAcces.release();
-			
 			throw new ProtocolException();
 		}
 
 		if(modeDUPL){
-			this.ipPortUDP2=msg1.getIp();
-			this.portUDP2 = msg1.getPort();
-			this.isDUPL=true;
-		}
-		else{
-			this.ipPortUDP1 = msg1.getIp();
+			this.ipPortUDP1 = adresse;
+			this.portUDP1 =msg3.getPort();
+		}else{
 			this.portUDP1 = msg1.getPort();
 			this.ip_diff = msg1.getIp_diff();
 			this.port_diff = msg1.getPort_diff();
 			this.servMulti.updateMulti();
-			this.boolDisconnect=false;
 		}
-		
+		this.boolDisconnect = false;
+
 		buffOut.close();
 		buffIn.close();
 		socket.close();
 		this.UDP_ipPort_Acces.release();
 		this.tcpAcces.release();
-		
-		
-	
 	}
 
 	

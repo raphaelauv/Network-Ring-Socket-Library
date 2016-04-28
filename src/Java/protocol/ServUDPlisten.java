@@ -66,7 +66,6 @@ class ServUDPlisten {
 			if(msgR.getIp().equals(ringoSocket.ipPortUDP1) && msgR.getPort().equals(ringoSocket.portUDP1)){
 				ringoSocket.printVerbose("My next leave the RING");
 				ringoSocket.send(Message.EYBG(this.ringoSocket.getUniqueIdm()));
-				
 				ringoSocket.EYBG_Acces.acquire(); //pour attendre que EYBG soit bien envoyer
 				
 				ringoSocket.UDP_ipPort_Acces.acquire();

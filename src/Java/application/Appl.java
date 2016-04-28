@@ -257,9 +257,6 @@ public class Appl implements Closeable{
 		} catch (UnknownHostException e) {
 			printModeApplication("\nERREUR connecTo : UnknownHost ");
 			return true;
-		} catch (AlreadyAllUdpPortSet e) {
-			printModeApplication("\nERREUR connecTo : Already connect");
-			return true;
 		} catch (IOException e) {
 			printModeApplication("\nERREUR connecTo : IO - ConnectException");
 			return true;
