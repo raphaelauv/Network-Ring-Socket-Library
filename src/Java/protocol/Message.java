@@ -47,6 +47,7 @@ public class Message {
 	 * @param data le contenu du message a parser
 	 * @throws UnknownTypeMesssage if the type Message is unknow
 	 * @throws ParseMessageException if the data do no correcpond to the Type Message
+	 * @throws IpException 
 	 */
 	public static Message parseMessage(byte [] data) throws ParseMessageException, UnknownTypeMesssage {
 		return new Message(data);
@@ -77,9 +78,10 @@ public class Message {
 	/**
 	 * Convertir les chiffres dans la representation attendu par RINGO
 	 * @param msg
+	 * @throws ParseMessageException 
+	 * @throws IpException 
 	 */
-	private void convertALL(){
-		try {
+	private void convertALL() throws ParseMessageException{
 			if(this.ip!=null){
 				this.ip=convertIP(this.ip);
 			}
@@ -100,8 +102,7 @@ public class Message {
 			}
 			if(this.idm!=-1){
 				this.idmLITTLE_ENDIAN_8=Message.longToByteArray(this.idm,8, ByteOrder.LITTLE_ENDIAN);
-			} 
-		}
+			}
 	}
 	
 	/**
@@ -414,7 +415,7 @@ public class Message {
 		}
 	}
 	
-	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
+	public static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) throws ParseMessageException {
 		
 		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];
 		Message tmp=new Message(WELC,TypeMessage.WELC);
@@ -431,7 +432,7 @@ public class Message {
 	}
 	
 	
-	public static Message NEWC(String ip ,int portUDP1) {
+	public static Message NEWC(String ip ,int portUDP1)throws ParseMessageException {
 		byte[] NEWC = new byte[4+1+sizeIp+1+sizePort+1];
 		Message tmp=new Message(NEWC,TypeMessage.NEWC);
 		tmp.ip=ip;
@@ -441,7 +442,7 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message MEMB(long idm,String id,String ip ,int portUDP1) {
+	public static Message MEMB(long idm,String id,String ip ,int portUDP1)throws ParseMessageException {
 		byte[] MEMB = new byte[4+1+Ringo.byteSizeIdm+1+Ringo.byteSizeId+1+sizeIp+1+sizePort];
 		Message tmp=new Message(MEMB,TypeMessage.MEMB);
 		tmp.idm=idm;
@@ -453,7 +454,7 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message GBYE(long idm, String ip, int listenPortUDP, String ip_succ, int port_succ) {
+	public static Message GBYE(long idm, String ip, int listenPortUDP, String ip_succ, int port_succ)throws ParseMessageException {
 		byte[] GBYE = new byte[4+1+Ringo.byteSizeIdm+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort];
 		Message tmp=new Message(GBYE,TypeMessage.GBYE);
 		tmp.idm=idm;
@@ -468,7 +469,7 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message DUPL(String ip, int listenPortUDP, String ip_diff ,int port_diff) {
+	public static Message DUPL(String ip, int listenPortUDP, String ip_diff ,int port_diff) throws ParseMessageException{
 		byte[] DUPL = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];
 		
 		Message tmp=new Message(DUPL,TypeMessage.DUPL);
@@ -481,7 +482,7 @@ public class Message {
 				(tmp.ip+" "+tmp.portString+" "+tmp.ip_diff+" "+tmp.port_diffString+"\n").getBytes());
 		return tmp;
 	}
-	public static Message EYBG(long idm) {
+	public static Message EYBG(long idm)throws ParseMessageException {
 		byte[] EYBG = new byte[4+1+Ringo.byteSizeIdm];
 		Message tmp=new Message(EYBG,TypeMessage.EYBG);
 		tmp.idm=idm;
@@ -489,7 +490,7 @@ public class Message {
 		remplirData(EYBG,"EYBG ".getBytes(),tmp.idmLITTLE_ENDIAN_8);
 		return tmp;
 	}
-	public static Message WHOS(long idm) {
+	public static Message WHOS(long idm) throws ParseMessageException{
 		byte[] WHOS = new byte[4+1+Ringo.byteSizeIdm];//[5+8]=13
 
 		Message tmp=new Message(WHOS,TypeMessage.WHOS);
@@ -499,7 +500,7 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message APPL(long idm , String id_app, byte[] data_app) {
+	public static Message APPL(long idm , String id_app, byte[] data_app)throws ParseMessageException {
 		byte[] APPL = new byte[4+1+Ringo.byteSizeIdm+1+8+1+data_app.length];
 		Message tmp=new Message(APPL,TypeMessage.APPL);
 		tmp.idm=idm;
@@ -510,7 +511,7 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message TEST(long idm, String ip_diff ,int port_diff) {
+	public static Message TEST(long idm, String ip_diff ,int port_diff)throws ParseMessageException {
 		byte[] TEST = new byte[4+1+Ringo.byteSizeIdm+1+sizeIp+1+sizePort];
 		
 		Message tmp=new Message(TEST,TypeMessage.TEST);
@@ -523,7 +524,7 @@ public class Message {
 		return tmp;
 	}
 	
-	public static Message ACKD(int port) {
+	public static Message ACKD(int port)throws ParseMessageException {
 		byte[] ACKD = new byte[4+1+sizePort+1];
 		Message tmp = new Message(ACKD, TypeMessage.ACKD);
 		tmp.port=port;
@@ -612,11 +613,11 @@ public class Message {
 	 * @return
 	 * @throws Exception
 	 */
-	private String convertPort(int port) throws Exception{
+	private String convertPort(int port) throws ParseMessageException{
 		
 		int size=(""+port).length();
 		if(size>4 || port<0){
-			throw new Exception();
+			throw new ParseMessageException();
 		}
 		int diff=4-size;
 		String result=(""+port);
@@ -632,7 +633,7 @@ public class Message {
 	 * @return 
 	 * @throws Exception
 	 */
-	public static String convertIP(String ip) throws IpException{
+	public static String convertIP(String ip) throws ParseMessageException{
 		
 		if(ip.equals("localhost")){
 			return "127.000.000.001";
@@ -640,7 +641,7 @@ public class Message {
 		String[]tmp=ip.split("\\.");
 		
 		if(tmp.length!=4){
-			throw new IpException();
+			throw new ParseMessageException();
 		}
 		//to put the 000
 		for(int i=0; i<4;i++){

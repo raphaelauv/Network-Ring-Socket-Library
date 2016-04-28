@@ -24,6 +24,7 @@ class ServUDPsend {
 						sendMessage();
 					} catch (InterruptedException | IOException e) {
 						erreur = true;
+						ringoSocket.boolClose=true;
 					}
 				}
 				ringoSocket.printVerbose("END");

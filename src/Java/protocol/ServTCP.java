@@ -18,15 +18,17 @@ class ServTCP {
 				while (!erreur) {
 					try {
 						serv();
-					} catch (ProtocolException | IOException | InterruptedException e) {
+					} catch (ProtocolException | IOException | InterruptedException | ParseMessageException e) {
 						try {
 							ringoSocket.testClose();
 						} catch (DOWNmessageException e1) {
 							erreur = true;
+							ringoSocket.boolClose=true;
 						}
 					}
 				}
 				ringoSocket.printVerbose("END");
+				ringoSocket.boolClose=true;
 			}
 		};
 	}
@@ -37,9 +39,10 @@ class ServTCP {
 	 * @throws IOException
 	 * @throws ProtocolException
 	 * @throws InterruptedException 
+	 * @throws ParseMessageException 
 	 * @throws DOWNmessageException
 	 */
-	private void serv() throws IOException, ProtocolException, InterruptedException {
+	private void serv() throws IOException, ProtocolException, InterruptedException, ParseMessageException {
 
 			Socket socket = ringoSocket.sockServerTCP.accept();
 			ringoSocket.tcpAcces.acquire();

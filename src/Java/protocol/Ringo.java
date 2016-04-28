@@ -36,15 +36,17 @@ public interface Ringo extends Closeable{
 	 * @return true -> anneau pas casse
 	 * @throws InterruptedException
 	 * @throws DOWNmessageException
+	 * @throws ParseMessageException 
 	 */
-	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException;
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException, ParseMessageException;
 	
 	/**
 	 * demande la deconnection de l'entiter ,elle boucle sur elle meme
 	 * @throws InterruptedException
 	 * @throws DOWNmessageException
+	 * @throws ParseMessageException 
 	 */
-	public void disconnect() throws InterruptedException, DOWNmessageException;
+	public void disconnect() throws InterruptedException, DOWNmessageException, ParseMessageException;
 	
 	
 	/**

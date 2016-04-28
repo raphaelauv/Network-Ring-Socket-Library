@@ -64,7 +64,7 @@ public class Trans extends Appl implements ReceveSend {
 	/**
 	 * Application
 	 */
-	public Trans(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
+	public Trans(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, ParseMessageException {
 		super(ip,"TRANS###", udpPort, tcpPort ,verbose);
 		this.initTrans();
 	}
@@ -99,7 +99,7 @@ public class Trans extends Appl implements ReceveSend {
 		}
 	}
 	
-	public void doReceve(Message msg) throws DOWNmessageException, IOException, NumberOfBytesException, InterruptedException {
+	public void doReceve(Message msg) throws DOWNmessageException, IOException, NumberOfBytesException, InterruptedException, ParseMessageException {
 		byte[] msgInByte =msg.getData_app();
 		int curseur;
 		String affichage=style + "\n"+LocalDateTime.now() +" -> " + "RECEVE : ";
@@ -243,8 +243,9 @@ public class Trans extends Appl implements ReceveSend {
 	 * @throws DOWNmessageException
 	 * @throws numberOfBytesException
 	 * @throws InterruptedException
+	 * @throws ParseMessageException 
 	 */
-	private boolean req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, NumberOfBytesException, InterruptedException{
+	private boolean req(String affichage, byte[] msgInByte, int curseur) throws IOException, DOWNmessageException, NumberOfBytesException, InterruptedException, ParseMessageException{
 		String size_nom_STR = new String(msgInByte,curseur,byteSizeNom);
 		int tailleNameFile = Integer.parseInt(size_nom_STR);
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;
@@ -304,7 +305,7 @@ public class Trans extends Appl implements ReceveSend {
 		this.files.put(name,path);
 	}
 
-	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException {
+	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException, ParseMessageException {
 		String contenu = "REQ " + Message.longToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
 		
 		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
@@ -337,9 +338,9 @@ public class Trans extends Appl implements ReceveSend {
 			String ip = Appl.selectIp();
 			new Trans(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
 
-		} catch (BindException e) {
-			System.out.println("The ports are already in use");
-		} catch (IOException |NumberFormatException | IpException e) {
+		} catch (BindException | ParseMessageException e) {
+			System.out.println("The ports are already in use or are bigger than 4digit");
+		} catch (IOException |NumberFormatException  e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

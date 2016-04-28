@@ -27,7 +27,7 @@ class ServMULTI {
 						receveMULTI();
 					} catch (DOWNmessageException | IOException | InterruptedException e) {
 						erreur = true;
-						//TODO prevenir de fermeture
+						ringoSocket.boolClose=true;
 					}
 				}
 				ringoSocket.printVerbose("END");

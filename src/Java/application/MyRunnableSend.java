@@ -27,6 +27,9 @@ public class MyRunnableSend implements Runnable {
 					appl.runContinue = false;
 				} catch (InterruptedException e) {
 					appl.runContinue= false;
+				} catch (ParseMessageException e) {
+					appl.printModeApplication("the MSG is incorrect");
+					appl.runContinue= false;
 				}
 			}
 		}

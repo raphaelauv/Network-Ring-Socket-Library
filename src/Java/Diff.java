@@ -10,9 +10,9 @@ public class Diff extends Appl implements ReceveSend {
 	public final static int byteSizeMess = 3;
 
 	/**
-	 * Application
+	 * Application 
 	 */
-	public Diff(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, IpException {
+	public Diff(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, ParseMessageException {
 		super(ip,"DIFF####", udpPort, tcpPort, verbose);	
 		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 	}
@@ -40,7 +40,7 @@ public class Diff extends Appl implements ReceveSend {
 		super.ringoSocket.send(msg);// renvoi sur l'anneau du message
 	}
 
-	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException {
+	public void doSend() throws NumberOfBytesException, DOWNmessageException, InterruptedException, ParseMessageException {
 		String contenu = Message.longToStringRepresentation(super.input.length(), 3) + " " + input;
 		Message msg=Message.APPL(ringoSocket.getUniqueIdm(), "DIFF####", contenu.getBytes());
 		super.ringoSocket.send(msg);
@@ -51,9 +51,9 @@ public class Diff extends Appl implements ReceveSend {
 		try {
 			String ip = Appl.selectIp();
 			new Diff(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]), verbose);
-		} catch (BindException e) {
-			System.out.println("The ports are already in use");
-		} catch (IOException |NumberFormatException | IpException e) {
+		} catch (BindException | ParseMessageException e) {
+			System.out.println("The ports are already in use or are bigger than 4digit");
+		} catch (IOException |NumberFormatException  e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

@@ -41,8 +41,9 @@ public class Appl implements Closeable{
 	 * @throws BindException
 	 * @throws IOException
 	 * @throws IpException
+	 * @throws ParseMessageException 
 	 */
-	public Appl(String ip,String APPLID,Integer udpPort, Integer tcpPort,boolean verbose) throws BindException,IOException, IpException{
+	public Appl(String ip,String APPLID,Integer udpPort, Integer tcpPort,boolean verbose) throws BindException,IOException, ParseMessageException{
 		this.APPLID=APPLID;
 		this.verboseMode=verbose;
 		this.ringoSocket= new RingoSocket(ip,APPLID,udpPort,tcpPort,false);
@@ -275,7 +276,7 @@ public class Appl implements Closeable{
 			printModeApplication("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 			runContinue = false;
 			return true;
-		} catch(IpException |StringIndexOutOfBoundsException |NumberFormatException e){
+		} catch(StringIndexOutOfBoundsException |NumberFormatException e){
 			printModeApplication("\nERREUR connecTo : Erreur format IP ou port invalide");
 			return true;
 		} catch (AlreadyConnectException e) {

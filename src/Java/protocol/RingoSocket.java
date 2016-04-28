@@ -71,7 +71,7 @@ public class RingoSocket implements Ringo {
 	
 	private byte [] idmStart;
 	private Long idmActuel;
-	private boolean boolClose;
+	boolean boolClose;
 	private boolean boolDisconnect;
 	private boolean verboseMode;
 	/*********************************************************************/
@@ -119,7 +119,7 @@ public class RingoSocket implements Ringo {
 		
 	}
 
-	public void disconnect() throws InterruptedException, DOWNmessageException{
+	public void disconnect() throws InterruptedException, DOWNmessageException, ParseMessageException{
 		testClose();
 		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
 
@@ -154,7 +154,7 @@ public class RingoSocket implements Ringo {
 			//not yet disconnect
 			try {
 				disconnect();
-			} catch (InterruptedException | DOWNmessageException e) {
+			} catch (InterruptedException | DOWNmessageException | ParseMessageException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -181,11 +181,13 @@ public class RingoSocket implements Ringo {
 		return false;
 	}
 
-	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException {
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, DOWNmessageException, ParseMessageException {
 		testClose();
 		
 		long idm=getUniqueIdm();
-		Message test = Message.TEST(idm, this.ip_diff, this.port_diff);
+		Message test;
+		
+		test = Message.TEST(idm, this.ip_diff, this.port_diff);
 		
 		send(test);
 		
@@ -377,7 +379,7 @@ public class RingoSocket implements Ringo {
 	}
 
 	
-	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, IpException{
+	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseMessageException{
 		this("localhost",idApp,listenUDPport,portTcp,modeService);
 	}
 	
@@ -390,8 +392,9 @@ public class RingoSocket implements Ringo {
 	 * @param modeService  
 	 * @throws IOException
 	 * @throws IpException 
+	 * @throws ParseMessageException 
 	 */
-	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, IpException
+	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseMessageException
 			 {
 		if(idApp==null){
 			this.idApp ="";
