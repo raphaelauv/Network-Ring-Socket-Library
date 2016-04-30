@@ -47,8 +47,8 @@ class ServUDPlisten {
 					return;
 				}
 				else{
-					if(msgR.getIp_diff()!=ringoSocket.ip_diff || 
-							msgR.getPort_diff() != ringoSocket.port_diff){
+					if(msgR.getIp_diff()!=ringoSocket.servMulti.ip_diff || 
+							msgR.getPort_diff() != ringoSocket.servMulti.port_diff){
 						return;// si le message n'est pas pour cet anneau , pas renvoyer
 					}
 				}

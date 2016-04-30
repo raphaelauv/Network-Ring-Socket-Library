@@ -27,15 +27,14 @@ public class RingoSocket implements Ringo {
 	
 	String ip;
 	Integer portTcp;
-	String ip_diff;
-	Integer port_diff;
+	
 	Integer portUDP1;
 	String ipPortUDP1;
 	Integer portUDP2;
 	String ipPortUDP2;
 	
 	Integer listenPortUDP;
-	MulticastSocket sockMultiRECEP;
+	//MulticastSocket sockMultiRECEP;
 	DatagramSocket sockRecever;
 	DatagramSocket sockSender;
 	ServerSocket sockServerTCP;
@@ -101,8 +100,7 @@ public class RingoSocket implements Ringo {
 		 */
 		
 		this.ip = Message.convertIP(ip);		
-		this.ip_diff =Message.convertIP("225.1.2.4");
-		this.port_diff = 9999;
+		
 		this.portTcp = portTcp;
 		this.listenPortUDP = listenUDPport;
 		
@@ -137,7 +135,7 @@ public class RingoSocket implements Ringo {
 		/********************************************************************
 		 * THREADS
 		 */
-		this.servMulti =new ServMULTI(this);
+		this.servMulti =new ServMULTI(this,Message.convertIP("225.1.2.4"),9999);
 		this.ThRecev = new Thread(new ServUDPlisten(this).runServUDPlisten);
 		this.ThSend = new Thread(new ServUDPsend(this).runServUDPsend);
 		this.ThServTCP = new Thread(new ServTCP(this).runServTcp);
@@ -201,7 +199,7 @@ public class RingoSocket implements Ringo {
 			this.listForApply.notify();
 		}
 		
-		this.sockMultiRECEP.close();
+		this.servMulti.sel.close();
 		this.ThMULTIrecev.interrupt();
 		
 	}
@@ -272,9 +270,7 @@ public class RingoSocket implements Ringo {
 		
 		long idm=getUniqueIdm();
 		Message test;
-		
-		test = Message.TEST(idm, this.ip_diff, this.port_diff);
-		
+		test = Message.TEST(idm, this.servMulti.ip_diff, this.servMulti.port_diff);
 		send(test);
 		
 		synchronized (this.TESTisComeBack) {
@@ -350,7 +346,7 @@ public class RingoSocket implements Ringo {
 			printVerbose("TCP : message RECEVE : " + msg1.toString());
 			Message msg2;
 			if (modeDUPL) {
-				msg2 = Message.DUPL(this.ip, this.listenPortUDP, this.ip_diff, this.port_diff);
+				msg2 = Message.DUPL(this.ip, this.listenPortUDP, this.servMulti.ip_diff, this.servMulti.port_diff);
 			} else {
 				msg2 = Message.NEWC(this.ip, this.listenPortUDP);
 			}
@@ -414,8 +410,8 @@ public class RingoSocket implements Ringo {
 			this.portUDP1 =msg3.getPort();
 		}else{
 			this.portUDP1 = msg1.getPort();
-			this.ip_diff = msg1.getIp_diff();
-			this.port_diff = msg1.getPort_diff();
+			this.servMulti.ip_diff = msg1.getIp_diff();
+			this.servMulti.port_diff = msg1.getPort_diff();
 			this.servMulti.updateMulti();
 		}
 		this.boolDisconnect = false;

@@ -58,7 +58,7 @@ class ServTCP {
 				if(ringoSocket.isDUPL){
 					msg1=Message.NOTC();
 				}else{
-					msg1 = Message.WELC(ringoSocket.ip, ringoSocket.portUDP1, ringoSocket.ip_diff, ringoSocket.port_diff);
+					msg1 = Message.WELC(ringoSocket.ip, ringoSocket.portUDP1, ringoSocket.servMulti.ip_diff, ringoSocket.servMulti.port_diff);
 				}
 				
 				buffOut.write(msg1.getData());

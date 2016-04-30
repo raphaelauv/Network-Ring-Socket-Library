@@ -1,7 +1,8 @@
-package protocol;
+package protocol;	
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 class ServUDPsend {
 	private RingoSocket ringoSocket;
@@ -9,7 +10,6 @@ class ServUDPsend {
 	private String str;
 	private Message msg;
 
-	private DatagramPacket paquetMulti;
 	private DatagramPacket paquet1;
 	private DatagramPacket paquet2;
 	private byte[] dataTosend;
@@ -32,6 +32,15 @@ class ServUDPsend {
 		};
 	}
 
+	private void sendMulti(String ip_diff,int port_diff) throws IOException{
+		InetSocketAddress ia=new InetSocketAddress(ip_diff,port_diff);
+		
+		DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,ia);
+		
+		ringoSocket.printVerbose("Message Envoyer DIFF : "+ msg.toString());
+		ringoSocket.sockSender.send(paquetMulti);
+	}
+	
 	private void sendMessage() throws IOException, InterruptedException {
 
 		synchronized (ringoSocket.listToSend) {
@@ -44,12 +53,13 @@ class ServUDPsend {
 		this.dataTosend = msg.getData();
 
 		if (msg.isMulti()) {
-			this.paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,
-					InetAddress.getByName(ringoSocket.ip_diff.toString()), ringoSocket.port_diff);
 			
-			ringoSocket.printVerbose("Message Envoyer DIFF : "+ msg.toString());
-			ringoSocket.sockSender.send(paquetMulti);
-			
+			if(ringoSocket.servMulti.ip_diff!=null && ringoSocket.servMulti.port_diff!=null){
+				sendMulti(ringoSocket.servMulti.ip_diff,ringoSocket.servMulti.port_diff);
+			}
+			if(ringoSocket.servMulti.ip_diff2!=null && ringoSocket.servMulti.port_diff2!=null){
+				sendMulti(ringoSocket.servMulti.ip_diff2,ringoSocket.servMulti.port_diff2);
+			}
 			return;
 		} else {
 			
