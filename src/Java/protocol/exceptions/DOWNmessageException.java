@@ -5,5 +5,4 @@ package protocol.exceptions;
  */
 public class RingoSocketCloseException extends Exception {
 	private static final long serialVersionUID = 1L;
-
 }

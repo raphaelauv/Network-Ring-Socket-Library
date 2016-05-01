@@ -282,6 +282,8 @@ public class Appl implements Closeable{
 		} catch (ImpossibleDUPLConnection e) {
 			printModeApplication("\nERREUR connecTo : impossible to connect To Dupl entity");
 			return true;
+		}catch(Exception e){
+			e.printStackTrace();
 		}
 		return false;
 	}

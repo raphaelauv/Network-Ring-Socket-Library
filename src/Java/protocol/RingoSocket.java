@@ -395,7 +395,6 @@ public class RingoSocket implements Ringo {
 		else if(msg3.getType() != TypeMessage.ACKC){
 				erreur=true;
 		}
-		System.out.println(" valeur erreur : "+erreur+" type message :"+msg3.getType());
 		if(erreur){
 			buffOut.close();
 			buffIn.close();
@@ -415,7 +414,6 @@ public class RingoSocket implements Ringo {
 			this.servMulti.updateMulti();
 		}
 		this.boolDisconnect = false;
-
 		buffOut.close();
 		buffIn.close();
 		socket.close();
