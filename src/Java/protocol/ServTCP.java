@@ -1,4 +1,5 @@
 package protocol;
+import protocol.RingoSocket.entityInfo;
 import protocol.exceptions.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -58,7 +59,8 @@ class ServTCP {
 				if(ringoSocket.isDUPL){
 					msg1=Message.NOTC();
 				}else{
-					msg1 = Message.WELC(ringoSocket.ip, ringoSocket.portUDP1, ringoSocket.servMulti.ip_diff, ringoSocket.servMulti.port_diff);
+					msg1 = Message.WELC(ringoSocket.ip, ringoSocket.principal.portUdp,
+							ringoSocket.principal.ip_diff, ringoSocket.principal.port_diff);
 				}
 				
 				buffOut.write(msg1.getData());
@@ -104,13 +106,13 @@ class ServTCP {
 				ringoSocket.printVerbose("TCP : message SEND   : " + msg3.toString());
 				ringoSocket.UDP_ipPort_Acces.acquire();	
 				if(modeDUPL){
-					ringoSocket.ipPortUDP2=msg2.getIp();
-					ringoSocket.portUDP2 = msg2.getPort();
+					
+					ringoSocket.secondaire=ringoSocket.new entityInfo(msg2.getIp(), msg2.getPort(),msg2.getIp_diff(), msg2.getPort_diff());
 					ringoSocket.isDUPL=true;
-					ringoSocket.servMulti.setMultiDupl(msg2.getIp_diff(), msg2.getPort_diff());
+					ringoSocket.servMulti.addMultiDiff(ringoSocket.secondaire);
 				}else{
-					ringoSocket.portUDP1 = msg2.getPort();
-					ringoSocket.ipPortUDP1=msg2.getIp();
+					ringoSocket.principal.ipUdp=msg2.getIp();
+					ringoSocket.principal.portUdp=msg2.getPort();
 				}
 				ringoSocket.UDP_ipPort_Acces.release();		
 				buffOut.close();

@@ -1,18 +1,17 @@
 package protocol;	
-import java.awt.TrayIcon.MessageType;
+import java.awt.print.Printable;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 
+import protocol.ServMULTI.MultiChanel;
 import protocol.exceptions.RingoSocketCloseException;
 
 class ServUDPsend {
 	private RingoSocket ringoSocket;
 	Runnable runServUDPsend;
-	private String str;
 	private Message msg;
 
 	private DatagramPacket paquet1;
@@ -59,12 +58,8 @@ class ServUDPsend {
 		this.dataTosend = msg.getData();
 
 		if (msg.isMulti()) {
-			
-			if(ringoSocket.servMulti.ip_diff!=null && ringoSocket.servMulti.port_diff!=null){
-				sendMulti(ringoSocket.servMulti.ip_diff,ringoSocket.servMulti.port_diff);
-			}
-			if(ringoSocket.servMulti.ip_diff2!=null && ringoSocket.servMulti.port_diff2!=null){
-				sendMulti(ringoSocket.servMulti.ip_diff2,ringoSocket.servMulti.port_diff2);
+			for(MultiChanel mc : ringoSocket.servMulti.listMultiChannel){
+				sendMulti(mc.ip_diff,mc.port_diff);
 			}
 			return;
 		} else {
@@ -86,17 +81,13 @@ class ServUDPsend {
 					}
 				}
 				
-				this.paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
-						InetAddress.getByName(ringoSocket.ipPortUDP1), ringoSocket.portUDP1);
+				this.paquet1 = new DatagramPacket(dataTosend, dataTosend.length,InetAddress.getByName(ringoSocket.principal.ipUdp),ringoSocket.principal.portUdp);
 				ringoSocket.sockSender.send(paquet1);
 				
 				if (ringoSocket.isDUPL){
-					this.paquet2 = new DatagramPacket(dataTosend, dataTosend.length,
-							InetAddress.getByName(ringoSocket.ipPortUDP2), ringoSocket.portUDP2);
+					this.paquet2 = new DatagramPacket(dataTosend, dataTosend.length,InetAddress.getByName(ringoSocket.secondaire.ipUdp),ringoSocket.secondaire.portUdp);
 					ringoSocket.sockSender.send(paquet2);
 				}
-				
-				
 				
 			}catch(IOException e){
 				ringoSocket.UDP_ipPort_Acces.release();

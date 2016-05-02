@@ -53,8 +53,8 @@ class ServUDPlisten {
 				}
 				else{
 					//TODO comparaison a verifier avec future sturture
-					if( !(  msgR.getIp_diff().equals(ringoSocket.servMulti.ip_diff) && 
-						msgR.getPort_diff().equals(ringoSocket.servMulti.port_diff ))){
+					if( !(  msgR.getIp_diff().equals(ringoSocket.servMulti.multiRing.ip_diff) && 
+						msgR.getPort_diff().equals(ringoSocket.servMulti.multiRing.port_diff ))){
 						ringoSocket.printVerbose("message test pas pour cet anneau");
 						return;// si le message n'est pas pour cet anneau , pas renvoyer
 					}
@@ -70,7 +70,7 @@ class ServUDPlisten {
 						return;
 				}
 				else{
-					ringoSocket.send(Message.MEMB(this.ringoSocket.getUniqueIdm(),ringoSocket.idApp,ringoSocket.ip, ringoSocket.portUDP1));
+					ringoSocket.send(Message.MEMB(this.ringoSocket.getUniqueIdm(),ringoSocket.idApp,ringoSocket.ip, ringoSocket.principal.portUdp));
 				}
 			}
 		}
@@ -88,15 +88,27 @@ class ServUDPlisten {
 		}
 		
 		if (msgR.getType() == TypeMessage.GBYE) {
-			if(msgR.getIp().equals(ringoSocket.ipPortUDP1) && msgR.getPort().equals(ringoSocket.portUDP1)){
+			if(msgR.getIp().equals(ringoSocket.principal.ipUdp) && msgR.getPort().equals(ringoSocket.principal.portUdp)){
 				ringoSocket.printVerbose("My next leave the RING");
 				ringoSocket.send(Message.EYBG(this.ringoSocket.getUniqueIdm()));
 				ringoSocket.EYBG_Acces.acquire(); //pour attendre que EYBG soit bien envoyer
 				
 				ringoSocket.UDP_ipPort_Acces.acquire();
-				ringoSocket.ipPortUDP1=msgR.getIp_succ();
-				ringoSocket.portUDP1=msgR.getPort_succ();
+				ringoSocket.principal.ipUdp=msgR.getIp_succ();
+				ringoSocket.principal.portUdp=msgR.getPort_succ();
+				
+				if(ringoSocket.principal.ipUdp.equals(ringoSocket.ip) && ringoSocket.principal.portUdp.equals(ringoSocket.listenPortUDP) ){
+					if(!ringoSocket.isDUPL){
+						ringoSocket.printVerbose("I'm now alone , i'm DISCONNECT");
+						ringoSocket.boolDisconnect=true;
+					}
+					
+					//TODO
+				}
+				
 				ringoSocket.UDP_ipPort_Acces.release();
+				
+				
 				return;
 			}
 		}

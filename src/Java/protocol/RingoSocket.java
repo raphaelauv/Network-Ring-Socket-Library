@@ -26,22 +26,37 @@ import protocol.exceptions.UnknownTypeMesssage;
 
 public class RingoSocket implements Ringo {
 	
-	String idApp;
+	
+	class entityInfo{
+		String ipUdp;
+		Integer portUdp;
+		String ip_diff;
+		Integer port_diff;
+		public entityInfo(String ipUdp, Integer portUdp, String ip_diff, Integer port_diff) {
+			this.ipUdp = ipUdp;
+			this.portUdp = portUdp;
+			this.ip_diff = ip_diff;
+			this.port_diff = port_diff;
+		}
+	}
 	
 	/********************************************************************
 	 * NETWORK
 	 */
-	
+	String idApp;
 	String ip;
 	Integer portTcp;
+	Integer listenPortUDP;
 	
+	entityInfo principal ;
+	entityInfo secondaire ;
+	/*
 	Integer portUDP1;
 	String ipPortUDP1;
-	Integer portUDP2;
-	String ipPortUDP2;
+	Integer portUDPdupl;
+	String ipPortUDPdupl;
+	*/
 	
-	Integer listenPortUDP;
-	//MulticastSocket sockMultiRECEP;
 	DatagramSocket sockRecever;
 	DatagramSocket sockSender;
 	ServerSocket sockServerTCP;
@@ -58,7 +73,6 @@ public class RingoSocket implements Ringo {
 	/********************************************************************
 	 * Verroux , set , boolean
 	 */
-	
 	Semaphore tcpAcces;
 	Semaphore EYBG_Acces;
 	Semaphore UDP_ipPort_Acces;
@@ -73,15 +87,13 @@ public class RingoSocket implements Ringo {
 	Set<Long> IdAlreadyReceveUDP1;// hashSet contenant les id deja croise
 	LinkedList<Message> listForApply; // liste des message recu qui sont pour cette ID
 	LinkedList<Message> listToSend;// liste des message a envoyer
-
+	ConcurrentHashMap<InetSocketAddress,String> members;
 	
 	private byte [] idmStart;
 	private Long idmActuel;
 	boolean boolClose;
 	boolean boolDisconnect;
 	private boolean verboseMode;
-	
-	ConcurrentHashMap<InetSocketAddress,String> members;
 	
 	/*********************************************************************/
 
@@ -110,15 +122,17 @@ public class RingoSocket implements Ringo {
 		 */
 		
 		this.ip = Message.convertIP(ip);		
-		
+		System.out.println(this.ip);
 		this.portTcp = portTcp;
 		this.listenPortUDP = listenUDPport;
 		
+		this.principal=new entityInfo(this.ip, this.listenPortUDP,Message.convertIP("225.1.2.4"),9999);
+		/*
 		this.ipPortUDP1 = this.ip;
-		this.ipPortUDP2 = null;
+		this.ipPortUDPdupl = null;
 		this.portUDP1 = this.listenPortUDP;
-		this.portUDP2 = null;
-		
+		this.portUDPdupl = null;
+		*/
 		this.sockServerTCP = new ServerSocket(portTcp);
 		this.sockSender = new DatagramSocket();
 		this.sockRecever = new DatagramSocket(listenUDPport);
@@ -145,7 +159,7 @@ public class RingoSocket implements Ringo {
 		/********************************************************************
 		 * THREADS
 		 */
-		this.servMulti =new ServMULTI(this,Message.convertIP("225.1.2.4"),9999);
+		this.servMulti =new ServMULTI(this,principal);
 		this.ThRecev = new Thread(new ServUDPlisten(this).runServUDPlisten);
 		this.ThSend = new Thread(new ServUDPsend(this).runServUDPsend);
 		this.ThServTCP = new Thread(new ServTCP(this).runServTcp);
@@ -216,10 +230,8 @@ public class RingoSocket implements Ringo {
 
 	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException{
 		testClose();
-		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.ipPortUDP1, this.portUDP1);
-
+		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.principal.ipUdp, this.principal.portUdp);
 		send(msg);
-		
 		synchronized (this.EYBGisArrive) {
 			this.EYBGisArriveBool = false;
 			printVerbose("WAITING for EYBG message");
@@ -228,8 +240,8 @@ public class RingoSocket implements Ringo {
 			boolDisconnect=true;
 			
 			UDP_ipPort_Acces.acquire();
-			this.ipPortUDP1=this.ip;
-			this.portUDP1=this.listenPortUDP;
+			this.principal.ipUdp=this.ip;
+			this.principal.portUdp=this.listenPortUDP;
 			UDP_ipPort_Acces.release();
 			
 			printVerbose("DISCONNECT DONE");
@@ -296,6 +308,7 @@ public class RingoSocket implements Ringo {
 				this.ValTest=null;
 			}
 		}
+
 		HashMap<InetSocketAddress, String> tmp=new HashMap<InetSocketAddress,String>();
 		tmp.putAll(this.members);
 		printVerbose("nombre de MEMB : "+tmp.size());
@@ -308,7 +321,7 @@ public class RingoSocket implements Ringo {
 		testClose();
 		long idm=getUniqueIdm();
 		Message test;
-		test = Message.TEST(idm, this.servMulti.ip_diff, this.servMulti.port_diff);
+		test = Message.TEST(idm, this.principal.ip_diff, this.principal.port_diff);
 		
 		synchronized (this.TESTisComeBack) {
 			this.ValTest=idm;
@@ -384,7 +397,7 @@ public class RingoSocket implements Ringo {
 			printVerbose("TCP : message RECEVE : " + msg1.toString());
 			Message msg2;
 			if (modeDUPL) {
-				msg2 = Message.DUPL(this.ip, this.listenPortUDP, this.servMulti.ip_diff, this.servMulti.port_diff);
+				msg2 = Message.DUPL(this.ip, this.listenPortUDP, this.principal.ip_diff, this.principal.port_diff);
 			} else {
 				msg2 = Message.NEWC(this.ip, this.listenPortUDP);
 			}
@@ -443,11 +456,15 @@ public class RingoSocket implements Ringo {
 		}
 
 		if(modeDUPL){
-			this.ipPortUDP1 = adresse;
-			this.portUDP1 =msg3.getPort();
+			this.principal.ipUdp=adresse;
+			this.principal.portUdp=msg3.getPort();
 		}else{
-			this.portUDP1 = msg1.getPort();
-			this.servMulti.updateMulti(msg1.getIp_diff(),msg1.getPort_diff());
+			this.principal.ipUdp=msg1.getIp();
+			this.principal.portUdp=msg1.getPort();
+			this.principal.ip_diff=msg1.getIp_diff();
+			this.principal.port_diff=msg1.getPort_diff();
+			
+			this.servMulti.updateMulti(this.principal);
 		}
 		this.boolDisconnect = false;
 		buffOut.close();

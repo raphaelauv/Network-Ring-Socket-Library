@@ -6,6 +6,7 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.StandardProtocolFamily;
 import java.net.StandardSocketOptions;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ClosedSelectorException;
@@ -14,22 +15,32 @@ import java.nio.channels.MembershipKey;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
+import java.util.LinkedList;
 
+import protocol.RingoSocket.entityInfo;
 import protocol.exceptions.RingoSocketCloseException;
 
 class ServMULTI {
 	
-	String ip_diff;
-	Integer port_diff;
+	MultiChanel multiRing;
+	LinkedList<MultiChanel> listMultiChannel;
 	
-	String ip_diff2;
-	Integer port_diff2;
-	private SelectionKey selKey1;
-	private SelectionKey selKey2;
-	private MembershipKey key1;
-	private MembershipKey key2;
-	private DatagramChannel dc1;
-	private DatagramChannel dc2;
+	class MultiChanel{
+		String ip_diff;
+		Integer port_diff;
+		SelectionKey selKey;
+		MembershipKey key;
+		DatagramChannel dc;
+		public MultiChanel(String ip_diff, Integer port_diff, SelectionKey selKey, MembershipKey key,
+				DatagramChannel dc) {
+			this.ip_diff = ip_diff;
+			this.port_diff = port_diff;
+			this.selKey = selKey;
+			this.key = key;
+			this.dc = dc;
+		}
+	}
+	
 	Selector sel;
 	
 	Object registeringSync = new Object(); //mutex contre deadlock avec wakeup
@@ -37,13 +48,13 @@ class ServMULTI {
 	Runnable runServMULTI;
 	boolean erreur;
 	
-	ServMULTI(RingoSocket ringoSocket, String ip_diff ,int port_diff) throws IOException{
+	ServMULTI(RingoSocket ringoSocket,entityInfo entityinfo) throws IOException{
 		this.ringoSocket=ringoSocket;
-		this.ip_diff=ip_diff;
-		this.port_diff=port_diff;
+		this.listMultiChannel =new LinkedList<MultiChanel>();
+		
 		this.erreur = false;
 		this.sel = Selector.open();
-		this.updateMulti(ip_diff,port_diff);
+		this.multiRing=addMultiDiff(entityinfo);
 		
 		this.runServMULTI = new Runnable() {
 			public void run() {
@@ -62,19 +73,66 @@ class ServMULTI {
 		};
 	}
 	
-	public void setMultiDupl(String ip_diff2,Integer port_diff2) throws IOException{
-		if (this.dc2 != null) {
-			this.dc2.close();
-			this.selKey1.cancel();
-			this.dc2 = null;
-		}
-		this.ip_diff2=ip_diff2;
-		this.port_diff2=port_diff2;
+	MultiChanel addMultiDiff(entityInfo entityinfo) throws IOException{
 		
-		add(ip_diff2,port_diff2);
+		MembershipKey keyTMP;
+		DatagramChannel dcTMP;
+		SelectionKey selKeyTMP = null;		
+		InetAddress group = InetAddress.getByName(entityinfo.ip_diff);
+
+		/*******************
+		 * LifeHack
+		 */
+	    MulticastSocket sockMultiRECEP = new MulticastSocket(entityinfo.port_diff);
+	    sockMultiRECEP.joinGroup(group);
+	    NetworkInterface ni1=sockMultiRECEP.getNetworkInterface();
+	    sockMultiRECEP.leaveGroup(group);
+	    sockMultiRECEP.close();
+	    //*******************
+
+	    dcTMP= DatagramChannel.open(StandardProtocolFamily.INET)
+				.setOption(StandardSocketOptions.SO_REUSEADDR, true)
+				.bind(new InetSocketAddress(entityinfo.port_diff))
+				.setOption(StandardSocketOptions.IP_MULTICAST_IF, ni1);
+	    
+		keyTMP=dcTMP.join(group, ni1);
+		dcTMP.configureBlocking(false);
+		
+		MultiChanel tmp =  new MultiChanel(entityinfo.ip_diff, entityinfo.port_diff, selKeyTMP, keyTMP, dcTMP);
+		
+		this.listMultiChannel.add(tmp);
+
+		synchronized (registeringSync) {
+			 this.sel.wakeup();
+			 tmp.selKey =tmp.dc.register(this.sel, SelectionKey.OP_READ);
+		 }
+		return tmp;	
 	}
 	
-	public void updateMulti(String ip_diff,Integer port_diff) throws IOException{
+	private boolean removeMulti(String ip_diff,Integer port_diff) throws IOException{
+		MultiChanel todelete = null;
+		for(MultiChanel mc : this.listMultiChannel){
+			if(mc.ip_diff.equals(ip_diff) && mc.port_diff==port_diff){
+				todelete=mc;
+			}
+		}
+		if(todelete!=null){
+			todelete.dc.close();
+			todelete.selKey.cancel();
+			todelete.selKey=null; //TODO
+			this.listMultiChannel.remove(todelete);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Update la soket de multidiff principale , celle de l'anneau
+	 * @param ip_diff
+	 * @param port_diff
+	 * @throws IOException
+	 */
+	public void updateMulti(entityInfo entityinfo) throws IOException{
 		
 		/*
 		if(ringoSocket.sockMultiRECEP!=null){
@@ -84,19 +142,19 @@ class ServMULTI {
 		ringoSocket.sockMultiRECEP = new MulticastSocket(this.port_diff);
 		ringoSocket.sockMultiRECEP.joinGroup(InetAddress.getByName(this.ip_diff));
 		*/
-		this.ip_diff=ip_diff;
-		this.port_diff=port_diff;
 		
-		if (this.dc1 != null) {
-			this.dc1.close();
-			this.selKey1.cancel();
-			this.dc1 = null;
+		
+		if(this.multiRing.ip_diff.equals(entityinfo.ip_diff) && this.multiRing.port_diff==entityinfo.port_diff){
+			//meme ip et port de diff
+			return;
+		}else{
+			removeMulti(entityinfo.ip_diff, entityinfo.port_diff);
+			addMultiDiff(entityinfo);
 		}
-		add(this.ip_diff, this.port_diff);
 	}
 	
 	
-	private void testMultiMsg(InetSocketAddress isa, SelectionKey sk, DatagramChannel dc, ByteBuffer byteBuffer)
+	private void testMultiMsg(InetSocketAddress isa, SelectionKey sk, MultiChanel mc, ByteBuffer byteBuffer)
 			throws IOException {
 
 		String b = new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.limit());
@@ -105,9 +163,14 @@ class ServMULTI {
 			if (!ringoSocket.isDUPL) {
 				ringoSocket.closeRingoSocket(true);
 			} else {
-				dc.close();
-				sk.cancel();
+				System.out.println("dupl a non dupl");
+				mc.dc.close();
+				//sk.cancel();
 				ringoSocket.isDUPL = false;
+				
+				if(this.multiRing==mc){
+					this.multiRing=this.listMultiChannel.getFirst();
+				}
 			}
 		}
 	}
@@ -128,75 +191,22 @@ class ServMULTI {
 		 */
 
 		ByteBuffer byteBuffer = ByteBuffer.allocate(512);
-		int val = sel.select();
+		sel.select();
 		synchronized (registeringSync) {
 
 			Iterator<SelectionKey> it = sel.selectedKeys().iterator();
 			while (it.hasNext()) {
 				SelectionKey sk = it.next();
 				byteBuffer.clear();
-				if (key1 != null && key1.isValid() && sk.isReadable() && sk.channel() == dc1) {
-					InetSocketAddress isa = (InetSocketAddress) this.dc1.receive(byteBuffer);
-					byteBuffer.flip();
-					testMultiMsg(isa, sk, dc1, byteBuffer);
-
-				} else if (key2 != null && key2.isValid() && sk.isReadable() && sk.channel() == dc2) {
-					InetSocketAddress isa = (InetSocketAddress) this.dc2.receive(byteBuffer);
-					byteBuffer.flip();
-					testMultiMsg(isa, sk, dc2, byteBuffer);
+				for(MultiChanel mc : this.listMultiChannel){
+					if (mc.key != null && mc.key.isValid() && sk.isReadable() && sk.channel() == mc.dc) {
+						InetSocketAddress isa = (InetSocketAddress) mc.dc.receive(byteBuffer);
+						byteBuffer.flip();
+						testMultiMsg(isa, sk, mc, byteBuffer);
+					}
 				}
 			}
-
 		}
-
-	}
-	
-	
-	public void add(String ip_diff,int port_diff) throws IOException{
-		MembershipKey keyTMP;
-		DatagramChannel dcTMP;
-		SelectionKey selKeyTMP = null;
-		
-		InetAddress group = InetAddress.getByName(ip_diff);
-
-		/*******************
-		 * LifeHack
-		 */
-	    MulticastSocket sockMultiRECEP = new MulticastSocket(port_diff);
-	    sockMultiRECEP.joinGroup(group);
-	    NetworkInterface ni1=sockMultiRECEP.getNetworkInterface();
-	    sockMultiRECEP.leaveGroup(group);
-	    sockMultiRECEP.close();
-	    //*******************
-
-	    dcTMP= DatagramChannel.open(StandardProtocolFamily.INET)
-				.setOption(StandardSocketOptions.SO_REUSEADDR, true)
-				.bind(new InetSocketAddress(port_diff))
-				.setOption(StandardSocketOptions.IP_MULTICAST_IF, ni1);
-	    
-		keyTMP=dcTMP.join(group, ni1);
-		dcTMP.configureBlocking(false);
-		
-		synchronized (registeringSync) {
-			 this.sel.wakeup();
-			 selKeyTMP =dcTMP.register(this.sel, SelectionKey.OP_READ);
-		 }
-		
-		if(this.dc1==null){
-			this.key1=keyTMP;
-			this.dc1=dcTMP;
-			this.selKey1=selKeyTMP;
-		}
-		else if(this.dc2==null){
-			this.key2=keyTMP;
-			this.dc2=dcTMP;
-			this.selKey2=selKeyTMP;
-		}
-		else{
-		
-		}
-		
-		
 	}
 	
 }
