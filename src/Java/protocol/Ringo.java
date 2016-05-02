@@ -3,7 +3,9 @@ import protocol.exceptions.*;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 
 /**
  * Cette interface defini les actions realisable par une applicationa avec cette implementation reseaux
@@ -39,6 +41,15 @@ public interface Ringo extends Closeable{
 	 * @throws ParseException 
 	 */
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, RingoSocketCloseException, ParseException;
+	
+	/**
+	 * Demande l'envoi de WHOS
+	 * @return
+	 * @throws RingoSocketCloseException
+	 * @throws InterruptedException
+	 * @throws ParseException
+	 */
+	public HashMap<InetSocketAddress,String> whos() throws RingoSocketCloseException, InterruptedException, ParseException;
 	
 	/**
 	 * demande la deconnection de l'entiter ,elle boucle sur elle meme

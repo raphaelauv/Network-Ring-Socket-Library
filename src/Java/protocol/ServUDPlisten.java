@@ -1,8 +1,11 @@
 package protocol;
 import protocol.exceptions.*;
 import protocol.TypeMessage;
+
+import java.awt.print.Printable;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
 
 class ServUDPlisten {
 	private RingoSocket ringoSocket;
@@ -15,6 +18,7 @@ class ServUDPlisten {
 				boolean erreur = false;
 				while (!erreur) {
 					try {
+						ringoSocket.testClose();
 						receveMessage();
 					} catch (IOException | InterruptedException | RingoSocketCloseException | ParseException e) {
 						erreur = true;
@@ -41,19 +45,36 @@ class ServUDPlisten {
 		}
 		if (msgR.getType() == TypeMessage.TEST) {
 			synchronized (ringoSocket.TESTisComeBack) {
-				if (msgR.getIdm() == ringoSocket.ValTEST) {
+				
+				if (ringoSocket.ValTest.equals(msgR.getIdm())) {
 					ringoSocket.TESTisComeBackBool = true;
 					ringoSocket.TESTisComeBack.notify();
 					return;
 				}
 				else{
-					if(msgR.getIp_diff()!=ringoSocket.servMulti.ip_diff || 
-							msgR.getPort_diff() != ringoSocket.servMulti.port_diff){
+					//TODO comparaison a verifier avec future sturture
+					if( !(  msgR.getIp_diff().equals(ringoSocket.servMulti.ip_diff) && 
+						msgR.getPort_diff().equals(ringoSocket.servMulti.port_diff ))){
+						ringoSocket.printVerbose("message test pas pour cet anneau");
 						return;// si le message n'est pas pour cet anneau , pas renvoyer
 					}
 				}
 			}
 		}
+		
+		if (msgR.getType() == TypeMessage.WHOS) {
+			synchronized (ringoSocket.TESTisComeBack) {
+				if(ringoSocket.ValTest!=null && ringoSocket.ValTest.equals(msgR.getIdm())){
+						ringoSocket.TESTisComeBackBool = true;
+						ringoSocket.TESTisComeBack.notify();
+						return;
+				}
+				else{
+					ringoSocket.send(Message.MEMB(this.ringoSocket.getUniqueIdm(),ringoSocket.idApp,ringoSocket.ip, ringoSocket.portUDP1));
+				}
+			}
+		}
+		
 		if (ringoSocket.IdAlreadyReceveUDP1.contains(msgR.getIdm())) {
 			ringoSocket.printVerbose("Message DEJA ENVOYER OU RECU : " + msgR.getIdm());
 			return;
@@ -62,6 +83,10 @@ class ServUDPlisten {
 		}
 		ringoSocket.printVerbose("Message Recu    : " + msgR.toString());
 
+		if (msgR.getType() == TypeMessage.MEMB) {
+			
+		}
+		
 		if (msgR.getType() == TypeMessage.GBYE) {
 			if(msgR.getIp().equals(ringoSocket.ipPortUDP1) && msgR.getPort().equals(ringoSocket.portUDP1)){
 				ringoSocket.printVerbose("My next leave the RING");
@@ -84,8 +109,10 @@ class ServUDPlisten {
 				return;
 			}
 
-		}else if (msgR.getType() == TypeMessage.WHOS) {
-			ringoSocket.send(Message.MEMB(this.ringoSocket.getUniqueIdm(),ringoSocket.idApp,ringoSocket.ip, ringoSocket.portUDP1));	
+		}else if (msgR.getType() == TypeMessage.MEMB) {
+			if(ringoSocket.ValTest!=null && ringoSocket.members!=null){
+				ringoSocket.members.put(InetSocketAddress.createUnresolved(msgR.getIp(), msgR.getPort()), msgR.getId());
+			}
 			
 		} else if (msgR.getType() == TypeMessage.EYBG) {
 			synchronized (ringoSocket.EYBGisArrive) {

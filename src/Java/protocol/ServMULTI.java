@@ -43,12 +43,13 @@ class ServMULTI {
 		this.port_diff=port_diff;
 		this.erreur = false;
 		this.sel = Selector.open();
-		this.updateMulti();
+		this.updateMulti(ip_diff,port_diff);
 		
 		this.runServMULTI = new Runnable() {
 			public void run() {
 				while (!erreur) {
 					try {
+						ringoSocket.testClose();
 						receveMULTI();
 					} catch (RingoSocketCloseException | IOException | InterruptedException |ClosedSelectorException e) {
 						erreur = true;
@@ -61,7 +62,19 @@ class ServMULTI {
 		};
 	}
 	
-	public void updateMulti() throws IOException{
+	public void setMultiDupl(String ip_diff2,Integer port_diff2) throws IOException{
+		if (this.dc2 != null) {
+			this.dc2.close();
+			this.selKey1.cancel();
+			this.dc2 = null;
+		}
+		this.ip_diff2=ip_diff2;
+		this.port_diff2=port_diff2;
+		
+		add(ip_diff2,port_diff2);
+	}
+	
+	public void updateMulti(String ip_diff,Integer port_diff) throws IOException{
 		
 		/*
 		if(ringoSocket.sockMultiRECEP!=null){
@@ -71,6 +84,8 @@ class ServMULTI {
 		ringoSocket.sockMultiRECEP = new MulticastSocket(this.port_diff);
 		ringoSocket.sockMultiRECEP.joinGroup(InetAddress.getByName(this.ip_diff));
 		*/
+		this.ip_diff=ip_diff;
+		this.port_diff=port_diff;
 		
 		if (this.dc1 != null) {
 			this.dc1.close();
@@ -86,7 +101,6 @@ class ServMULTI {
 
 		String b = new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.limit());
 		ringoSocket.printVerbose("message MULTI RECEVE : " + b);
-
 		if (b.startsWith("DOWN")) {
 			if (!ringoSocket.isDUPL) {
 				ringoSocket.closeRingoSocket(true);
@@ -96,7 +110,6 @@ class ServMULTI {
 				ringoSocket.isDUPL = false;
 			}
 		}
-
 	}
 	
 	private void receveMULTI()

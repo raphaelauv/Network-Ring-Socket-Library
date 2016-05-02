@@ -1,21 +1,28 @@
 package protocol;
-import protocol.exceptions.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.MulticastSocket;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+
+import protocol.exceptions.AlreadyConnectException;
+import protocol.exceptions.ImpossibleDUPLConnection;
+import protocol.exceptions.ParseException;
+import protocol.exceptions.ProtocolException;
+import protocol.exceptions.RingoSocketCloseException;
+import protocol.exceptions.UnknownTypeMesssage;
 
 public class RingoSocket implements Ringo {
 	
@@ -60,7 +67,7 @@ public class RingoSocket implements Ringo {
 	boolean EYBGisArriveBool;
 	Object TESTisComeBack=new Object();//mutex
 	boolean TESTisComeBackBool;
-	long ValTEST;
+	Long ValTest;
 	Boolean isDUPL;
 	
 	Set<Long> IdAlreadyReceveUDP1;// hashSet contenant les id deja croise
@@ -71,8 +78,11 @@ public class RingoSocket implements Ringo {
 	private byte [] idmStart;
 	private Long idmActuel;
 	boolean boolClose;
-	private boolean boolDisconnect;
+	boolean boolDisconnect;
 	private boolean verboseMode;
+	
+	ConcurrentHashMap<InetSocketAddress,String> members;
+	
 	/*********************************************************************/
 
 
@@ -264,18 +274,46 @@ public class RingoSocket implements Ringo {
 		}
 		return false;
 	}
+	
+	public HashMap<InetSocketAddress,String> whos() throws RingoSocketCloseException, InterruptedException, ParseException{
+		testClose();
+		long idm=getUniqueIdm();
+		Message whos;
+		whos=Message.WHOS(idm);
+		
+		synchronized (this.TESTisComeBack) {
+			this.ValTest=idm;
+			this.TESTisComeBackBool= false;
+			send(whos);
+			printVerbose("WAITING for WHOS message");
+			this.TESTisComeBack.wait(maximumWaitTimeMessage); // attend que EYBG soit arriver a l'entite
+			if (!TESTisComeBackBool){
+				printVerbose("message WHOS is NOT comeback");
+				return null;
+			}else{
+				printVerbose("message WHOS is comeback");
+				this.TESTisComeBack.wait(maximumWaitTimeMessage);// re attente pour attendre le maximum de MEMB
+				this.ValTest=null;
+			}
+		}
+		HashMap<InetSocketAddress, String> tmp=new HashMap<InetSocketAddress,String>();
+		tmp.putAll(this.members);
+		printVerbose("nombre de MEMB : "+tmp.size());
+		return  tmp;
+	}
 
+	
+	
 	public boolean test(boolean sendDownIfBreak) throws InterruptedException, RingoSocketCloseException, ParseException {
 		testClose();
-		
 		long idm=getUniqueIdm();
 		Message test;
 		test = Message.TEST(idm, this.servMulti.ip_diff, this.servMulti.port_diff);
-		send(test);
 		
 		synchronized (this.TESTisComeBack) {
-			this.ValTEST = idm;
+			this.ValTest=idm;
 			this.TESTisComeBackBool= false;
+			send(test);
 			printVerbose("WAITING for TEST message");
 			this.TESTisComeBack.wait(maximumWaitTimeMessage); // attend que EYBG soit arriver a l'entite
 			if (!TESTisComeBackBool) {
@@ -301,7 +339,7 @@ public class RingoSocket implements Ringo {
 		testClose();
 		adresse=Message.convertIP(adresse);
 		
-		if(!boolDisconnect){
+		if(!boolDisconnect || idTCP==this.portTcp){
 			throw new AlreadyConnectException();
 		}
 		tcpAcces.acquire();
@@ -409,9 +447,7 @@ public class RingoSocket implements Ringo {
 			this.portUDP1 =msg3.getPort();
 		}else{
 			this.portUDP1 = msg1.getPort();
-			this.servMulti.ip_diff = msg1.getIp_diff();
-			this.servMulti.port_diff = msg1.getPort_diff();
-			this.servMulti.updateMulti();
+			this.servMulti.updateMulti(msg1.getIp_diff(),msg1.getPort_diff());
 		}
 		this.boolDisconnect = false;
 		buffOut.close();

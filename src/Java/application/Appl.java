@@ -137,6 +137,7 @@ public class Appl implements Closeable{
 		System.out.println("## To ask connection      type : connecTo Ip Port           ##");
 		System.out.println("## To ask duplication     type : dupl Ip Port               ##");
 		System.out.println("## To ask test            type : testT                      ##");
+		System.out.println("## To ask whos            type : whoS                       ##");
 		System.out.println("## To ask disconnect      type : disconnecT                 ##");
 		System.out.println("## To ask down            type : dowN                       ##");
 		System.out.println("## For closing Appl       type : closeAppl                  ##");
@@ -204,6 +205,11 @@ public class Appl implements Closeable{
 			if (input.equals("tesT")) {
 				printModeApplication("##### ASK FOR TEST #####");
 				ringoSocket.test(false);
+				return true;
+			}
+			else if (input.equals("whoS")) {
+				printModeApplication("##### ASK FOR WHOS #####");
+				ringoSocket.whos();
 				return true;
 			}
 			else if (input.equals("dowN")) {

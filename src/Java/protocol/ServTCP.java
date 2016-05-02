@@ -102,18 +102,17 @@ class ServTCP {
 				buffOut.flush();
 				
 				ringoSocket.printVerbose("TCP : message SEND   : " + msg3.toString());
-	
 				ringoSocket.UDP_ipPort_Acces.acquire();	
 				if(modeDUPL){
 					ringoSocket.ipPortUDP2=msg2.getIp();
 					ringoSocket.portUDP2 = msg2.getPort();
 					ringoSocket.isDUPL=true;
+					ringoSocket.servMulti.setMultiDupl(msg2.getIp_diff(), msg2.getPort_diff());
 				}else{
 					ringoSocket.portUDP1 = msg2.getPort();
 					ringoSocket.ipPortUDP1=msg2.getIp();
 				}
 				ringoSocket.UDP_ipPort_Acces.release();		
-				
 				buffOut.close();
 				buffIn.close();
 				
@@ -123,6 +122,8 @@ class ServTCP {
 			}catch(ParseException | UnknownTypeMesssage e){
 				ringoSocket.printVerbose("TCP : erreur de protocol\n    message recu : "+new String(tmpMsg2));
 			}
+			ringoSocket.boolDisconnect = false;
 			ringoSocket.tcpAcces.release();
+			
 		}	
 }

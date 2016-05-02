@@ -1,8 +1,13 @@
 package protocol;	
+import java.awt.TrayIcon.MessageType;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ConcurrentHashMap;
+
+import protocol.exceptions.RingoSocketCloseException;
 
 class ServUDPsend {
 	private RingoSocket ringoSocket;
@@ -21,8 +26,9 @@ class ServUDPsend {
 				boolean erreur = false;
 				while (!erreur) {
 					try {
+						ringoSocket.testClose();
 						sendMessage();
-					} catch (InterruptedException | IOException e) {
+					} catch (InterruptedException | IOException | RingoSocketCloseException e) {
 						erreur = true;
 						ringoSocket.boolClose=true;
 					}
@@ -68,6 +74,19 @@ class ServUDPsend {
 			try{
 				ringoSocket.printVerbose("Message Envoyer : "+ msg.toString());
 				
+				if(msg.getType()==TypeMessage.WHOS){
+					if(ringoSocket.ValTest!=null){
+						if(ringoSocket.members!=null){
+							ringoSocket.members.clear();
+						}
+						else{
+							System.out.println("initialisation concu");
+							ringoSocket.members=new ConcurrentHashMap<InetSocketAddress, String>();
+						}
+						
+					}
+				}
+				
 				this.paquet1 = new DatagramPacket(dataTosend, dataTosend.length,
 						InetAddress.getByName(ringoSocket.ipPortUDP1), ringoSocket.portUDP1);
 				ringoSocket.sockSender.send(paquet1);
@@ -77,6 +96,8 @@ class ServUDPsend {
 							InetAddress.getByName(ringoSocket.ipPortUDP2), ringoSocket.portUDP2);
 					ringoSocket.sockSender.send(paquet2);
 				}
+				
+				
 				
 			}catch(IOException e){
 				ringoSocket.UDP_ipPort_Acces.release();

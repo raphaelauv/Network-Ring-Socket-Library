@@ -696,5 +696,10 @@ public class Message {
 	public Integer getPort(){
 		return this.port;
 	}
+
+	public String getId() {
+		return id;
+	}
+	
 	
 }
