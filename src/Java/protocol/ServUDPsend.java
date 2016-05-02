@@ -80,7 +80,6 @@ class ServUDPsend {
 							ringoSocket.members.clear();
 						}
 						else{
-							System.out.println("initialisation concu");
 							ringoSocket.members=new ConcurrentHashMap<InetSocketAddress, String>();
 						}
 						

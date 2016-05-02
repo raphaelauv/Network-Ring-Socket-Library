@@ -46,7 +46,7 @@ class ServUDPlisten {
 		if (msgR.getType() == TypeMessage.TEST) {
 			synchronized (ringoSocket.TESTisComeBack) {
 				
-				if (ringoSocket.ValTest.equals(msgR.getIdm())) {
+				if (ringoSocket.ValTest!=null && ringoSocket.ValTest.equals(msgR.getIdm())) {
 					ringoSocket.TESTisComeBackBool = true;
 					ringoSocket.TESTisComeBack.notify();
 					return;
