@@ -54,7 +54,6 @@ public class Diff extends Appl implements ReceveSend {
 		} catch (BindException | ParseException e) {
 			System.out.println("The ports are already in use or are bigger than 4digit");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

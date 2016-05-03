@@ -1,5 +1,4 @@
-package protocol;	
-import java.awt.print.Printable;
+package protocol;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -59,7 +58,7 @@ class ServUDPsend {
 
 		if (msg.isMulti()) {
 			for(MultiChanel mc : ringoSocket.servMulti.listMultiChannel){
-				sendMulti(mc.ip_diff,mc.port_diff);
+				sendMulti(mc.entityinfo.ip_diff,mc.entityinfo.port_diff);
 			}
 			return;
 		} else {

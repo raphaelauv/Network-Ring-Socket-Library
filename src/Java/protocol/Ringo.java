@@ -1,6 +1,5 @@
 package protocol;
 import protocol.exceptions.*;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;

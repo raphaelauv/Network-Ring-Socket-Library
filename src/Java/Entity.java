@@ -1,8 +1,9 @@
 import java.io.IOException;
 import java.net.BindException;
+import java.net.Socket;
+
 import application.*;
 import protocol.RingoSocket;
-import protocol.exceptions.IpException;
 import protocol.exceptions.ParseException;
 
 public class Entity extends Appl{
@@ -24,11 +25,11 @@ public class Entity extends Appl{
 		super(null, ringosocket);
 	}
 	
-	
 	/**
 	 * pour lancer une entite ringoSocket
-	 * @param args
 	 */
+	
+	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		boolean verbose=Appl.testArgs(args);
 		try {
@@ -38,8 +39,7 @@ public class Entity extends Appl{
 		} catch (BindException | ParseException e) {
 			System.out.println("The ports are already in use or are bigger than 4digit");
 		} catch (IOException  e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 }

@@ -1,8 +1,6 @@
 package protocol;
 import protocol.exceptions.*;
 import protocol.TypeMessage;
-
-import java.awt.print.Printable;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
@@ -53,8 +51,8 @@ class ServUDPlisten {
 				}
 				else{
 					//TODO comparaison a verifier avec future sturture
-					if( !(  msgR.getIp_diff().equals(ringoSocket.servMulti.multiRing.ip_diff) && 
-						msgR.getPort_diff().equals(ringoSocket.servMulti.multiRing.port_diff ))){
+					if( !(  msgR.getIp_diff().equals(ringoSocket.principal.ip_diff) && 
+						msgR.getPort_diff().equals(ringoSocket.principal.port_diff ))){
 						ringoSocket.printVerbose("message test pas pour cet anneau");
 						return;// si le message n'est pas pour cet anneau , pas renvoyer
 					}
@@ -102,13 +100,9 @@ class ServUDPlisten {
 						ringoSocket.printVerbose("I'm now alone , i'm DISCONNECT");
 						ringoSocket.boolDisconnect=true;
 					}
-					
 					//TODO
 				}
-				
 				ringoSocket.UDP_ipPort_Acces.release();
-				
-				
 				return;
 			}
 		}

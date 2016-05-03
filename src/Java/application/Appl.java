@@ -2,7 +2,6 @@ package application;
 
 import protocol.*;
 import protocol.exceptions.*;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.BindException;
@@ -130,19 +129,19 @@ public class Appl implements Closeable{
 			System.out.println("ATTENTION IL MANQUE ARGUMENT , entrer les deux ports  !!");
 			System.exit(1);
 		}
-		System.out.println("arg0 UDP : " + args[0]); // 4242
-		System.out.println("arg1 TCP : " + args[1]); // 5555
-		System.out.println(style);
-		System.out.println("## add -v after the port argument for VERBOSE Mode          ##");
-		System.out.println("## To ask connection      type : connecTo Ip Port           ##");
-		System.out.println("## To ask duplication     type : dupl Ip Port               ##");
-		System.out.println("## To ask test            type : testT                      ##");
-		System.out.println("## To ask whos            type : whoS                       ##");
-		System.out.println("## To ask disconnect      type : disconnecT                 ##");
-		System.out.println("## To ask down            type : dowN                       ##");
-		System.out.println("## For closing Appl       type : closeAppl                  ##");
+		System.out.println("arg0 UDP : " + args[0]+"\narg1 TCP : " + args[1]);
 		
-		System.out.println(style);
+		System.out.println(style+"\n"
+				+ "## add -v after the port argument for VERBOSE Mode          ##\n"
+				+ "## To ask connection      type : connecTo Ip Port           ##\n"
+				+ "## To ask duplication     type : dupl Ip Port               ##\n"
+				+ "## To ask test            type : testT                      ##\n"
+				+ "## To ask whos            type : whoS                       ##\n"
+				+ "## To ask disconnect      type : disconnecT                 ##\n"
+				+ "## To ask down            type : dowN                       ##\n"
+				+ "## For closing Appl       type : closeAppl                  ##\n"
+				+ style );
+		
 		if(args.length>2 && args[2].equals("-v")){
 			return true;
 		}
@@ -159,6 +158,7 @@ public class Appl implements Closeable{
 			i++;
 		}
 		String ipSelect = null;
+		@SuppressWarnings("resource")
 		Scanner scanner= new Scanner(System.in);
 		boolean notGoodSelect=true;
 		int input=-1;
@@ -303,5 +303,4 @@ public class Appl implements Closeable{
 			System.out.println(toPrint);
 		}
 	}
-	
 }

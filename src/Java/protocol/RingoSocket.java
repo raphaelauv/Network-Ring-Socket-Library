@@ -16,7 +16,6 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
-
 import protocol.exceptions.AlreadyConnectException;
 import protocol.exceptions.ImpossibleDUPLConnection;
 import protocol.exceptions.ParseException;
@@ -27,12 +26,12 @@ import protocol.exceptions.UnknownTypeMesssage;
 public class RingoSocket implements Ringo {
 	
 	
-	class entityInfo{
+	class EntityInfo{
 		String ipUdp;
 		Integer portUdp;
 		String ip_diff;
 		Integer port_diff;
-		public entityInfo(String ipUdp, Integer portUdp, String ip_diff, Integer port_diff) {
+		public EntityInfo(String ipUdp, Integer portUdp, String ip_diff, Integer port_diff) {
 			this.ipUdp = ipUdp;
 			this.portUdp = portUdp;
 			this.ip_diff = ip_diff;
@@ -48,8 +47,8 @@ public class RingoSocket implements Ringo {
 	Integer portTcp;
 	Integer listenPortUDP;
 	
-	entityInfo principal ;
-	entityInfo secondaire ;
+	EntityInfo principal ;
+	EntityInfo secondaire ;
 	/*
 	Integer portUDP1;
 	String ipPortUDP1;
@@ -126,7 +125,7 @@ public class RingoSocket implements Ringo {
 		this.portTcp = portTcp;
 		this.listenPortUDP = listenUDPport;
 		
-		this.principal=new entityInfo(this.ip, this.listenPortUDP,Message.convertIP("225.1.2.4"),9999);
+		this.principal=new EntityInfo(this.ip, this.listenPortUDP,Message.convertIP("225.1.2.4"),9999);
 		/*
 		this.ipPortUDP1 = this.ip;
 		this.ipPortUDPdupl = null;

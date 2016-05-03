@@ -1,4 +1,5 @@
 package protocol;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -6,9 +7,8 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.StandardProtocolFamily;
 import java.net.StandardSocketOptions;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.MembershipKey;
@@ -16,8 +16,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
 import java.util.LinkedList;
-
-import protocol.RingoSocket.entityInfo;
+import protocol.RingoSocket.EntityInfo;
 import protocol.exceptions.RingoSocketCloseException;
 
 class ServMULTI {
@@ -26,15 +25,13 @@ class ServMULTI {
 	LinkedList<MultiChanel> listMultiChannel;
 	
 	class MultiChanel{
-		String ip_diff;
-		Integer port_diff;
+		EntityInfo entityinfo;
 		SelectionKey selKey;
 		MembershipKey key;
 		DatagramChannel dc;
-		public MultiChanel(String ip_diff, Integer port_diff, SelectionKey selKey, MembershipKey key,
+		public MultiChanel(EntityInfo entityinfo, SelectionKey selKey, MembershipKey key,
 				DatagramChannel dc) {
-			this.ip_diff = ip_diff;
-			this.port_diff = port_diff;
+			this.entityinfo=entityinfo;
 			this.selKey = selKey;
 			this.key = key;
 			this.dc = dc;
@@ -48,7 +45,7 @@ class ServMULTI {
 	Runnable runServMULTI;
 	boolean erreur;
 	
-	ServMULTI(RingoSocket ringoSocket,entityInfo entityinfo) throws IOException{
+	ServMULTI(RingoSocket ringoSocket,EntityInfo entityinfo) throws IOException{
 		this.ringoSocket=ringoSocket;
 		this.listMultiChannel =new LinkedList<MultiChanel>();
 		
@@ -73,7 +70,7 @@ class ServMULTI {
 		};
 	}
 	
-	MultiChanel addMultiDiff(entityInfo entityinfo) throws IOException{
+	MultiChanel addMultiDiff(EntityInfo entityinfo) throws IOException{
 		
 		MembershipKey keyTMP;
 		DatagramChannel dcTMP;
@@ -97,9 +94,7 @@ class ServMULTI {
 	    
 		keyTMP=dcTMP.join(group, ni1);
 		dcTMP.configureBlocking(false);
-		
-		MultiChanel tmp =  new MultiChanel(entityinfo.ip_diff, entityinfo.port_diff, selKeyTMP, keyTMP, dcTMP);
-		
+		MultiChanel tmp =  new MultiChanel(entityinfo, selKeyTMP, keyTMP, dcTMP);
 		this.listMultiChannel.add(tmp);
 
 		synchronized (registeringSync) {
@@ -109,10 +104,10 @@ class ServMULTI {
 		return tmp;	
 	}
 	
-	private boolean removeMulti(String ip_diff,Integer port_diff) throws IOException{
+	private void removeMulti(String ip_diff,Integer port_diff) throws IOException{
 		MultiChanel todelete = null;
 		for(MultiChanel mc : this.listMultiChannel){
-			if(mc.ip_diff.equals(ip_diff) && mc.port_diff==port_diff){
+			if(mc.entityinfo.ip_diff.equals(ip_diff) && mc.entityinfo.port_diff==port_diff){
 				todelete=mc;
 			}
 		}
@@ -121,9 +116,7 @@ class ServMULTI {
 			todelete.selKey.cancel();
 			todelete.selKey=null; //TODO
 			this.listMultiChannel.remove(todelete);
-			return true;
 		}
-		return false;
 	}
 	
 	/**
@@ -132,7 +125,7 @@ class ServMULTI {
 	 * @param port_diff
 	 * @throws IOException
 	 */
-	public void updateMulti(entityInfo entityinfo) throws IOException{
+	public void updateMulti(EntityInfo entityinfo) throws IOException{
 		
 		/*
 		if(ringoSocket.sockMultiRECEP!=null){
@@ -143,16 +136,15 @@ class ServMULTI {
 		ringoSocket.sockMultiRECEP.joinGroup(InetAddress.getByName(this.ip_diff));
 		*/
 		
-		
-		if(this.multiRing.ip_diff.equals(entityinfo.ip_diff) && this.multiRing.port_diff==entityinfo.port_diff){
+		/*
+		if(this.multiRing.entityinfo.ip_diff.equals(entityinfo.ip_diff) && this.multiRing.entityinfo.port_diff==entityinfo.port_diff){
 			//meme ip et port de diff
 			return;
-		}else{
-			removeMulti(entityinfo.ip_diff, entityinfo.port_diff);
-			addMultiDiff(entityinfo);
 		}
+		*/
+		removeMulti(entityinfo.ip_diff, entityinfo.port_diff);
+		addMultiDiff(entityinfo);
 	}
-	
 	
 	private void testMultiMsg(InetSocketAddress isa, SelectionKey sk, MultiChanel mc, ByteBuffer byteBuffer)
 			throws IOException {
@@ -199,10 +191,15 @@ class ServMULTI {
 				SelectionKey sk = it.next();
 				byteBuffer.clear();
 				for(MultiChanel mc : this.listMultiChannel){
-					if (mc.key != null && mc.key.isValid() && sk.isReadable() && sk.channel() == mc.dc) {
-						InetSocketAddress isa = (InetSocketAddress) mc.dc.receive(byteBuffer);
-						byteBuffer.flip();
-						testMultiMsg(isa, sk, mc, byteBuffer);
+					try{
+						if (mc.key != null && mc.key.isValid() && sk.isReadable() && sk.channel() == mc.dc) {
+							InetSocketAddress isa = (InetSocketAddress) mc.dc.receive(byteBuffer);
+							byteBuffer.flip();
+							testMultiMsg(isa, sk, mc, byteBuffer);
+						}
+					}
+					catch(CancelledKeyException e){
+						System.out.println("CancelledKeyException");
 					}
 				}
 			}

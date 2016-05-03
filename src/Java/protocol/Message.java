@@ -187,7 +187,6 @@ public class Message {
 			curseur++;
 			//parseTestEnd(curseur);
 			return;
-			
 		}
 		
 		strParsed=getDataFrom_N(curseur,Ringo.byteSizeIdm);
@@ -556,8 +555,6 @@ public class Message {
 	 * Rempli data avec les args
 	 * @param args
 	 */
-	
-	//TODO EXCEPTION SORTI DE DATA
 	public static void remplirData(byte [] data ,byte[]... args) {
 		int i = 0;
 		for (byte[] arg1 : args) {
