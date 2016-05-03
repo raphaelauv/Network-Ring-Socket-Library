@@ -121,6 +121,20 @@ public class Message {
 		}
 	}
 	
+	
+	private byte[] getDataFrom_N_byte(int n, int size) {
+		try{
+			byte [] tmp =new byte [size];
+			for(int i=0; i<size ; i++){
+				tmp[i]=this.data[n+i];
+			}
+			return tmp;
+		}catch(StringIndexOutOfBoundsException e){
+			return null;
+		}
+	}
+	
+	
 	/**
 	 * Parcer le contenu d'un nouveau message
 	 * 
@@ -189,8 +203,8 @@ public class Message {
 			return;
 		}
 		
-		strParsed=getDataFrom_N(curseur,Ringo.byteSizeIdm);
-		this.idm=byteArrayToLong(strParsed.getBytes(),Ringo.byteSizeIdm,ByteOrder.LITTLE_ENDIAN);
+		byte[] coco=getDataFrom_N_byte(curseur,Ringo.byteSizeIdm);
+		this.idm=byteArrayToLong(coco,Ringo.byteSizeIdm,ByteOrder.LITTLE_ENDIAN);
 		
 		curseur+=Ringo.byteSizeIdm;
 		if(type==TypeMessage.WHOS || type==TypeMessage.EYBG){
