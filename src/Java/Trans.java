@@ -59,13 +59,14 @@ public class Trans extends Appl implements ReceveSend {
 			+ Ringo.byteSizeIdm * 3 + Ringo.byteSizeIdApp + byteSizeTransType +byteSizeContent) ;
 	private final int byteSizeStart=byteSizeTransType+Ringo.byteSizeSpace*4+byteSizeId_Trans;
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
+	
 	private final int byteSizeDataSEN_withContent=byteSizeStart+byteSizeNo_Mess+byteSizeContent;
 	
 	/**
 	 * Application
 	 */
-	public Trans(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, ParseException {
-		super(ip,"TRANS###", udpPort, tcpPort ,verbose);
+	public Trans(String ip,Integer udpPort, Integer tcpPort,Integer multiPort,boolean verbose) throws BindException, IOException, ParseException {
+		super(ip,"TRANS###", udpPort, tcpPort ,multiPort,verbose);
 		this.initTrans();
 	}
 	
@@ -285,7 +286,6 @@ public class Trans extends Appl implements ReceveSend {
 			byte [] no_mess;
 			byte [] size_content;
 			for(long i=0; i<num_messLong ; i++){
-				Thread.sleep(100);
 				size_contentVal=out.read(content);
 				no_mess=Message.longToByteArray( i, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
 				size_content=Message.longToStringRepresentation(size_contentVal, 3).getBytes();
@@ -336,7 +336,7 @@ public class Trans extends Appl implements ReceveSend {
 
 		try {
 			String ip = Appl.selectIp();
-			new Trans(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
+			new Trans(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]),Integer.parseInt(args[2]),verbose);
 
 		} catch (BindException | ParseException e) {
 			System.out.println("The ports are already in use or are bigger than 4digit");

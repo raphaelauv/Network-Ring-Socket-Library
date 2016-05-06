@@ -398,7 +398,7 @@ public class Message {
 			
 		}	
 		try {
-			str=str+" "+new String(this.idmLITTLE_ENDIAN_8);
+			str=str+" "+Message.byteArrayToLong(this.idmLITTLE_ENDIAN_8, Ringo.byteSizeIdm,ByteOrder.LITTLE_ENDIAN);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -62,7 +62,7 @@ class ServMULTI {
 					} catch (RingoSocketCloseException | IOException | InterruptedException |ClosedSelectorException e) {
 						erreur = true;
 						ringoSocket.boolClose=true;
-						System.out.println("FERMETURE MULTI");
+						try {sel.close();} catch (IOException e1) {}
 					}
 				}
 				ringoSocket.printVerbose("END");

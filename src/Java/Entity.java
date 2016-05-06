@@ -11,8 +11,8 @@ public class Entity extends Appl{
 	/**
 	 * Application
 	 */
-	public Entity(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, ParseException{
-		super(ip,null,udpPort,tcpPort,verbose);
+	public Entity(String ip,Integer udpPort,Integer multiPort, Integer tcpPort, boolean verbose) throws BindException, IOException, ParseException{
+		super(ip,null,udpPort,tcpPort,multiPort,verbose);
 		while(super.runContinue){
 			testEntry();
 		}
@@ -34,7 +34,7 @@ public class Entity extends Appl{
 		boolean verbose=Appl.testArgs(args);
 		try {
 			String ip = Appl.selectIp();
-			new Entity(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]),verbose);
+			new Entity(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]),Integer.parseInt(args[2]) , verbose);
 			
 		} catch (BindException | ParseException e) {
 			System.out.println("The ports are already in use or are bigger than 4digit");

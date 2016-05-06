@@ -12,8 +12,8 @@ public class Diff extends Appl implements ReceveSend {
 	/**
 	 * Application 
 	 */
-	public Diff(String ip,Integer udpPort, Integer tcpPort, boolean verbose) throws BindException, IOException, ParseException {
-		super(ip,"DIFF####", udpPort, tcpPort, verbose);	
+	public Diff(String ip,Integer udpPort, Integer tcpPort,Integer multiPort, boolean verbose) throws BindException, IOException, ParseException {
+		super(ip,"DIFF####", udpPort, tcpPort, multiPort,verbose);	
 		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 	}
 	
@@ -50,7 +50,7 @@ public class Diff extends Appl implements ReceveSend {
 		boolean verbose = Appl.testArgs(args);
 		try {
 			String ip = Appl.selectIp();
-			new Diff(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]), verbose);
+			new Diff(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]),Integer.parseInt(args[2]) , verbose);
 		} catch (BindException | ParseException e) {
 			System.out.println("The ports are already in use or are bigger than 4digit");
 		} catch (IOException e) {

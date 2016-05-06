@@ -14,6 +14,7 @@ import java.util.Scanner;
 public class Appl implements Closeable{
 
 	private boolean modeService;
+	private boolean verboseAppl=false;
 	protected boolean runContinue;
 	protected boolean verboseMode;
 	
@@ -30,6 +31,7 @@ public class Appl implements Closeable{
 	protected LinkedList<byte []> listInput;	// mode service
 	protected LinkedList<byte []> listOutput; // mode service
 	
+	
 	/**
 	 * Constructeur pour application independante , ecoute sur STDIN et ecris sur STDOUT
 	 * @param APPLID
@@ -42,10 +44,10 @@ public class Appl implements Closeable{
 	 * @throws IpException
 	 * @throws ParseException 
 	 */
-	public Appl(String ip,String APPLID,Integer udpPort, Integer tcpPort,boolean verbose) throws BindException,IOException, ParseException{
+	public Appl(String ip,String APPLID,Integer udpPort, Integer tcpPort,Integer multiPort,boolean verbose) throws BindException,IOException, ParseException{
 		this.APPLID=APPLID;
 		this.verboseMode=verbose;
-		this.ringoSocket= new RingoSocket(ip,APPLID,udpPort,tcpPort,false);
+		this.ringoSocket= new RingoSocket(ip,APPLID,udpPort,tcpPort,multiPort,false);
 		this.ringoSocket.setVerbose(verbose);
 		this.scan = new Scanner(System.in);
 		this.runContinue=true;
@@ -125,24 +127,13 @@ public class Appl implements Closeable{
 	 * @return 
 	 */
 	public static boolean testArgs(String[] args){
-		if (args==null || args.length == 0 || args[0] == null || args[1] == null) {
+		if (args==null || args.length < 3 || args[0] == null || args[1] == null || args[2] == null) {
 			System.out.println("ATTENTION IL MANQUE ARGUMENT , entrer les deux ports  !!");
 			System.exit(1);
 		}
-		System.out.println("arg0 UDP : " + args[0]+"\narg1 TCP : " + args[1]);
+		System.out.println("arg0 UDP  : " + args[0]+"\narg1 TCP  : " + args[1]+"\narg2 MULTI : " + args[2]);
 		
-		System.out.println(style+"\n"
-				+ "## add -v after the port argument for VERBOSE Mode          ##\n"
-				+ "## To ask connection      type : connecTo Ip Port           ##\n"
-				+ "## To ask duplication     type : dupl Ip Port               ##\n"
-				+ "## To ask test            type : testT                      ##\n"
-				+ "## To ask whos            type : whoS                       ##\n"
-				+ "## To ask disconnect      type : disconnecT                 ##\n"
-				+ "## To ask down            type : dowN                       ##\n"
-				+ "## For closing Appl       type : closeAppl                  ##\n"
-				+ style );
-		
-		if(args.length>2 && args[2].equals("-v")){
+		if(args.length>3 && args[3].equals("-v")){
 			return true;
 		}
 		return false;
@@ -174,6 +165,18 @@ public class Appl implements Closeable{
 			}
 			
 		}
+		
+		System.out.println(style+"\n"
+				+ "## add -v after the port argument for VERBOSE Mode          ##\n"
+				+ "## To ask connection      type : connecTo Ip Port           ##\n"
+				+ "## To ask duplication     type : dupl Ip Port               ##\n"
+				+ "## To ask test            type : testT                      ##\n"
+				+ "## To ask whos            type : whoS                       ##\n"
+				+ "## To ask disconnect      type : disconnecT                 ##\n"
+				+ "## To ask down            type : dowN                       ##\n"
+				+ "## For closing Appl       type : closeAppl                  ##\n"
+				+ style );
+		
 		return ipSelect;
 	}
 	
@@ -299,8 +302,12 @@ public class Appl implements Closeable{
 	 * @param toPrint contenu a afficher
 	 */
 	protected void printModeApplication(String toPrint) {
-		if (!modeService) {
+		if (!modeService || verboseAppl) {
 			System.out.println(toPrint);
 		}
+	}
+	
+	public void setVerbose(boolean verboseAppl){
+		this.verboseAppl=verboseAppl;
 	}
 }

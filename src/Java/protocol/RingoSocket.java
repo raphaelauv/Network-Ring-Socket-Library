@@ -97,8 +97,8 @@ public class RingoSocket implements Ringo {
 	/*********************************************************************/
 
 
-	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseException{
-		this("localhost",idApp,listenUDPport,portTcp,modeService);
+	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,Integer multiPort,boolean modeService) throws IOException, ParseException{
+		this("localhost",idApp,listenUDPport,portTcp,multiPort, modeService);
 	}
 	
 	
@@ -108,7 +108,7 @@ public class RingoSocket implements Ringo {
 	 * @param listenUDPport port d'ecoute UDP
 	 * @param portTcp port TCP port d'ecoute TCP
 	 */
-	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp,boolean modeService) throws IOException, ParseException
+	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp, Integer multiPort,boolean modeService) throws IOException, ParseException
 			 {
 		if(idApp==null){
 			this.idApp ="";
@@ -120,12 +120,11 @@ public class RingoSocket implements Ringo {
 		 * NETWORK
 		 */
 		
-		this.ip = Message.convertIP(ip);		
-		System.out.println(this.ip);
+		this.ip = Message.convertIP(ip);
 		this.portTcp = portTcp;
 		this.listenPortUDP = listenUDPport;
 		
-		this.principal=new EntityInfo(this.ip, this.listenPortUDP,Message.convertIP("225.1.2.4"),9999);
+		this.principal=new EntityInfo(this.ip, this.listenPortUDP,Message.convertIP("225.1.2.4"),multiPort);
 		/*
 		this.ipPortUDP1 = this.ip;
 		this.ipPortUDPdupl = null;
