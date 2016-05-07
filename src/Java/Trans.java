@@ -1,3 +1,4 @@
+import java.util.concurrent.locks.LockSupport;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import java.io.BufferedInputStream;
@@ -187,7 +188,7 @@ public class Trans extends Appl implements ReceveSend {
 		int pourcentage =(int) ((p1/p2)*100.0);
 		printModeApplication(style+"\n"+pourcentage+"% TRANSMIS");
 		//printModeApplication("ecris dedans "+new String(msgInByte,curseur,size_content));
-		if(value.actual_no_mess==value.num_mess){
+		if(value.actual_no_mess==value.num_mess	){
 			value.outputStream.flush();
 			value.outputStream.close();
 			updateFileList(value.nameFile,value.path);
@@ -269,6 +270,8 @@ public class Trans extends Appl implements ReceveSend {
 			long num_messLong = Files.size(pathFile)/maxSizeContent;
 			if(num_messLong<1){
 				num_messLong=1L;
+			}else{
+				num_messLong++;
 			}
 			byte [] num_mess =Message.longToByteArray(num_messLong, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
 			byte [] SPACE =" ".getBytes();
@@ -286,6 +289,8 @@ public class Trans extends Appl implements ReceveSend {
 			byte [] no_mess;
 			byte [] size_content;
 			for(long i=0; i<num_messLong ; i++){
+				//Thread.sleep(0L,1);
+				LockSupport.parkNanos(2000L);
 				size_contentVal=out.read(content);
 				no_mess=Message.longToByteArray( i, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
 				size_content=Message.longToStringRepresentation(size_contentVal, 3).getBytes();

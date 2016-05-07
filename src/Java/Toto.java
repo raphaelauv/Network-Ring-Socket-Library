@@ -8,11 +8,11 @@ public class Toto {
 		RingoSocket ringo3 = new RingoSocket("TRANS###", 4446, 7778, 9999,true);
 		RingoSocket ringo4 = new RingoSocket("TRANS###", 4447, 7779, 9999,true);
 		
-		/*
+		
 		ringo1.connectTo("localhost",7777 , false);
 		ringo3.connectTo("localhost",7777 , false);
 		ringo4.connectTo("localhost",7777 , false);
-		*/
+		
 		Diff diff1 = new Diff(ringo1);
 		Diff diff2 = new Diff(ringo2);
 		Trans trans1 = new Trans(ringo3);
@@ -22,8 +22,8 @@ public class Toto {
 		diff2.input("salut a toi aussi".getBytes());
 		diff1.setVerbose(true);
 		
-		ringo1.setVerbose(true);
-		trans1.setVerbose(true);
+		//ringo1.setVerbose(true);
+		//trans1.setVerbose(true);
 		/*
 		for(int i=0; i<65001 ;i++){
 			diff1.input("bonjour".getBytes());

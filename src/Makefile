@@ -2,7 +2,7 @@
 all: 
 	echo "make java or make c"
 
-java :list compil 
+java :list compil
 
 
 list :	
