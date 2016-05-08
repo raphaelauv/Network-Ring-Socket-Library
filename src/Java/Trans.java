@@ -159,6 +159,10 @@ public class Trans extends Appl implements ReceveSend {
 			printModeApplication("problem d'ordre");
 			printModeApplication("valeur attentdu "+value.actual_no_mess);
 			printModeApplication("valeur recu "+no_mess);
+			synchronized (listOutput) {
+				listOutput.add("error transfert".getBytes());
+				listOutput.notify();
+			}
 			return true;//TODO quand ordre pas respecter
 		}
 		if(value.actual_no_mess==0){
@@ -193,6 +197,11 @@ public class Trans extends Appl implements ReceveSend {
 			value.outputStream.close();
 			updateFileList(value.nameFile,value.path);
 			printModeApplication(style+"\ntransfert FINI | new File : "+value.path.getFileName()+"\n"+style);
+			
+			synchronized (listOutput) {
+				listOutput.add("succes transfert".getBytes());
+				listOutput.notify();
+			}
 		}
 		return true;
 	}
@@ -248,10 +257,11 @@ public class Trans extends Appl implements ReceveSend {
 	 * @throws ParseException 
 	 */
 	private boolean req(String affichage, byte[] msgInByte, int curseur) throws IOException, RingoSocketCloseException, NumberOfBytesException, InterruptedException, ParseException{
-		String size_nom_STR = new String(msgInByte,curseur,byteSizeNom);
-		int tailleNameFile = Integer.parseInt(size_nom_STR);
+		byte [] size_nom = Arrays.copyOfRange(msgInByte,curseur,curseur+byteSizeNom);
+		int tailleNameFile = Integer.parseInt(new String(size_nom));
 		curseur+=byteSizeNom+Ringo.byteSizeSpace;
-		String name_fileSTR = new String(msgInByte, curseur,tailleNameFile);
+		byte [] name_file = Arrays.copyOfRange(msgInByte, curseur,curseur+tailleNameFile);
+		String name_fileSTR = new String(name_file);
 		
 		affichage+= "REQ " + name_fileSTR;
 		printModeApplication(affichage+ "\n" + style);
@@ -264,8 +274,7 @@ public class Trans extends Appl implements ReceveSend {
 			long idt= ringoSocket.getUniqueIdm();
 			printModeApplication("id transaction "+idt);
 			byte [] idTrans=Message.longToByteArray(idt, byteSizeId_Trans,ByteOrder.LITTLE_ENDIAN );
-			byte [] size_nom=size_nom_STR.getBytes();
-			byte [] name_file=name_fileSTR.getBytes();
+			
 			printModeApplication("SIZE OF FILE :"+Files.size(pathFile));
 			long num_messLong = Files.size(pathFile)/maxSizeContent;
 			if(num_messLong<1){
@@ -289,11 +298,15 @@ public class Trans extends Appl implements ReceveSend {
 			byte [] no_mess;
 			byte [] size_content;
 			for(long i=0; i<num_messLong ; i++){
-				//Thread.sleep(0L,1);
-				LockSupport.parkNanos(2000L);
+				if(i%10==0){
+					Thread.sleep(1L,1);
+					//LockSupport.parkNanos(20000L);
+				}
+				
+
 				size_contentVal=out.read(content);
 				no_mess=Message.longToByteArray( i, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
-				size_content=Message.longToStringRepresentation(size_contentVal, 3).getBytes();
+				size_content=Message.intToStringRepresentation(size_contentVal, 3).getBytes();
 				data= new byte[500];//TODO
 				Message.remplirData(data, debutMsg,SPACE,idTrans,SPACE,no_mess,SPACE,size_content,SPACE,content);
 				ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
@@ -310,8 +323,8 @@ public class Trans extends Appl implements ReceveSend {
 		this.files.put(name,path);
 	}
 
-	public void doSend() throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException {
-		String contenu = "REQ " + Message.longToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
+	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException {
+		String contenu = "REQ " + Message.intToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
 		
 		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
 		

@@ -9,13 +9,10 @@ import protocol.exceptions.ParseException;
 public interface ReceveSend {
 	
 	public void doReceve(Message msg) throws RingoSocketCloseException, IOException, NumberOfBytesException, InterruptedException, ParseException;
-	public void doSend() throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException;
 	
-	/**
-	 * Mode service
-	 * @param content d'un message a envoyer
-	 */
-	public void input(byte [] content) throws Exception;
+	
+	
+	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException;
 	
 	/**
 	 * Mode service

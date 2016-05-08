@@ -13,12 +13,14 @@ public class MyRunnableSend implements Runnable {
 	}
 
 	public void run(){
-		boolean entrytested;
+		if(appl.modeService){
+			return;
+		}
 		while (appl.runContinue){
-			entrytested = appl.testEntry();
-			if (!entrytested) {
+			String input = appl.testEntry();
+			if (input!=null) {
 				try {
-					sender.doSend();
+					sender.doSend(input);
 				} catch (NumberOfBytesException e) {
 					//TODO	
 					appl.printModeApplication("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);

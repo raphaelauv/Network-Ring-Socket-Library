@@ -18,30 +18,31 @@ public class Toto {
 		Trans trans1 = new Trans(ringo3);
 		Trans trans2 = new Trans(ringo4);
 		
-		diff1.input("bonjour".getBytes());
-		diff2.input("salut a toi aussi".getBytes());
-		diff1.setVerbose(true);
-		
+		diff1.doSend("bijour");
+		diff2.doSend("salut a toi");
+		//diff1.setVerbose(true);
+		//trans1.setVerbose(true);
 		//ringo1.setVerbose(true);
 		//trans1.setVerbose(true);
-		/*
+		
 		for(int i=0; i<65001 ;i++){
-			diff1.input("bonjour".getBytes());
+			diff1.doSend("bonjour");
 		}
-		*/
-		trans1.input("coco.txt".getBytes());
 		
-		
+		trans1.doSend("coco.txt");
 		
 		
 		System.out.println(new String(diff2.output()));
 		
 		System.out.println(new String(diff1.output()));
 		
-		trans1.output();
+		System.out.println(new String(trans1.output()));
+
 	
-		
-	
+		//trans1.setVerbose(true);
+		//ringo1.setVerbose(true);
+		//trans1.setVerbose(true);
+		//trans2.setVerbose(true);
 		diff1.close();
 		diff2.close();
 		trans1.close();

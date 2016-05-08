@@ -203,8 +203,8 @@ public class Message {
 			return;
 		}
 		
-		byte[] coco=getDataFrom_N_byte(curseur,Ringo.byteSizeIdm);
-		this.idm=byteArrayToLong(coco,Ringo.byteSizeIdm,ByteOrder.LITTLE_ENDIAN);
+		byte[] valIdm=getDataFrom_N_byte(curseur,Ringo.byteSizeIdm);
+		this.idm=byteArrayToLong(valIdm,Ringo.byteSizeIdm,ByteOrder.LITTLE_ENDIAN);
 		
 		curseur+=Ringo.byteSizeIdm;
 		if(type==TypeMessage.WHOS || type==TypeMessage.EYBG){
@@ -588,7 +588,7 @@ public class Message {
 	 * @return 
 	 * @throws Exception
 	 */
-	public static String longToStringRepresentation(long value,int numberOfBytes) throws NumberOfBytesException{
+	public static String intToStringRepresentation(int value,int numberOfBytes) throws NumberOfBytesException{
 		if(value<0){
 			throw new NumberOfBytesException();
 		}

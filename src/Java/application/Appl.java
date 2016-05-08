@@ -13,13 +13,13 @@ import java.util.Scanner;
 
 public class Appl implements Closeable{
 
-	private boolean modeService;
+	protected boolean modeService;
 	private boolean verboseAppl=false;
 	protected boolean runContinue;
 	protected boolean verboseMode;
 	
 	protected String APPLID;
-	protected String input;
+	private String input;
 	
 	protected Thread ThRecev;
 	protected Thread ThSend;
@@ -28,7 +28,6 @@ public class Appl implements Closeable{
 	protected RingoSocket ringoSocket;
 	protected final static String style="##############################################################";
 	
-	protected LinkedList<byte []> listInput;	// mode service
 	protected LinkedList<byte []> listOutput; // mode service
 	
 	
@@ -64,20 +63,9 @@ public class Appl implements Closeable{
 		this.APPLID=APPLID;
 		this.verboseMode=false;
 		this.ringoSocket=ringoSocket;
-		this.listInput = new LinkedList<byte []>();
 		this.listOutput=new LinkedList<byte []>();
 		this.runContinue=true;
 		this.modeService=true;
-	}
-	
-	public void input(byte [] content) throws Exception{
-		if(!modeService){
-			throw new Exception();
-		}
-		synchronized (this.listInput) {
-			this.listInput.add(content);
-			this.listInput.notify();
-		}
 	}
 	
 	public byte[] output() throws Exception, InterruptedException{
@@ -187,50 +175,44 @@ public class Appl implements Closeable{
 	 * @throws UnknownTypeMesssage 
 	 * @throws ParseException 
 	 */
-	public boolean testEntry(){
+	public String testEntry(){
 		try {
 			if(!modeService){//mode application
 				input = scan.nextLine();
 			}else{
-				synchronized (this.listInput) {
-					while (this.listInput.isEmpty()) {
-						this.listInput.wait();
-					}
-					input = new String(this.listInput.pop());
-					return false;// mode service
-				}
+				return null;
 			}
 			
 			
 			if(ringoSocket.isClose()){
-				return true;//si l'entity a fermer pendant le nextline()
+				return null;//si l'entity a fermer pendant le nextline()
 			}
 			if (input.equals("tesT")) {
 				printModeApplication("##### ASK FOR TEST #####");
 				ringoSocket.test(false);
-				return true;
+				return null;
 			}
 			else if (input.equals("whoS")) {
 				printModeApplication("##### ASK FOR WHOS #####");
 				ringoSocket.whos();
-				return true;
+				return null;
 			}
 			else if (input.equals("dowN")) {
 				printModeApplication("##### ASK FOR DOWN #####");
 				runContinue = false;
 				ringoSocket.down();
-				return true;
+				return null;
 			}
 			else if (input.equals("disconnecT")) {
 				printModeApplication("##### ASK FOR DISCONNECT #####");
 				ringoSocket.disconnect();
-				return true;
+				return null;
 			}
 			else if(input.equals("closeAppl")){
 				printModeApplication("##### ASK FOR CLOSING #####");
 				ringoSocket.close();
 				runContinue = false;
-				return true;
+				return null;
 			}
 			if (input.startsWith("connecTo ") || input.startsWith("dupl ")) {
 				
@@ -261,40 +243,44 @@ public class Appl implements Closeable{
 				}
 				
 				printModeApplication(" ---> SUCCES");
-				return true;
+				return null;
 			}
+			
+			
+			return input;
 		} catch (UnknownHostException e) {
 			printModeApplication("\nERREUR connecTo : UnknownHost ");
-			return true;
+			
 		} catch (IOException e) {
 			printModeApplication("\nERREUR connecTo : IO - ConnectException");
-			return true;
+			
 		} catch (InterruptedException e) {
 			printModeApplication("\nERREUR connecTo : Interrupted");
-			return true;
+			
 		} catch (NoSuchElementException e) {
 			printModeApplication("\nERREUR connecTo : NoSuchElement");
-			return true;
+			
 		} catch (ProtocolException  |ParseException | UnknownTypeMesssage e ) {
 			printModeApplication("\nERREUR connecTo : Erreur de protocol");
-			return true;
+			
 		} catch (RingoSocketCloseException e) {
 			printModeApplication("\nTHREAD: APP SEND   | DOWNmessageException , the socket is CLOSE");
 			runContinue = false;
-			return true;
+			
 		} catch(StringIndexOutOfBoundsException |NumberFormatException e){
 			printModeApplication("\nERREUR connecTo : Erreur format IP ou port invalide");
-			return true;
+			
 		} catch (AlreadyConnectException e) {
 			printModeApplication("\nERREUR connecTo : deja connecter , utiliser disconnecT ou Dupl");
-			return true;
+			
 		} catch (ImpossibleDUPLConnection e) {
 			printModeApplication("\nERREUR connecTo : impossible to connect To Dupl entity");
-			return true;
+			
 		}catch(Exception e){
-			e.printStackTrace();
+			e.printStackTrace();//TODO
 		}
-		return false;
+		return null;
+
 	}
 	
 	/**
