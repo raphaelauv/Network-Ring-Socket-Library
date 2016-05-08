@@ -10,10 +10,13 @@ list :
 compil :
 	javac  -classpath "${CLASSPATH}" @sources_J.makeJava
 
+
+
 clean:
-	$(shell find . -type f -name \*.class -delete)
+	$(shell echo 'find  ./Java -type f -name \*.class -delete')  
+	rm -f  sources_J.makeJava
 
-
+	
 c :
 
 
