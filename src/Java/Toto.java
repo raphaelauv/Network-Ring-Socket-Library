@@ -24,11 +24,11 @@ public class Toto {
 		//trans1.setVerbose(true);
 		//ringo1.setVerbose(true);
 		//trans1.setVerbose(true);
-		
+		/*
 		for(int i=0; i<65001 ;i++){
 			diff1.doSend("bonjour");
 		}
-		
+		*/
 		trans1.doSend("coco.txt");
 		
 		
