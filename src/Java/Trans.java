@@ -340,6 +340,10 @@ public class Trans extends Appl implements ReceveSend {
 			long endTime   = System.currentTimeMillis();
 			if (!ROKisComeBackBool) {
 				printModeApplication("ROK is not comeback in time : "+timeMax);
+				synchronized (listOutput) {
+				listOutput.add("File not present on the RING".getBytes());
+				listOutput.notify();
+			}
 			}else{
 				long totalTime = endTime - startTime;
 				printModeApplication(style+"\nTIME WAITED :"+totalTime+"\n");
