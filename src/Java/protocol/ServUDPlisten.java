@@ -91,7 +91,7 @@ class ServUDPlisten {
 				ringoSocket.send(Message.EYBG(this.ringoSocket.getUniqueIdm()));
 				ringoSocket.EYBG_Acces.acquire(); //pour attendre que EYBG soit bien envoyer
 				
-				ringoSocket.UDP_ipPort_Acces.acquire();
+				ringoSocket.UDP_MULTI_ipPort_Acces.acquire();
 				ringoSocket.principal.ipUdp=msgR.getIp_succ();
 				ringoSocket.principal.portUdp=msgR.getPort_succ();
 				
@@ -102,7 +102,7 @@ class ServUDPlisten {
 					}
 					//TODO
 				}
-				ringoSocket.UDP_ipPort_Acces.release();
+				ringoSocket.UDP_MULTI_ipPort_Acces.release();
 				return;
 			}
 		}

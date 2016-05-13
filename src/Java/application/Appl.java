@@ -80,6 +80,7 @@ public class Appl implements Closeable{
 		}
 	}
 	
+	
 	public void close() throws IOException{
 		runContinue = false;
 		ringoSocket.close();

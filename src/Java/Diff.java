@@ -29,9 +29,9 @@ public class Diff extends Appl implements ReceveSend {
 		byte[] msgInByte =msg.getData_app();
 		int taille = Integer.parseInt(new String(msgInByte, 0, byteSizeMess));
 		String message = new String(msgInByte, 4, taille);
-		if(super.listOutput!=null){
+		if(super.modeService){
 			synchronized (listOutput) {
-				listOutput.add(msgInByte);
+				listOutput.addLast(msgInByte);
 				listOutput.notify();
 			}
 		}else{

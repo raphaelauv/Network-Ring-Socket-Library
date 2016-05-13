@@ -74,7 +74,7 @@ public class RingoSocket implements Ringo {
 	 */
 	Semaphore tcpAcces;
 	Semaphore EYBG_Acces;
-	Semaphore UDP_ipPort_Acces;
+	Semaphore UDP_MULTI_ipPort_Acces;
 	Semaphore idmAcces;
 	Object EYBGisArrive=new Object();//mutex
 	boolean EYBGisArriveBool;
@@ -148,7 +148,7 @@ public class RingoSocket implements Ringo {
 		this.boolDisconnect =true;
 		this.tcpAcces=new Semaphore(1);
 		this.idmAcces=new Semaphore(1);
-		this.UDP_ipPort_Acces = new Semaphore(1);
+		this.UDP_MULTI_ipPort_Acces = new Semaphore(1);
 		this.EYBG_Acces= new Semaphore(0);
 		this.idmActuel=0L;
 		
@@ -237,10 +237,10 @@ public class RingoSocket implements Ringo {
 			printVerbose("EYBG comeback ? :"+EYBGisArriveBool);
 			boolDisconnect=true;
 			
-			UDP_ipPort_Acces.acquire();
+			UDP_MULTI_ipPort_Acces.acquire();
 			this.principal.ipUdp=this.ip;
 			this.principal.portUdp=this.listenPortUDP;
-			UDP_ipPort_Acces.release();
+			UDP_MULTI_ipPort_Acces.release();
 			
 			printVerbose("DISCONNECT DONE");
 			return;
@@ -417,7 +417,7 @@ public class RingoSocket implements Ringo {
 			throw e;
 		}
 		
-		this.UDP_ipPort_Acces.acquire();
+		this.UDP_MULTI_ipPort_Acces.acquire();
 		
 		
 		Message msg3 = null;
@@ -426,7 +426,7 @@ public class RingoSocket implements Ringo {
 			msg3 = Message.parseMessage(tmp);
 		} catch (UnknownTypeMesssage | ParseException | IOException e) {
 			this.tcpAcces.release();
-			this.UDP_ipPort_Acces.release();
+			this.UDP_MULTI_ipPort_Acces.release();
 			buffOut.close();
 			buffIn.close();
 			socket.close();
@@ -448,7 +448,7 @@ public class RingoSocket implements Ringo {
 			buffOut.close();
 			buffIn.close();
 			socket.close();
-			this.UDP_ipPort_Acces.release();
+			this.UDP_MULTI_ipPort_Acces.release();
 			this.tcpAcces.release();
 			throw new ProtocolException();
 		}
@@ -468,7 +468,7 @@ public class RingoSocket implements Ringo {
 		buffOut.close();
 		buffIn.close();
 		socket.close();
-		this.UDP_ipPort_Acces.release();
+		this.UDP_MULTI_ipPort_Acces.release();
 		this.tcpAcces.release();
 	}
 

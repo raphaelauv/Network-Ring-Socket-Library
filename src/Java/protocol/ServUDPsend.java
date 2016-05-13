@@ -15,7 +15,8 @@ class ServUDPsend {
 
 	private DatagramPacket paquet1;
 	private DatagramPacket paquet2;
-	private byte[] dataTosend;
+	private DatagramPacket paquetMulti;
+	private byte[] dataTosend ;
 	
 	public ServUDPsend(RingoSocket ringoSocket) {
 		this.ringoSocket = ringoSocket;
@@ -39,7 +40,7 @@ class ServUDPsend {
 	private void sendMulti(String ip_diff,int port_diff) throws IOException{
 		InetSocketAddress ia=new InetSocketAddress(ip_diff,port_diff);
 		
-		DatagramPacket paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,ia);
+		paquetMulti = new DatagramPacket(dataTosend, dataTosend.length,ia);
 		
 		ringoSocket.printVerbose("Message Envoyer DIFF : "+ msg.toString());
 		ringoSocket.sockSender.send(paquetMulti);
@@ -54,16 +55,16 @@ class ServUDPsend {
 			}
 			this.msg = ringoSocket.listToSend.pop();
 		}
+		ringoSocket.UDP_MULTI_ipPort_Acces.acquire();
 		this.dataTosend = msg.getData();
-
 		if (msg.isMulti()) {
 			for(MultiChanel mc : ringoSocket.servMulti.listMultiChannel){
 				sendMulti(mc.entityinfo.ip_diff,mc.entityinfo.port_diff);
 			}
+			ringoSocket.UDP_MULTI_ipPort_Acces.release();
 			return;
 		} else {
 			
-			ringoSocket.UDP_ipPort_Acces.acquire();
 			
 			try{
 				ringoSocket.printVerbose("Message Envoyer : "+ msg.toString());
@@ -89,10 +90,10 @@ class ServUDPsend {
 				}
 				
 			}catch(IOException e){
-				ringoSocket.UDP_ipPort_Acces.release();
+				ringoSocket.UDP_MULTI_ipPort_Acces.release();
 				throw e;
 			}
-			ringoSocket.UDP_ipPort_Acces.release();
+			ringoSocket.UDP_MULTI_ipPort_Acces.release();
 		}
 		
 		// Pour debloquer l'attente de changement de port

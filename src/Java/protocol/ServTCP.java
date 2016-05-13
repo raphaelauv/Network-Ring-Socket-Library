@@ -98,7 +98,7 @@ class ServTCP {
 			buffOut.flush();
 
 			ringoSocket.printVerbose("TCP : message SEND   : " + msg3.toString());
-			ringoSocket.UDP_ipPort_Acces.acquire();
+			ringoSocket.UDP_MULTI_ipPort_Acces.acquire();
 			if (modeDUPL) {
 
 				ringoSocket.secondaire = ringoSocket.new EntityInfo(msg2.getIp(), msg2.getPort(), msg2.getIp_diff(),
@@ -109,7 +109,7 @@ class ServTCP {
 				ringoSocket.principal.ipUdp = msg2.getIp();
 				ringoSocket.principal.portUdp = msg2.getPort();
 			}
-			ringoSocket.UDP_ipPort_Acces.release();
+			ringoSocket.UDP_MULTI_ipPort_Acces.release();
 			buffOut.close();
 			buffIn.close();
 
