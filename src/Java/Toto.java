@@ -1,3 +1,10 @@
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
+
+import application.Diff;
+import application.Trans;
+import protocol.Message;
 import protocol.RingoSocket;
 public class Toto {
 
@@ -23,6 +30,7 @@ public class Toto {
 		Diff diff3 = new Diff(ringo5);
 				
 
+		
 		diff1.doSend("bijour");
 		diff2.doSend("salut a toi");
 		//diff1.setVerbose(true);
@@ -55,11 +63,47 @@ public class Toto {
 		//trans1.setVerbose(true);
 		//trans2.setVerbose(true);
 		
+		
+		
 		diff1.close();
 		diff2.close();
 		trans1.close();
 		trans2.close();
 		diff3.close();
+		
+		
+		
+		
+		String idApp="LAMBDA##";
+		RingoSocket ringoManuel = new RingoSocket(idApp, 4450, 7788, 9999,true);
+		RingoSocket ringoManuel2 = new RingoSocket(idApp, 4455, 7789, 9999,true);
+		RingoSocket ringoManuel3 = new RingoSocket(idApp, 4465, 7799, 9999,true);
+
+		
+		ringoManuel.connectTo("localhost", 7789, false);
+		ringoManuel3.connectTo("localhost", 7789, true);
+		
+		ringoManuel.test(false);
+		
+		HashMap<InetSocketAddress, String> members=ringoManuel.whos();
+		
+		for (Map.Entry<InetSocketAddress, String> entry : members.entrySet()) {
+		    System.out.println(entry.getKey()+" : "+entry.getValue());
+		}
+		
+		ringoManuel.isClose();
+		
+		ringoManuel.send(Message.APPL(ringoManuel.getUniqueIdm(),idApp , "juste pour le fun".getBytes()));
+		
+		Message recu=ringoManuel2.receive();
+		
+		System.out.println(new String(recu.getData_app()));
+		
+		ringoManuel2.disconnect();//TODO
 	
+		ringoManuel.down();
+		
+	
+		System.out.println(ringoManuel.isClose());//TODO
 	}
 }

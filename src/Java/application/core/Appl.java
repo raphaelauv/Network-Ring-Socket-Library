@@ -1,4 +1,4 @@
-package application;
+package application.core;
 
 import protocol.*;
 import protocol.exceptions.*;

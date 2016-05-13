@@ -1,4 +1,4 @@
-package application;
+package application.core;
 
 import protocol.exceptions.*;
 import java.io.IOException;

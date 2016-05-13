@@ -1,4 +1,5 @@
-import java.util.concurrent.locks.LockSupport;
+package application;
+
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import java.io.BufferedInputStream;
@@ -16,7 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import protocol.*;
 import protocol.exceptions.*;
-import application.*;
+import application.core.*;
 
 public class Trans extends Appl implements ReceveSend {
 

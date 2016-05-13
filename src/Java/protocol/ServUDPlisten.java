@@ -68,7 +68,7 @@ class ServUDPlisten {
 						return;
 				}
 				else{
-					ringoSocket.send(Message.MEMB(this.ringoSocket.getUniqueIdm(),ringoSocket.idApp,ringoSocket.ip, ringoSocket.principal.portUdp));
+					ringoSocket.send(Message.MEMB(this.ringoSocket.getUniqueIdm(),ringoSocket.idApp,ringoSocket.ip, ringoSocket.listenPortUDP));
 				}
 			}
 		}
@@ -81,9 +81,6 @@ class ServUDPlisten {
 		}
 		ringoSocket.printVerbose("Message Recu    : " + msgR.toString());
 
-		if (msgR.getType() == TypeMessage.MEMB) {
-			
-		}
 		
 		if (msgR.getType() == TypeMessage.GBYE) {
 			if(msgR.getIp().equals(ringoSocket.principal.ipUdp) && msgR.getPort().equals(ringoSocket.principal.portUdp)){

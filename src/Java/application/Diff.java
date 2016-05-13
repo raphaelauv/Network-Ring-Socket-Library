@@ -1,9 +1,11 @@
+package application;
+
 import java.io.IOException;
 import java.net.BindException;
 import java.time.LocalDateTime;
 import protocol.*;
 import protocol.exceptions.*;
-import application.*;
+import application.core.*;
 
 public class Diff extends Appl implements ReceveSend {
 
