@@ -3,7 +3,6 @@ import protocol.exceptions.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 
 /**
@@ -66,26 +65,28 @@ public interface Ringo extends Closeable{
 	public void close() throws IOException;
 	
 	/**
-	 * Pour s'inserer dans un anneau
+	 * pour s'inserer dans un anneau
 	 * @param adresse
 	 * @param idTCP
 	 * @param modeDUPL
-	 * @throws AlreadyAllUdpPortSet
-	 * @throws UnknownHostException
-	 * @throws IOException
+	 * @throws ParseException
 	 * @throws RingoSocketCloseException
 	 * @throws ProtocolException
 	 * @throws InterruptedException
 	 * @throws AlreadyConnectException
 	 * @throws ImpossibleDUPLConnection
+	 * @throws IOException
 	 * @throws UnknownTypeMesssage
-	 * @throws ParseException
 	 */
-	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
-			throws AlreadyAllUdpPortSet, UnknownHostException, IOException, RingoSocketCloseException, 
-			ProtocolException, InterruptedException, AlreadyConnectException ,ImpossibleDUPLConnection, 
-			UnknownTypeMesssage, ParseException;
+	public void connect(String adresse, int idTCP,boolean modeDUPL)
+			throws ParseException, RingoSocketCloseException, ProtocolException, 
+			InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException, UnknownTypeMesssage;
 
+	
+	public void connect(RingoSocket ringo,boolean modeDUPL) 
+			throws ParseException, RingoSocketCloseException, ProtocolException, 
+			InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException, UnknownTypeMesssage;
+	
 	/**
 	 * Pour demander l'envoi d'un message a l'entite id
 	 * @param message

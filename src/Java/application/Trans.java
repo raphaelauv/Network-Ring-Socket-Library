@@ -160,9 +160,11 @@ public class Trans extends Appl implements ReceveSend {
 			printModeApplication("problem d'ordre");
 			printModeApplication("valeur attentdu "+value.actual_no_mess);
 			printModeApplication("valeur recu "+no_mess);
-			synchronized (listOutput) {
-				listOutput.add("error transfert".getBytes());
-				listOutput.notify();
+			if(modeService){
+				synchronized (listOutput) {
+					listOutput.add("error transfert".getBytes());
+					listOutput.notify();
+				}
 			}
 			return true;//TODO quand ordre pas respecter
 		}
@@ -198,10 +200,11 @@ public class Trans extends Appl implements ReceveSend {
 			value.outputStream.close();
 			updateFileList(value.nameFile,value.path);
 			printModeApplication(style+"\ntransfert FINI | new File : "+value.path.getFileName()+"\n"+style);
-			
-			synchronized (listOutput) {
-				listOutput.add("succes transfert".getBytes());
-				listOutput.notify();
+			if(modeService){
+				synchronized (listOutput) {
+					listOutput.add("succes transfert".getBytes());
+					listOutput.notify();
+				}
 			}
 		}
 		return true;
@@ -341,10 +344,13 @@ public class Trans extends Appl implements ReceveSend {
 			long endTime   = System.currentTimeMillis();
 			if (!ROKisComeBackBool) {
 				printModeApplication("ROK is not comeback in time : "+timeMax);
-				synchronized (listOutput) {
-				listOutput.add("File not present on the RING".getBytes());
-				listOutput.notify();
-			}
+				if(modeService){
+					synchronized (listOutput){
+						listOutput.add("File not present on the RING".getBytes());
+						listOutput.notify();
+					}
+				}
+			
 			}else{
 				long totalTime = endTime - startTime;
 				printModeApplication(style+"\nTIME WAITED :"+totalTime+"\n");

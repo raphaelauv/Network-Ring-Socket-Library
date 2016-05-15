@@ -176,7 +176,7 @@ public class Appl implements Closeable{
 	 * @throws UnknownTypeMesssage 
 	 * @throws ParseException 
 	 */
-	public String testEntry(){
+	protected String testEntry(){
 		try {
 			if(!modeService){//mode application
 				input = scan.nextLine();
@@ -238,9 +238,9 @@ public class Appl implements Closeable{
 				int port=Integer.parseInt(info.substring(positionEspace+1,info.length()));
 				printModeApplication(" | TRY TO CONNECT " + ip + " " + port);
 				if(dupl){
-					ringoSocket.connectTo(ip, port, true);
+					ringoSocket.connect(ip, port, true);
 				}else{
-					ringoSocket.connectTo(ip, port,false);
+					ringoSocket.connect(ip, port,false);
 				}
 				
 				printModeApplication(" ---> SUCCES");

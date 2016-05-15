@@ -96,11 +96,6 @@ public class RingoSocket implements Ringo {
 	
 	/*********************************************************************/
 
-
-	public RingoSocket(String idApp, Integer listenUDPport, Integer portTcp,Integer multiPort,boolean modeService) throws IOException, ParseException{
-		this("localhost",idApp,listenUDPport,portTcp,multiPort, modeService);
-	}
-	
 	
 	/**
 	 * Creer une entite RINGO
@@ -343,21 +338,29 @@ public class RingoSocket implements Ringo {
 		send(Message.DOWN());
 	}
 	
-	public void connectTo(String adresse, int idTCP,boolean modeDUPL)
+	
+	
+	public void connect(RingoSocket ringo,boolean modeDUPL) 
+			throws ParseException, RingoSocketCloseException, ProtocolException, 
+			InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException, UnknownTypeMesssage{
+		this.connect(ringo.ip,ringo.portTcp,modeDUPL);
+	}
+	
+	public void connect(String adresse, int TCP,boolean modeDUPL)
 			throws ParseException, RingoSocketCloseException, ProtocolException, 
 			InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException ,UnknownTypeMesssage {
 		
 		testClose();
 		adresse=Message.convertIP(adresse);
 		
-		if(!boolDisconnect || idTCP==this.portTcp){
+		if(!boolDisconnect || TCP==this.portTcp){
 			throw new AlreadyConnectException();
 		}
 		tcpAcces.acquire();
 		
 		Socket socket;
 		try {
-			socket = new Socket(adresse, idTCP);
+			socket = new Socket(adresse, TCP);
 		} catch (UnknownHostException e) {
 			tcpAcces.release();
 			throw e;
@@ -365,7 +368,7 @@ public class RingoSocket implements Ringo {
 			tcpAcces.release();
 			throw e;
 		}
-		printVerbose("Conecter en TCP a :" + adresse + " sur port : " + idTCP);
+		printVerbose("Conecter en TCP a :" + adresse + " sur port : " + TCP);
 
 		BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
 		BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
