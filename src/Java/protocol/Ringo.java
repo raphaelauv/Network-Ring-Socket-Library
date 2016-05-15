@@ -88,9 +88,8 @@ public interface Ringo extends Closeable{
 			InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException, UnknownTypeMesssage;
 	
 	/**
-	 * Pour demander l'envoi d'un message a l'entite id
+	 * Pour demander l'envoi d'un message
 	 * @param message
-	 * @param id
 	 * @throws SizeException
 	 */
 	public void send(Message msg) throws RingoSocketCloseException, SizeMessageException;

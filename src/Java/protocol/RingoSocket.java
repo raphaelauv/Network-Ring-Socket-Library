@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 import protocol.exceptions.AlreadyConnectException;
 import protocol.exceptions.ImpossibleDUPLConnection;
 import protocol.exceptions.ParseException;
@@ -90,7 +91,7 @@ public class RingoSocket implements Ringo {
 	
 	private byte [] idmStart;
 	private Long idmActuel;
-	boolean boolClose;
+	AtomicBoolean boolClose;
 	boolean boolDisconnect;
 	private boolean verboseMode;
 	
@@ -120,12 +121,7 @@ public class RingoSocket implements Ringo {
 		this.listenPortUDP = listenUDPport;
 		
 		this.principal=new EntityInfo(this.ip, this.listenPortUDP,Message.convertIP("225.1.2.4"),multiPort);
-		/*
-		this.ipPortUDP1 = this.ip;
-		this.ipPortUDPdupl = null;
-		this.portUDP1 = this.listenPortUDP;
-		this.portUDPdupl = null;
-		*/
+
 		this.sockServerTCP = new ServerSocket(portTcp);
 		this.sockSender = new DatagramSocket();
 		this.sockRecever = new DatagramSocket(listenUDPport);
@@ -139,7 +135,7 @@ public class RingoSocket implements Ringo {
 		this.IdAlreadyReceveUDP1 = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
 		this.EYBGisArriveBool= false;
 		this.isDUPL=false;
-		this.boolClose = false;
+		this.boolClose = new AtomicBoolean(false);
 		this.boolDisconnect =true;
 		this.tcpAcces=new Semaphore(1);
 		this.idmAcces=new Semaphore(1);
@@ -153,15 +149,11 @@ public class RingoSocket implements Ringo {
 		 * THREADS
 		 */
 		this.servMulti =new ServMULTI(this,principal);
-		this.ThRecev = new Thread(new ServUDPlisten(this).runServUDPlisten);
-		this.ThSend = new Thread(new ServUDPsend(this).runServUDPsend);
-		this.ThServTCP = new Thread(new ServTCP(this).runServTcp);
-		this.ThMULTIrecev = new Thread(servMulti.runServMULTI);
+		this.ThRecev = new Thread(new ServUDPlisten(this),"Receve UDP");
+		this.ThSend = new Thread(new ServUDPsend(this),"Send UDP  ");
+		this.ThServTCP = new Thread(new ServTCP(this),"Server TCP");
+		this.ThMULTIrecev = new Thread(servMulti,"MULTI-DIFF");
 
-		this.ThRecev.setName("Receve UDP");
-		this.ThSend.setName("Send UDP  ");
-		this.ThServTCP.setName("Server TCP");
-		this.ThMULTIrecev.setName("MULTI-DIFF");
 
 		if(modeService){
 			this.ThRecev.setDaemon(true);
@@ -185,7 +177,7 @@ public class RingoSocket implements Ringo {
 	 */
 	void closeRingoSocket(boolean modeDOWN) throws IOException {
 
-		this.boolClose = true;
+		this.boolClose.set(true);;
 		this.sockRecever.close();
 		this.sockServerTCP.close();
 		
@@ -202,10 +194,7 @@ public class RingoSocket implements Ringo {
 					listToSend.notify();
 					try {
 						listToSend.wait();
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}	
+					} catch (InterruptedException e) {}
 				}
 				this.sockSender.close();
 				this.ThSend.interrupt();
@@ -266,7 +255,7 @@ public class RingoSocket implements Ringo {
 	 * @throws RingoSocketCloseException si la ringoSocket est fermer
 	 */
 	void testClose() throws RingoSocketCloseException {
-		if (boolClose) {
+		if (boolClose.get()) {
 			throw new RingoSocketCloseException();
 		}
 	}

@@ -8,33 +8,30 @@ import java.util.concurrent.ConcurrentHashMap;
 import protocol.ServMULTI.MultiChanel;
 import protocol.exceptions.RingoSocketCloseException;
 
-class ServUDPsend {
+class ServUDPsend implements Runnable{
 	private RingoSocket ringoSocket;
-	Runnable runServUDPsend;
 	private Message msg;
-
 	private DatagramPacket paquet1;
 	private DatagramPacket paquet2;
 	private DatagramPacket paquetMulti;
 	private byte[] dataTosend ;
 	
+	public void run() {
+		boolean erreur = false;
+		while (!erreur) {
+			try {
+				ringoSocket.testClose();
+				sendMessage();
+			} catch (InterruptedException | IOException | RingoSocketCloseException e) {
+				erreur = true;
+				ringoSocket.boolClose.set(true);;
+			}
+		}
+		ringoSocket.printVerbose("END");
+	}
+	
 	public ServUDPsend(RingoSocket ringoSocket) {
 		this.ringoSocket = ringoSocket;
-		this.runServUDPsend = new Runnable() {
-			public void run() {
-				boolean erreur = false;
-				while (!erreur) {
-					try {
-						ringoSocket.testClose();
-						sendMessage();
-					} catch (InterruptedException | IOException | RingoSocketCloseException e) {
-						erreur = true;
-						ringoSocket.boolClose=true;
-					}
-				}
-				ringoSocket.printVerbose("END");
-			}
-		};
 	}
 
 	private void sendMulti(String ip_diff,int port_diff) throws IOException{

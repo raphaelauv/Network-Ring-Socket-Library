@@ -3,35 +3,36 @@ import protocol.exceptions.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 
-class ServTCP {
+class ServTCP implements Runnable{
 
 	private RingoSocket ringoSocket;
-	Runnable runServTcp;
-	
+	ServerSocket sockServerTCP;
 	ServTCP(RingoSocket ringoSocket) {
 		this.ringoSocket=ringoSocket;
-		this.runServTcp= new Runnable() {
-			public void run() {
-				boolean erreur = false;
-				while (!erreur) {
-					try {
-						serv();
-					} catch (IOException | InterruptedException | ParseException e) {
-						try {
-							ringoSocket.testClose();
-						} catch (RingoSocketCloseException e1) {
-							erreur = true;
-							ringoSocket.boolClose=true;
-						}
-					}
-				}
-				ringoSocket.printVerbose("END");
-				ringoSocket.boolClose=true;
-			}
-		};
 	}
+	
+	public void run(){
+		boolean erreur = false;
+		while (!erreur) {
+			try {
+				serv();
+			} catch (IOException | InterruptedException | ParseException e) {
+				try {
+					ringoSocket.testClose();
+				} catch (RingoSocketCloseException e1) {
+					erreur = true;
+					ringoSocket.boolClose.set(true);;
+				}
+			}
+		}
+		ringoSocket.printVerbose("END");
+		ringoSocket.boolClose.set(true);;
+	}
+	
+	
 		
 	/**
 	 * Serv in TCP to accept an entrance TCP connection

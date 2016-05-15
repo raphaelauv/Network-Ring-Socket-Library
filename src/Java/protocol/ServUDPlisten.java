@@ -5,27 +5,27 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 
-class ServUDPlisten {
+class ServUDPlisten implements Runnable{
 	private RingoSocket ringoSocket;
-	Runnable runServUDPlisten;
+	
 	
 	public ServUDPlisten(RingoSocket ringoSocket) {
 		this.ringoSocket = ringoSocket;
-		this.runServUDPlisten=new Runnable() {
-			public void run() {
-				boolean erreur = false;
-				while (!erreur) {
-					try {
-						ringoSocket.testClose();
-						receveMessage();
-					} catch (IOException | InterruptedException | RingoSocketCloseException | ParseException e) {
-						erreur = true;
-						ringoSocket.boolClose=true;
-					}
-				}
-				ringoSocket.printVerbose("END");
+	}
+	
+	@Override
+	public void run() {
+		boolean erreur = false;
+		while (!erreur) {
+			try {
+				ringoSocket.testClose();
+				receveMessage();
+			} catch (IOException | InterruptedException | RingoSocketCloseException | ParseException e) {
+				erreur = true;
+				ringoSocket.boolClose.set(true);;
 			}
-		};	
+		}
+		ringoSocket.printVerbose("END");
 	}
 	
 	private void receveMessage() throws IOException, InterruptedException, RingoSocketCloseException, ParseException {
@@ -129,4 +129,6 @@ class ServUDPlisten {
 			ringoSocket.listToSend.notify();
 		}
 	}
+
+	
 }

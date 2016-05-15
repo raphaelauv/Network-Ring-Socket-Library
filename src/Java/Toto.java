@@ -82,6 +82,8 @@ public class Toto {
 		    System.out.println(entry.getKey()+" : "+entry.getValue());
 		}
 		
+		
+		
 		ringoManuel.isClose();
 		
 		ringoManuel.send(Message.APPL(ringoManuel.getUniqueIdm(),idApp , "juste pour le fun".getBytes()));

@@ -19,10 +19,7 @@ import java.util.LinkedList;
 import protocol.RingoSocket.EntityInfo;
 import protocol.exceptions.RingoSocketCloseException;
 
-class ServMULTI {
-	
-	MultiChanel multiRing;
-	LinkedList<MultiChanel> listMultiChannel;
+class ServMULTI implements Runnable{
 	
 	class MultiChanel{
 		EntityInfo entityinfo;
@@ -38,11 +35,13 @@ class ServMULTI {
 		}
 	}
 	
+
+	MultiChanel multiRing;
+	LinkedList<MultiChanel> listMultiChannel;
 	Selector sel;
 	
 	Object registeringSync = new Object(); //mutex contre deadlock avec wakeup
 	private RingoSocket ringoSocket;
-	Runnable runServMULTI;
 	boolean erreur;
 	
 	ServMULTI(RingoSocket ringoSocket,EntityInfo entityinfo) throws IOException{
@@ -52,22 +51,21 @@ class ServMULTI {
 		this.erreur = false;
 		this.sel = Selector.open();
 		this.multiRing=addMultiDiff(entityinfo);
-		
-		this.runServMULTI = new Runnable() {
-			public void run() {
-				while (!erreur) {
-					try {
-						ringoSocket.testClose();
-						receveMULTI();
-					} catch (RingoSocketCloseException | IOException | InterruptedException |ClosedSelectorException e) {
-						erreur = true;
-						ringoSocket.boolClose=true;
-						try {sel.close();} catch (IOException e1) {}
-					}
-				}
-				ringoSocket.printVerbose("END");
+	}
+	
+	public void run(){
+
+		while (!erreur) {
+			try {
+				ringoSocket.testClose();
+				receveMULTI();
+			} catch (RingoSocketCloseException | IOException | InterruptedException |ClosedSelectorException e) {
+				erreur = true;
+				ringoSocket.boolClose.set(true);;
+				try {sel.close();} catch (IOException e1) {}
 			}
-		};
+		}
+		ringoSocket.printVerbose("END");
 	}
 	
 	MultiChanel addMultiDiff(EntityInfo entityinfo) throws IOException{
