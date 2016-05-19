@@ -17,6 +17,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import protocol.ServMULTI.MultiChanel;
 import protocol.exceptions.AlreadyConnectException;
 import protocol.exceptions.ImpossibleDUPLConnection;
 import protocol.exceptions.ParseException;
@@ -43,10 +45,10 @@ public class RingoSocket implements Ringo {
 	/********************************************************************
 	 * NETWORK
 	 */
-	String idApp;
-	String ip;
-	Integer portTcp;
-	Integer listenPortUDP;
+	final String idApp;
+	final String ip;
+	final Integer portTcp;
+	final Integer listenPortUDP;
 	
 	EntityInfo principal ;
 	EntityInfo secondaire ;
@@ -78,11 +80,11 @@ public class RingoSocket implements Ringo {
 	Semaphore UDP_MULTI_ipPort_Acces;
 	Semaphore idmAcces;
 	Object EYBGisArrive=new Object();//mutex
-	boolean EYBGisArriveBool;
+	AtomicBoolean EYBGisArriveBool=new AtomicBoolean();
 	Object TESTisComeBack=new Object();//mutex
-	boolean TESTisComeBackBool;
+	AtomicBoolean TESTisComeBackBool=new AtomicBoolean();
 	Long ValTest;
-	Boolean isDUPL;
+	AtomicBoolean isDUPL;
 	
 	Set<Long> IdAlreadyReceveUDP1;// hashSet contenant les id deja croise
 	LinkedList<Message> listForApply; // liste des message recu qui sont pour cette ID
@@ -91,9 +93,10 @@ public class RingoSocket implements Ringo {
 	
 	private byte [] idmStart;
 	private Long idmActuel;
+	
+	private AtomicBoolean verboseMode;
 	AtomicBoolean boolClose;
-	boolean boolDisconnect;
-	private boolean verboseMode;
+	AtomicBoolean boolDisconnect;
 	
 	/*********************************************************************/
 
@@ -133,10 +136,11 @@ public class RingoSocket implements Ringo {
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
 		this.IdAlreadyReceveUDP1 = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
-		this.EYBGisArriveBool= false;
-		this.isDUPL=false;
+		this.EYBGisArriveBool= new AtomicBoolean(false);
+		this.isDUPL=new AtomicBoolean(false);
+		this.verboseMode = new AtomicBoolean(false);
 		this.boolClose = new AtomicBoolean(false);
-		this.boolDisconnect =true;
+		this.boolDisconnect =new AtomicBoolean(true);
 		this.tcpAcces=new Semaphore(1);
 		this.idmAcces=new Semaphore(1);
 		this.UDP_MULTI_ipPort_Acces = new Semaphore(1);
@@ -148,7 +152,7 @@ public class RingoSocket implements Ringo {
 		/********************************************************************
 		 * THREADS
 		 */
-		this.servMulti =new ServMULTI(this,principal);
+		this.servMulti =new ServMULTI(this,this.principal);
 		this.ThRecev = new Thread(new ServUDPlisten(this),"Receve UDP");
 		this.ThSend = new Thread(new ServUDPsend(this),"Send UDP  ");
 		this.ThServTCP = new Thread(new ServTCP(this),"Server TCP");
@@ -209,17 +213,30 @@ public class RingoSocket implements Ringo {
 		this.ThMULTIrecev.interrupt();
 		
 	}
+	
+	void duplClose(EntityInfo entityinfo) throws InterruptedException{
+		
+		UDP_MULTI_ipPort_Acces.acquire();
+		if(this.principal==entityinfo){
+			this.principal=this.secondaire;
+		}
+		this.secondaire=null;
+		this.isDUPL.set(false);;
+		
+		UDP_MULTI_ipPort_Acces.release();
+		
+	}
 
 	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException{
 		testClose();
 		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.principal.ipUdp, this.principal.portUdp);
 		send(msg);
 		synchronized (this.EYBGisArrive) {
-			this.EYBGisArriveBool = false;
+			this.EYBGisArriveBool.set(false);
 			printVerbose("WAITING for EYBG message");
 			this.EYBGisArrive.wait(maximumWaitTimeMessage); // attend que EYBG soit arriver a l'entite
 			printVerbose("EYBG comeback ? :"+EYBGisArriveBool);
-			boolDisconnect=true;
+			boolDisconnect.set(true);;
 			
 			UDP_MULTI_ipPort_Acces.acquire();
 			this.principal.ipUdp=this.ip;
@@ -235,7 +252,7 @@ public class RingoSocket implements Ringo {
 		if(isClose()){
 			return;
 		}
-		if(boolDisconnect){
+		if(boolDisconnect.get()){
 			//already disconnect
 			closeRingoSocket(false);
 		}
@@ -272,16 +289,15 @@ public class RingoSocket implements Ringo {
 	public HashMap<InetSocketAddress,String> whos() throws RingoSocketCloseException, InterruptedException, ParseException{
 		testClose();
 		long idm=getUniqueIdm();
-		Message whos;
-		whos=Message.WHOS(idm);
+		Message whos=Message.WHOS(idm);
 		
 		synchronized (this.TESTisComeBack) {
 			this.ValTest=idm;
-			this.TESTisComeBackBool= false;
+			this.TESTisComeBackBool.set(false);;
 			send(whos);
 			printVerbose("WAITING for WHOS message");
 			this.TESTisComeBack.wait(maximumWaitTimeMessage); // attend que EYBG soit arriver a l'entite
-			if (!TESTisComeBackBool){
+			if (!TESTisComeBackBool.get()){
 				printVerbose("message WHOS is NOT comeback");
 				return null;
 			}else{
@@ -307,11 +323,11 @@ public class RingoSocket implements Ringo {
 		
 		synchronized (this.TESTisComeBack) {
 			this.ValTest=idm;
-			this.TESTisComeBackBool= false;
+			this.TESTisComeBackBool.set(false);;
 			send(test);
 			printVerbose("WAITING for TEST message");
 			this.TESTisComeBack.wait(maximumWaitTimeMessage); // attend que EYBG soit arriver a l'entite
-			if (!TESTisComeBackBool) {
+			if (!TESTisComeBackBool.get()) {
 				printVerbose("message TEST is NOT comeback");
 				if (sendDownIfBreak) {
 					down();
@@ -328,7 +344,6 @@ public class RingoSocket implements Ringo {
 	}
 	
 	
-	
 	public void connect(RingoSocket ringo,boolean modeDUPL) 
 			throws ParseException, RingoSocketCloseException, ProtocolException, 
 			InterruptedException, AlreadyConnectException, ImpossibleDUPLConnection, IOException, UnknownTypeMesssage{
@@ -342,7 +357,7 @@ public class RingoSocket implements Ringo {
 		testClose();
 		adresse=Message.convertIP(adresse);
 		
-		if(!boolDisconnect || TCP==this.portTcp){
+		if(!boolDisconnect.get() || TCP==this.portTcp){
 			throw new AlreadyConnectException();
 		}
 		tcpAcces.acquire();
@@ -370,7 +385,6 @@ public class RingoSocket implements Ringo {
 			 * //TODO if (sizeReturn != 47) { socket.close(); throw new
 			 * ProtocolException(); } tmp = Arrays.copyOfRange(tmp, 0, 46);
 			 */
-			
 			try {
 				msg1 = Message.parseMessage(tmp);
 			} catch (ParseException | UnknownTypeMesssage e1) {
@@ -456,7 +470,7 @@ public class RingoSocket implements Ringo {
 			
 			this.servMulti.updateMulti(this.principal);
 		}
-		this.boolDisconnect = false;
+		this.boolDisconnect.set(false);
 		buffOut.close();
 		buffIn.close();
 		socket.close();
@@ -490,7 +504,7 @@ public class RingoSocket implements Ringo {
 
 		
 	public void setVerbose(boolean verbose){
-		this.verboseMode=verbose;
+		this.verboseMode.set(verbose);
 	}
 	
 	/**
@@ -525,7 +539,7 @@ public class RingoSocket implements Ringo {
 	 * @param toPrint text a afficher
 	 */
 	void printVerbose(String toPrint) {
-		if (verboseMode) {
+		if (verboseMode.get()) {
 			System.out.println(threadToString() + toPrint);
 		}
 	}

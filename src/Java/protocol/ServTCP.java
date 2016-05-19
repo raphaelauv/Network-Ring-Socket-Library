@@ -9,7 +9,7 @@ import java.net.Socket;
 class ServTCP implements Runnable{
 
 	private RingoSocket ringoSocket;
-	ServerSocket sockServerTCP;
+
 	ServTCP(RingoSocket ringoSocket) {
 		this.ringoSocket=ringoSocket;
 	}
@@ -20,14 +20,13 @@ class ServTCP implements Runnable{
 			try {
 				serv();
 			} catch (IOException | InterruptedException | ParseException e) {
-				try {
-					ringoSocket.testClose();
-				} catch (RingoSocketCloseException e1) {
-					erreur = true;
-					ringoSocket.boolClose.set(true);;
-				}
+				
+			} catch (RingoSocketCloseException e) {
+				erreur = true;
+				ringoSocket.boolClose.set(true);;
 			}
 		}
+		try {ringoSocket.sockServerTCP.close();} catch (IOException e) {}
 		ringoSocket.printVerbose("END");
 		ringoSocket.boolClose.set(true);;
 	}
@@ -43,8 +42,9 @@ class ServTCP implements Runnable{
 	 * @throws ParseException 
 	 * @throws RingoSocketCloseException
 	 */
-	private void serv() throws IOException, InterruptedException, ParseException {
+	private void serv() throws IOException, InterruptedException, ParseException, RingoSocketCloseException {
 
+		ringoSocket.testClose();
 		Socket socket = ringoSocket.sockServerTCP.accept();
 		ringoSocket.tcpAcces.acquire();
 		byte[] tmpMsg2 = new byte[Ringo.maxSizeMsg];
@@ -55,7 +55,7 @@ class ServTCP implements Runnable{
 			BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
 
 			Message msg1;
-			if (ringoSocket.isDUPL) {
+			if (ringoSocket.isDUPL.get()) {
 				msg1 = Message.NOTC();
 			} else {
 				msg1 = Message.WELC(ringoSocket.ip, ringoSocket.principal.portUdp, ringoSocket.principal.ip_diff,
@@ -65,7 +65,7 @@ class ServTCP implements Runnable{
 			buffOut.write(msg1.getData());
 			buffOut.flush();
 
-			if (ringoSocket.isDUPL) {
+			if (ringoSocket.isDUPL.get()) {
 				buffOut.close();
 				buffIn.close();
 				return;
@@ -104,7 +104,7 @@ class ServTCP implements Runnable{
 
 				ringoSocket.secondaire = ringoSocket.new EntityInfo(msg2.getIp(), msg2.getPort(), msg2.getIp_diff(),
 						msg2.getPort_diff());
-				ringoSocket.isDUPL = true;
+				ringoSocket.isDUPL.set(true);
 				ringoSocket.servMulti.addMultiDiff(ringoSocket.secondaire);
 			} else {
 				ringoSocket.principal.ipUdp = msg2.getIp();
@@ -120,7 +120,7 @@ class ServTCP implements Runnable{
 		} catch (ParseException | UnknownTypeMesssage e) {
 			ringoSocket.printVerbose("TCP : erreur de protocol\n    message recu : " + new String(tmpMsg2));
 		}
-		ringoSocket.boolDisconnect = false;
+		ringoSocket.boolDisconnect.set(false);
 		ringoSocket.tcpAcces.release();
 
 	}

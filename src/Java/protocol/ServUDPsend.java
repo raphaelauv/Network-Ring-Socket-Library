@@ -27,6 +27,7 @@ class ServUDPsend implements Runnable{
 				ringoSocket.boolClose.set(true);;
 			}
 		}
+		ringoSocket.sockSender.close();
 		ringoSocket.printVerbose("END");
 	}
 	
@@ -81,7 +82,7 @@ class ServUDPsend implements Runnable{
 				this.paquet1 = new DatagramPacket(dataTosend, dataTosend.length,InetAddress.getByName(ringoSocket.principal.ipUdp),ringoSocket.principal.portUdp);
 				ringoSocket.sockSender.send(paquet1);
 				
-				if (ringoSocket.isDUPL){
+				if (ringoSocket.isDUPL.get()){
 					this.paquet2 = new DatagramPacket(dataTosend, dataTosend.length,InetAddress.getByName(ringoSocket.secondaire.ipUdp),ringoSocket.secondaire.portUdp);
 					ringoSocket.sockSender.send(paquet2);
 				}

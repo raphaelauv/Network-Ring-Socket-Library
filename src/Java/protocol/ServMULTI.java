@@ -35,8 +35,7 @@ class ServMULTI implements Runnable{
 		}
 	}
 	
-
-	MultiChanel multiRing;
+	
 	LinkedList<MultiChanel> listMultiChannel;
 	Selector sel;
 	
@@ -47,10 +46,9 @@ class ServMULTI implements Runnable{
 	ServMULTI(RingoSocket ringoSocket,EntityInfo entityinfo) throws IOException{
 		this.ringoSocket=ringoSocket;
 		this.listMultiChannel =new LinkedList<MultiChanel>();
-		
 		this.erreur = false;
 		this.sel = Selector.open();
-		this.multiRing=addMultiDiff(entityinfo);
+		this.addMultiDiff(entityinfo);
 	}
 	
 	public void run(){
@@ -68,7 +66,7 @@ class ServMULTI implements Runnable{
 		ringoSocket.printVerbose("END");
 	}
 	
-	MultiChanel addMultiDiff(EntityInfo entityinfo) throws IOException{
+	void addMultiDiff(EntityInfo entityinfo) throws IOException{
 		
 		MembershipKey keyTMP;
 		DatagramChannel dcTMP;
@@ -99,10 +97,11 @@ class ServMULTI implements Runnable{
 			 this.sel.wakeup();
 			 tmp.selKey =tmp.dc.register(this.sel, SelectionKey.OP_READ);
 		 }
-		return tmp;	
+		
 	}
 	
 	private void removeMulti(String ip_diff,Integer port_diff) throws IOException{
+		System.out.println("remove appeler");
 		MultiChanel todelete = null;
 		for(MultiChanel mc : this.listMultiChannel){
 			if(mc.entityinfo.ip_diff.equals(ip_diff) && mc.entityinfo.port_diff==port_diff){
@@ -125,60 +124,30 @@ class ServMULTI implements Runnable{
 	 */
 	public void updateMulti(EntityInfo entityinfo) throws IOException{
 		
-		/*
-		if(ringoSocket.sockMultiRECEP!=null){
-			ringoSocket.sockMultiRECEP.close();
-		}
-		
-		ringoSocket.sockMultiRECEP = new MulticastSocket(this.port_diff);
-		ringoSocket.sockMultiRECEP.joinGroup(InetAddress.getByName(this.ip_diff));
-		*/
-		
-		/*
-		if(this.multiRing.entityinfo.ip_diff.equals(entityinfo.ip_diff) && this.multiRing.entityinfo.port_diff==entityinfo.port_diff){
-			//meme ip et port de diff
-			return;
-		}
-		*/
 		removeMulti(entityinfo.ip_diff, entityinfo.port_diff);
 		addMultiDiff(entityinfo);
 	}
 	
 	private void testMultiMsg(InetSocketAddress isa, SelectionKey sk, MultiChanel mc, ByteBuffer byteBuffer)
-			throws IOException {
+			throws IOException, InterruptedException {
 
 		String b = new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.limit());
 		ringoSocket.printVerbose("message MULTI RECEVE : " + b);
 		if (b.startsWith("DOWN")) {
-			if (!ringoSocket.isDUPL) {
+			if (!ringoSocket.isDUPL.get()) {
 				ringoSocket.closeRingoSocket(true);
 			} else {
-				System.out.println("dupl a non dupl");
+				ringoSocket.printVerbose("the DUPL ip :"+mc.entityinfo.ip_diff+" port :"+mc.entityinfo.port_diff+"is close");
 				mc.dc.close();
 				//sk.cancel();
-				ringoSocket.isDUPL = false;
+				ringoSocket.duplClose(mc.entityinfo);
 				
-				if(this.multiRing==mc){
-					this.multiRing=this.listMultiChannel.getFirst();
-				}
 			}
 		}
 	}
 	
 	private void receveMULTI()
 			throws IOException, RingoSocketCloseException, InterruptedException, ClosedSelectorException {
-		/*
-		 * byte[] data = new byte[Ringo.maxSizeMsg]; DatagramPacket paquet = new
-		 * DatagramPacket(data, data.length);
-		 * 
-		 * ringoSocket.sockMultiRECEP.receive(paquet);
-		 * 
-		 * String st = new String(paquet.getData(), 0, paquet.getLength());
-		 * ringoSocket.printVerbose("message MULTI RECEVE : " + st);
-		 * 
-		 * if (st.startsWith("DOWN")) { ringoSocket.closeRingoSocket(true); }
-		 * 
-		 */
 
 		ByteBuffer byteBuffer = ByteBuffer.allocate(512);
 		sel.select();
@@ -187,13 +156,15 @@ class ServMULTI implements Runnable{
 			Iterator<SelectionKey> it = sel.selectedKeys().iterator();
 			while (it.hasNext()) {
 				SelectionKey sk = it.next();
-				byteBuffer.clear();
+				it.remove();
+				System.out.println("je recois un signal multi");
 				for(MultiChanel mc : this.listMultiChannel){
 					try{
 						if (mc.key != null && mc.key.isValid() && sk.isReadable() && sk.channel() == mc.dc) {
 							InetSocketAddress isa = (InetSocketAddress) mc.dc.receive(byteBuffer);
 							byteBuffer.flip();
 							testMultiMsg(isa, sk, mc, byteBuffer);
+							byteBuffer.clear();
 						}
 					}
 					catch(CancelledKeyException e){

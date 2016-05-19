@@ -25,6 +25,7 @@ class ServUDPlisten implements Runnable{
 				ringoSocket.boolClose.set(true);;
 			}
 		}
+		ringoSocket.sockRecever.close();
 		ringoSocket.printVerbose("END");
 	}
 	
@@ -45,7 +46,7 @@ class ServUDPlisten implements Runnable{
 			synchronized (ringoSocket.TESTisComeBack) {
 				
 				if (ringoSocket.ValTest!=null && ringoSocket.ValTest.equals(msgR.getIdm())) {
-					ringoSocket.TESTisComeBackBool = true;
+					ringoSocket.TESTisComeBackBool.set(true);;
 					ringoSocket.TESTisComeBack.notify();
 					return;
 				}
@@ -63,7 +64,7 @@ class ServUDPlisten implements Runnable{
 		if (msgR.getType() == TypeMessage.WHOS) {
 			synchronized (ringoSocket.TESTisComeBack) {
 				if(ringoSocket.ValTest!=null && ringoSocket.ValTest.equals(msgR.getIdm())){
-						ringoSocket.TESTisComeBackBool = true;
+						ringoSocket.TESTisComeBackBool.set(true);;
 						ringoSocket.TESTisComeBack.notify();
 						return;
 				}
@@ -93,9 +94,9 @@ class ServUDPlisten implements Runnable{
 				ringoSocket.principal.portUdp=msgR.getPort_succ();
 				
 				if(ringoSocket.principal.ipUdp.equals(ringoSocket.ip) && ringoSocket.principal.portUdp.equals(ringoSocket.listenPortUDP) ){
-					if(!ringoSocket.isDUPL){
+					if(!ringoSocket.isDUPL.get()){
 						ringoSocket.printVerbose("I'm now alone , i'm DISCONNECT");
-						ringoSocket.boolDisconnect=true;
+						ringoSocket.boolDisconnect.set(true);;
 					}
 					//TODO
 				}
@@ -119,7 +120,7 @@ class ServUDPlisten implements Runnable{
 			
 		} else if (msgR.getType() == TypeMessage.EYBG) {
 			synchronized (ringoSocket.EYBGisArrive) {
-				ringoSocket.EYBGisArriveBool=true;
+				ringoSocket.EYBGisArriveBool.set(true);;
 				ringoSocket.EYBGisArrive.notify();
 			}
 			return;
