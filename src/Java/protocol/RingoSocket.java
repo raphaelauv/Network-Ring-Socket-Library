@@ -25,6 +25,9 @@ import protocol.exceptions.ParseException;
 import protocol.exceptions.ProtocolException;
 import protocol.exceptions.RingoSocketCloseException;
 import protocol.exceptions.UnknownTypeMesssage;
+import uidm.IpPort_IDM;
+import uidm.TimeIDM;
+import uidm.UniqueIDM;
 
 public class RingoSocket implements Ringo {
 	
@@ -91,12 +94,11 @@ public class RingoSocket implements Ringo {
 	LinkedList<Message> listToSend;// liste des message a envoyer
 	ConcurrentHashMap<InetSocketAddress,String> members;
 	
-	private byte [] idmStart;
-	private Long idmActuel;
-	
 	private AtomicBoolean verboseMode;
 	AtomicBoolean boolClose;
 	AtomicBoolean boolDisconnect;
+	
+	private UniqueIDM uidm;
 	
 	/*********************************************************************/
 
@@ -145,9 +147,9 @@ public class RingoSocket implements Ringo {
 		this.idmAcces=new Semaphore(1);
 		this.UDP_MULTI_ipPort_Acces = new Semaphore(1);
 		this.EYBG_Acces= new Semaphore(0);
-		this.idmActuel=0L;
 		
-		this.build_IDM_array();
+		//this.uidm=new IpPort_IDM(this.ip, this.portTcp);
+		this.uidm= new TimeIDM();
 		
 		/********************************************************************
 		 * THREADS
@@ -171,7 +173,9 @@ public class RingoSocket implements Ringo {
 		this.ThMULTIrecev.start();
 	}
 
-	
+	public void editUIDM(UniqueIDM uidm){
+		this.uidm=uidm;
+	}
 	
 	/**
 	 * Ferme tout les Thread de la RingoSocket
@@ -227,7 +231,7 @@ public class RingoSocket implements Ringo {
 		
 	}
 
-	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException{
+	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException, IOException{
 		testClose();
 		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.principal.ipUdp, this.principal.portUdp);
 		send(msg);
@@ -286,7 +290,7 @@ public class RingoSocket implements Ringo {
 		return false;
 	}
 	
-	public HashMap<InetSocketAddress,String> whos() throws RingoSocketCloseException, InterruptedException, ParseException{
+	public HashMap<InetSocketAddress,String> whos() throws RingoSocketCloseException, InterruptedException, ParseException, IOException{
 		testClose();
 		long idm=getUniqueIdm();
 		Message whos=Message.WHOS(idm);
@@ -315,7 +319,7 @@ public class RingoSocket implements Ringo {
 
 	
 	
-	public boolean test(boolean sendDownIfBreak) throws InterruptedException, RingoSocketCloseException, ParseException {
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, RingoSocketCloseException, ParseException, IOException {
 		testClose();
 		long idm=getUniqueIdm();
 		Message test;
@@ -506,33 +510,7 @@ public class RingoSocket implements Ringo {
 	public void setVerbose(boolean verbose){
 		this.verboseMode.set(verbose);
 	}
-	
-	/**
-	 * Build the constant start of the IDM array
-	 * 
-	 * @throws UnknownHostException
-	 */
-	private void build_IDM_array() throws UnknownHostException{
 
-		InetAddress ip = InetAddress.getByName(this.ip);
-		byte[] ipBytes = ip.getAddress();
-		
-		byte[] portBytes = new byte[2];
-		portBytes[0] = (byte)(this.portTcp & 0xFF);
-		portBytes[1] = (byte)((this.portTcp >> 8) & 0xFF);
-		
-		this.idmStart= new byte[Ringo.byteSizeIdm];
-		
-		int cmp=0;
-		for(int j=0;j<ipBytes.length;j++){
-			this.idmStart[cmp]=ipBytes[j];
-			cmp++;
-		}
-		for(int j=0; j<portBytes.length;j++){
-			this.idmStart[cmp]=portBytes[j];
-			cmp++;
-		}
-	}
 
 	/**
 	 * Affiche l'argument si en mode VERBOSE
@@ -551,29 +529,8 @@ public class RingoSocket implements Ringo {
 		return "THREAD: " + Thread.currentThread().getName() + " | ";
 	}
 	
-	public long getUniqueIdm() throws RingoSocketCloseException, InterruptedException{
+	public long getUniqueIdm() throws RingoSocketCloseException, InterruptedException, IOException{
 		testClose();
-		
-		byte [] end_of_IDM= new byte[2];
-		idmAcces.acquire();
-		
-		this.idmActuel=this.idmActuel%65000;//~limite de 2^255;
-		end_of_IDM[0] = (byte)(this.idmActuel & 0xFF);
-		end_of_IDM[1] = (byte)((this.idmActuel >> 8) & 0xFF);
-		idmActuel++;
-		idmAcces.release();
-		byte[] val=Arrays.copyOf(this.idmStart, Ringo.byteSizeIdm);
-		
-		val[6]=end_of_IDM[0];
-		val[7]=end_of_IDM[1];
-		
-		/*
-		System.out.print("IDM :");
-		for (byte b : val) {
-		    System.out.print(b & 0xFF);
-		    System.out.print(" ");
-		}
-		*/
-		return Message.byteArrayToLong(val,Ringo.byteSizeIdm, ByteOrder.nativeOrder());
+		return this.uidm.getIDM();
 	}	
 }

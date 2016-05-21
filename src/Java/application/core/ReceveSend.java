@@ -12,7 +12,7 @@ public interface ReceveSend {
 	
 	
 	
-	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException;
+	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException;
 	
 	/**
 	 * Mode service

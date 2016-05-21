@@ -42,7 +42,7 @@ public class Diff extends Appl implements ReceveSend {
 		super.ringoSocket.send(msg);// renvoi sur l'anneau du message
 	}
 
-	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException {
+	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException {
 		String contenu = Message.intToStringRepresentation(input.length(), 3) + " " + input;
 		Message msg=Message.APPL(ringoSocket.getUniqueIdm(), "DIFF####", contenu.getBytes());
 		

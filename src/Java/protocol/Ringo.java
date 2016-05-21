@@ -37,8 +37,9 @@ public interface Ringo extends Closeable{
 	 * @throws InterruptedException
 	 * @throws RingoSocketCloseException
 	 * @throws ParseException 
+	 * @throws IOException 
 	 */
-	public boolean test(boolean sendDownIfBreak) throws InterruptedException, RingoSocketCloseException, ParseException;
+	public boolean test(boolean sendDownIfBreak) throws InterruptedException, RingoSocketCloseException, ParseException, IOException;
 	
 	/**
 	 * Demande l'envoi de WHOS
@@ -46,16 +47,18 @@ public interface Ringo extends Closeable{
 	 * @throws RingoSocketCloseException
 	 * @throws InterruptedException
 	 * @throws ParseException
+	 * @throws IOException 
 	 */
-	public HashMap<InetSocketAddress,String> whos() throws RingoSocketCloseException, InterruptedException, ParseException;
+	public HashMap<InetSocketAddress,String> whos() throws RingoSocketCloseException, InterruptedException, ParseException, IOException;
 	
 	/**
 	 * demande la deconnection de l'entiter ,elle boucle sur elle meme
 	 * @throws InterruptedException
 	 * @throws RingoSocketCloseException
 	 * @throws ParseException 
+	 * @throws IOException 
 	 */
-	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException;
+	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException, IOException;
 	
 	
 	/**
@@ -113,6 +116,7 @@ public interface Ringo extends Closeable{
 	 * @return
 	 * @throws RingoSocketCloseException 
 	 * @throws InterruptedException 
+	 * @throws IOException 
 	 */
-	public long getUniqueIdm() throws RingoSocketCloseException, InterruptedException;
+	public long getUniqueIdm() throws RingoSocketCloseException, InterruptedException, IOException;
 }

@@ -1,5 +1,7 @@
 package application.core;
 
+import java.io.IOException;
+
 import protocol.Ringo;
 import protocol.exceptions.*;
 
@@ -32,6 +34,8 @@ public class MyRunnableSend implements Runnable {
 				} catch (ParseException e) {
 					appl.printModeApplication("the MSG is incorrect");
 					appl.runContinue= false;
+				} catch (IOException e) {
+					
 				}
 			}
 		}
