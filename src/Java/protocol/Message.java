@@ -53,10 +53,6 @@ public class Message {
 		return new Message(data);
 	}
 	
-	protected Message(){
-		
-	}
-	
 	private Message(byte[] data) throws ParseException, UnknownTypeMesssage {
 		super();
 		this.data = data;

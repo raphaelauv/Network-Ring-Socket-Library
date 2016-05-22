@@ -1,8 +1,22 @@
-Etat :
 
-* Ecrire DUPPLICATION  ---70%
 
-* Deployer algo pour unicité des ID de messages  --- 90%
+###############################################################
+#				Pour executer Applciation Java 				  #
+###############################################################
+depuis le dossier src
+
+
+java -cp ./Java application.Diff 4545 7878 9898 -v
+
+java -cp ./Java application.Trans 4545 7878 9898 -v
+
+java -cp ./Java Entity 4545 7878 9898 -v
+
+
+
+###############################################################
+#						Etat Projet							  #
+###############################################################
 
 * Traduire en C le code Java
 
