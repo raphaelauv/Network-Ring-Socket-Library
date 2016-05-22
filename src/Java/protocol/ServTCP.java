@@ -3,7 +3,6 @@ import protocol.exceptions.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 class ServTCP implements Runnable{

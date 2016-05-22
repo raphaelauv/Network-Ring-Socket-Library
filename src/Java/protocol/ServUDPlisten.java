@@ -74,11 +74,11 @@ class ServUDPlisten implements Runnable{
 			}
 		}
 		
-		if (ringoSocket.IdAlreadyReceveUDP1.contains(msgR.getIdm())) {
+		if (ringoSocket.IdAlreadyReceveUDP.contains(msgR.getIdm())) {
 			ringoSocket.printVerbose("Message DEJA ENVOYER OU RECU : " + msgR.getIdm());
 			return;
 		} else {
-			ringoSocket.IdAlreadyReceveUDP1.add(msgR.getIdm());
+			ringoSocket.IdAlreadyReceveUDP.add(msgR.getIdm());
 		}
 		ringoSocket.printVerbose("Message Recu    : " + msgR.toString());
 

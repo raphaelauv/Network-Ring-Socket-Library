@@ -89,7 +89,7 @@ public class RingoSocket implements Ringo {
 	Long ValTest;
 	AtomicBoolean isDUPL;
 	
-	Set<Long> IdAlreadyReceveUDP1;// hashSet contenant les id deja croise
+	Set<Long> IdAlreadyReceveUDP;// hashSet contenant les id deja croise
 	LinkedList<Message> listForApply; // liste des message recu qui sont pour cette ID
 	LinkedList<Message> listToSend;// liste des message a envoyer
 	ConcurrentHashMap<InetSocketAddress,String> members;
@@ -137,7 +137,7 @@ public class RingoSocket implements Ringo {
 		 */
 		this.listToSend = new LinkedList<Message>();
 		this.listForApply = new LinkedList<Message>();
-		this.IdAlreadyReceveUDP1 = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
+		this.IdAlreadyReceveUDP = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
 		this.EYBGisArriveBool= new AtomicBoolean(false);
 		this.isDUPL=new AtomicBoolean(false);
 		this.verboseMode = new AtomicBoolean(false);
@@ -488,7 +488,7 @@ public class RingoSocket implements Ringo {
 		if(msg==null){
 			return;
 		}
-		IdAlreadyReceveUDP1.add(msg.getIdm());
+		IdAlreadyReceveUDP.add(msg.getIdm());
 		synchronized (listToSend) {
 			this.listToSend.add(msg);
 			this.listToSend.notify();
