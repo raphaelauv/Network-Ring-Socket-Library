@@ -1,12 +1,22 @@
-Etat :
 
-* Recuperer Addresse IP automatiquement
 
-* Ecrire DUPPLICATION  ---50%
+###############################################################
+#				Pour executer Applciation Java 				  #
+###############################################################
+depuis le dossier src
 
-* Deployer algo pour unicité des ID de messages  --- 90%
 
-* Finir application TRANS --- 90%
+java -cp ./Java application.Diff 4545 7878 9898 -v
+
+java -cp ./Java application.Trans 4545 7878 9898 -v
+
+java -cp ./Java Entity 4545 7878 9898 -v
+
+
+
+###############################################################
+#						Etat Projet							  #
+###############################################################
 
 * Traduire en C le code Java
 
