@@ -7,9 +7,9 @@ extern adresses addrs;
 extern  hashmap_map *messages;
 
 int  traitement_mudp(char * buff){
+  char mess[512];
   if((strncmp(buff,"WHOS",4)==0)){
-
- 
+    
 
   }else if((strncmp(buff,"MEMB",4)==0)){
 
@@ -40,6 +40,7 @@ int  traitement_mudp(char * buff){
     }
     return -1;
   }
+  send_udp(mess);
   return 0;
 }
 char* make_idm(char*id){
