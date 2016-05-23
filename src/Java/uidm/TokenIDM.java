@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 import protocol.Message;
 import protocol.Ringo;
-
-	class MessageToken extends Message{
-	
-	}
 	
 	enum TokenTypeMessage{
 		TOKE;
