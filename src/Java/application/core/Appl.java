@@ -158,8 +158,8 @@ public class Appl implements Closeable{
 		System.out.println(style+"\n"
 				+ "## add -v after the port argument for VERBOSE Mode          ##\n"
 				+ "## To ask connection      type : connecTo Ip Port           ##\n"
-				+ "## To ask duplication     type : dupl Ip Port               ##\n"
-				+ "## To ask test            type : testT                      ##\n"
+				+ "## To ask duplication     type : dupL Ip Port               ##\n"
+				+ "## To ask test            type : tesT                       ##\n"
 				+ "## To ask whos            type : whoS                       ##\n"
 				+ "## To ask disconnect      type : disconnecT                 ##\n"
 				+ "## To ask down            type : dowN                       ##\n"
@@ -172,9 +172,7 @@ public class Appl implements Closeable{
 	/**
 	 * Test if the user ask for connecTo or disconnecT or other action 
 	 * 
-	 * @return true if the user asked for an action, else false
-	 * @throws UnknownTypeMesssage 
-	 * @throws ParseException 
+	 * @return null if its a command or a string of the input of user
 	 */
 	protected String testEntry(){
 		try {
@@ -215,7 +213,7 @@ public class Appl implements Closeable{
 				runContinue = false;
 				return null;
 			}
-			if (input.startsWith("connecTo ") || input.startsWith("dupl ")) {
+			if (input.startsWith("connecTo ") || input.startsWith("dupL ")) {
 				
 				boolean dupl=false;
 				int curseur=0;
