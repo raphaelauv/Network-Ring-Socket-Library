@@ -217,7 +217,7 @@ public class Appl implements Closeable{
 				
 				boolean dupl=false;
 				int curseur=0;
-				if(input.startsWith("dupl")){
+				if(input.startsWith("dupL")){
 					dupl=true;
 				}
 				if(dupl){
