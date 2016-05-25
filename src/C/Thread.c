@@ -52,14 +52,20 @@ void*  serveur_tcp(void *_port){
         if(!entite.is_dupl){
 	  if(strcmp(split[0],"NEWC")==0){
 	    connectringo(split[1],split[2],1);
+            send(sock2,"ACKC\n",5,0);
 	  }else if(strcmp(split[0],"DUPL")==0){
 	    connectringo(split[1],split[2],2);
+            sprintf(udp,"%d",entite.port_udp);
+            sprintf(udp,"%d",entite.port_udp);
+	    formate_mtcp(mess,2,"ACKD",udp);
+            strcat(mess,"\n");
+	    send(sock2,mess,strlen(mess)*sizeof(char),0);
 	  }
-	  send(sock2,"ACKC\n",5,0);
+	  
+	}
         }else send(sock2,"ERRO\n",5,0);
 	close(sock2);
       }
-    }
     close(sock);
   }
   return _port;
@@ -68,7 +74,7 @@ void*  serveur_tcp(void *_port){
 int insertion(char* _lu,int flag){
   char *split[3];
   int i=tokenize_string(_lu,split);
-  if((i!=3)||((strcmp(split[0],"connecTo")!=0)&&(strcmp(split[0],"connecTo")!=0))){
+  if((i!=3)||((strcmp(split[0],"connecTo")!=0)&&(strcmp(split[0],"dupL")!=0))){
     fprintf(stderr,"l'instruction %s ne respect pas le format\n",_lu); 
     printf("i vaut %d \n",i);
     return -1;
@@ -107,9 +113,14 @@ int insertion(char* _lu,int flag){
     size_rec=read(descr,buff,99*sizeof(char));
     buff[size_rec]='\0';
     printf("Message : %s\n",buff);
-    
+    if(flag==1){
     connectringo(split1[1],split1[2],flag);
-    close(descr);
+    }else{
+       char *split2 [3];
+       i=tokenize_string(buff,split2);
+       connectringo(split[1],split2[1],flag);
+     }
+      close(descr);
   }else {
     fprintf(stderr,"la connection a %s a echouie \n",split[1]);
     return -1 ;
@@ -173,6 +184,7 @@ void* serveur_udp(void*arg){
       int rec=recv(sock,tampon,512,0);
       tampon[rec]='\0';
       printf("message recu en udp %s \n",tampon);
+       traitement_mudp(tampon);
     }
   }
     }

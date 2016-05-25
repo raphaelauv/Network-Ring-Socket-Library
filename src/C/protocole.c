@@ -9,18 +9,16 @@ extern  hashmap_map *messages;
 int  traitement_mudp(char * buff){
   char mess[512];
   if((strncmp(buff,"WHOS",4)==0)){
-    
+       
 
   }else if((strncmp(buff,"MEMB",4)==0)){
-
+          send_udp(buff);
 
 
   }else if((strncmp(buff,"APPL",4)==0)){
-
-
-
+        send_udp(buff);
   }else if((strncmp(buff,"TEST",4)==0)){
-
+     
 
 
   }if((strncmp(buff,"GBYE",4)==0)){
@@ -40,7 +38,7 @@ int  traitement_mudp(char * buff){
     }
     return -1;
   }
-  send_udp(mess);
+  send_udp(buff);
   return 0;
 }
 char* make_idm(char*id){

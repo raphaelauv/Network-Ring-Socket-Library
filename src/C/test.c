@@ -52,9 +52,10 @@ int main(int argc ,char* argv[]){
     read_command(buf); 
     if(strncmp(buf,"connecTo",8)==0){
       if(!entite.is_connected)insertion(buf,1);
-    }else  if(strncmp(buf,"DUPL",4)==0){
+    }else  if(strncmp(buf,"dupL",4)==0){
       if(!entite.is_dupl) insertion(buf,2);
-         
+     }else  if(strncmp(buf,"DOWN",4)==0){
+        send_multi("DOWN");
     }else{
       send_udp(buf);
     }  
