@@ -111,12 +111,15 @@ public class RingoSocket implements Ringo {
 	 */
 	public RingoSocket(String ip,String idApp, Integer listenUDPport, Integer portTcp, Integer multiPort,boolean modeService) throws IOException, ParseException
 			 {
+		
 		if(idApp==null){
-			this.idApp ="";
+			this.idApp ="########";
 		}else{
+			if(idApp.length()!=8){
+				throw new IOException();
+			}
 			this.idApp = idApp;
 		}
-		
 		/********************************************************************
 		 * NETWORK
 		 */
@@ -361,7 +364,7 @@ public class RingoSocket implements Ringo {
 		testClose();
 		adresse=Message.convertIP(adresse);
 		
-		if(!boolDisconnect.get() || TCP==this.portTcp){
+		if(!boolDisconnect.get() ||( TCP==this.portTcp && adresse.equals(this.ip)) ){
 			throw new AlreadyConnectException();
 		}
 		tcpAcces.acquire();
