@@ -57,13 +57,15 @@ public interface Ringo extends Closeable{
 	 * @throws RingoSocketCloseException
 	 * @throws ParseException 
 	 * @throws IOException 
+	 * @throws ImpossibleDisconnectDupl 
 	 */
-	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException, IOException;
+	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException, IOException, ImpossibleDisconnectDupl;
 	
 	
 	/**
 	 * Permet de quitter un anneau
 	 * @throws IOException 
+	 * @throws  
 	 */
 	public void close() throws IOException;
 	

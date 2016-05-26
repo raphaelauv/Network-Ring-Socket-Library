@@ -428,6 +428,14 @@ public class Message {
 		}
 	}
 	
+	public String toStringSHORT(int sizeMax){
+		String tmp=this.toString();
+		if(tmp.length()>sizeMax){
+			return tmp.substring(0,sizeMax)+"...";
+		}
+		return tmp;
+	}
+	
 	static Message WELC(String ip, int listenPortUDP, String ip_diff ,int port_diff) throws ParseException {
 		
 		byte[] WELC = new byte[4+1+sizeIp+1+sizePort+1+sizeIp+1+sizePort+1];

@@ -1,6 +1,8 @@
 package protocol;
 import protocol.exceptions.*;
 import protocol.TypeMessage;
+import protocol.ServMULTI.MultiChanel;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
@@ -42,6 +44,9 @@ class ServUDPlisten implements Runnable{
 			ringoSocket.printVerbose("MESSAGE INCORRECT : "+new String(paquet.getData()));
 			return;
 		}
+		
+		ringoSocket.printVerbose("Message Recu    : " + msgR.toStringSHORT(70));
+		
 		if (msgR.getType() == TypeMessage.TEST) {
 			synchronized (ringoSocket.TESTisComeBack) {
 				
@@ -51,11 +56,13 @@ class ServUDPlisten implements Runnable{
 					return;
 				}
 				else{
-					//TODO comparaison a verifier avec future sturture
-					if( !(  msgR.getIp_diff().equals(ringoSocket.principal.ip_diff) && 
-						msgR.getPort_diff().equals(ringoSocket.principal.port_diff ))){
-						ringoSocket.printVerbose("message test pas pour cet anneau");
-						return;// si le message n'est pas pour cet anneau , pas renvoyer
+					
+					for(MultiChanel mc : ringoSocket.servMulti.listMultiChannel){
+						if( !(  msgR.getIp_diff().equals(mc.entityinfo.ip_diff) && 
+								msgR.getPort_diff().equals(mc.entityinfo.port_diff ))){
+								ringoSocket.printVerbose("message test pas pour cet anneau");
+								return;// si le message n'est pas pour cet anneau , pas renvoyer
+						}
 					}
 				}
 			}
@@ -80,7 +87,7 @@ class ServUDPlisten implements Runnable{
 		} else {
 			ringoSocket.IdAlreadyReceveUDP.add(msgR.getIdm());
 		}
-		ringoSocket.printVerbose("Message Recu    : " + msgR.toString());
+		
 
 		
 		if (msgR.getType() == TypeMessage.GBYE) {

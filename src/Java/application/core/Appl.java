@@ -270,7 +270,7 @@ public class Appl implements Closeable{
 			printModeApplication("\nERREUR connecTo : Erreur format IP ou port invalide");
 			
 		} catch (AlreadyConnectException e) {
-			printModeApplication("\nERREUR connecTo : deja connecter , utiliser disconnecT ou Dupl");
+			printModeApplication("\nERREUR connecTo : deja connecter ou connection a soi meme ( utiliser disconnecT ou Dupl)");
 			
 		} catch (ImpossibleDUPLConnection e) {
 			printModeApplication("\nERREUR connecTo : impossible to connect To Dupl entity");

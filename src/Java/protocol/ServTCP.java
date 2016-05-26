@@ -17,6 +17,7 @@ class ServTCP implements Runnable{
 		boolean erreur = false;
 		while (!erreur) {
 			try {
+				ringoSocket.testClose();
 				serv();
 			} catch (IOException | InterruptedException | ParseException e) {
 				
@@ -39,19 +40,17 @@ class ServTCP implements Runnable{
 	 * @throws ProtocolException
 	 * @throws InterruptedException 
 	 * @throws ParseException 
-	 * @throws RingoSocketCloseException
 	 */
-	private void serv() throws IOException, InterruptedException, ParseException, RingoSocketCloseException {
+	private void serv() throws IOException, InterruptedException, ParseException {
 
-		ringoSocket.testClose();
+		
 		Socket socket = ringoSocket.sockServerTCP.accept();
 		ringoSocket.tcpAcces.acquire();
 		byte[] tmpMsg2 = new byte[Ringo.maxSizeMsg];
+		ringoSocket.printVerbose("TCP connect");
+		BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
+		BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
 		try {
-
-			ringoSocket.printVerbose("TCP connect");
-			BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
-			BufferedInputStream buffIn = new BufferedInputStream(socket.getInputStream());
 
 			Message msg1;
 			if (ringoSocket.isDUPL.get()) {
@@ -64,14 +63,16 @@ class ServTCP implements Runnable{
 			buffOut.write(msg1.getData());
 			buffOut.flush();
 
+			ringoSocket.printVerbose("TCP : message SEND   : " + msg1.toString());
+			
 			if (ringoSocket.isDUPL.get()) {
 				buffOut.close();
 				buffIn.close();
+				socket.close();
+				ringoSocket.tcpAcces.release();
 				return;
 			}
-
-			ringoSocket.printVerbose("TCP : message SEND   : " + msg1.toString());
-
+			
 			int sizeReturn = buffIn.read(tmpMsg2);
 			/*
 			 * //TODO if (sizeReturn != 26) { throw new ProtocolException(); }
@@ -109,17 +110,21 @@ class ServTCP implements Runnable{
 				ringoSocket.principal.ipUdp = msg2.getIp();
 				ringoSocket.principal.portUdp = msg2.getPort();
 			}
+			
+			ringoSocket.boolDisconnect.set(false);
 			ringoSocket.UDP_MULTI_ipPort_Acces.release();
-			buffOut.close();
-			buffIn.close();
+
 
 		} catch (IOException | InterruptedException e) {
 			ringoSocket.tcpAcces.release();
+			socket.close();
 			throw e;
 		} catch (ParseException | UnknownTypeMesssage e) {
 			ringoSocket.printVerbose("TCP : erreur de protocol\n    message recu : " + new String(tmpMsg2));
 		}
-		ringoSocket.boolDisconnect.set(false);
+		buffOut.close();
+		buffIn.close();
+		socket.close();
 		ringoSocket.tcpAcces.release();
 
 	}

@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import protocol.ServMULTI.MultiChanel;
 import protocol.exceptions.AlreadyConnectException;
 import protocol.exceptions.ImpossibleDUPLConnection;
+import protocol.exceptions.ImpossibleDisconnectDupl;
 import protocol.exceptions.ParseException;
 import protocol.exceptions.ProtocolException;
 import protocol.exceptions.RingoSocketCloseException;
@@ -199,17 +200,9 @@ public class RingoSocket implements Ringo {
 			this.sockSender.close();
 			this.ThSend.interrupt();
 		} else {
-			//finish to send all message inside the RingoSocket
-			synchronized (listToSend) {
-				while (!listToSend.isEmpty()) {
-					listToSend.notify();
-					try {
-						listToSend.wait();
-					} catch (InterruptedException e) {}
-				}
-				this.sockSender.close();
-				this.ThSend.interrupt();
-			}
+			finishToSend();
+			this.sockSender.close();
+			this.ThSend.interrupt();
 		}
 		
 		synchronized (listForApply) {
@@ -219,6 +212,20 @@ public class RingoSocket implements Ringo {
 		this.servMulti.sel.close();
 		this.ThMULTIrecev.interrupt();
 		
+	}
+	
+	/**
+	 * finish to send all message inside the RingoSocket
+	 */
+	private void finishToSend(){
+		synchronized (listToSend) {
+			while (!listToSend.isEmpty()) {
+				listToSend.notify();
+				try {
+					listToSend.wait();
+				} catch (InterruptedException e) {}
+			}
+		}
 	}
 	
 	void duplClose(EntityInfo entityinfo) throws InterruptedException{
@@ -236,6 +243,12 @@ public class RingoSocket implements Ringo {
 
 	public void disconnect() throws InterruptedException, RingoSocketCloseException, ParseException, IOException{
 		testClose();
+		if(this.isDUPL.get()){
+			return;
+		}
+		if(this.boolDisconnect.get()){
+			return;
+		}
 		Message msg = Message.GBYE(getUniqueIdm(), this.ip, this.listenPortUDP, this.principal.ipUdp, this.principal.portUdp);
 		send(msg);
 		synchronized (this.EYBGisArrive) {
@@ -243,12 +256,15 @@ public class RingoSocket implements Ringo {
 			printVerbose("WAITING for EYBG message");
 			this.EYBGisArrive.wait(maximumWaitTimeMessage); // attend que EYBG soit arriver a l'entite
 			printVerbose("EYBG comeback ? :"+EYBGisArriveBool);
-			boolDisconnect.set(true);;
+			
 			
 			UDP_MULTI_ipPort_Acces.acquire();
 			this.principal.ipUdp=this.ip;
 			this.principal.portUdp=this.listenPortUDP;
+			//this.finishToSend();
+			this.boolDisconnect.set(true);;
 			UDP_MULTI_ipPort_Acces.release();
+			
 			
 			printVerbose("DISCONNECT DONE");
 			return;
@@ -364,7 +380,13 @@ public class RingoSocket implements Ringo {
 		testClose();
 		adresse=Message.convertIP(adresse);
 		
-		if(!boolDisconnect.get() ||( TCP==this.portTcp && adresse.equals(this.ip)) ){
+		
+		if(( TCP==this.portTcp && adresse.equals(this.ip))){
+			System.out.println("moi meme");
+			throw new AlreadyConnectException();
+			
+		}
+		if(!boolDisconnect.get()){
 			throw new AlreadyConnectException();
 		}
 		tcpAcces.acquire();
