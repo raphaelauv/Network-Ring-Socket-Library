@@ -15,12 +15,10 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import protocol.*;
 import protocol.exceptions.*;
 import application.core.*;
@@ -28,7 +26,7 @@ import application.core.*;
 public class Securise extends Appl implements ReceveSend {
 
 	String idSecurise;
-	
+	Object mutexAttente=new Object();
 	KeyPairGenerator kpg ;
 	Cipher cipher;
 
@@ -47,6 +45,7 @@ public class Securise extends Appl implements ReceveSend {
 	public Securise(String ip,Integer udpPort, Integer tcpPort,Integer multiPort, boolean verbose) throws BindException, IOException, ParseException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
 		super(ip,"SECURISE", udpPort, tcpPort, multiPort,verbose);
 		init();
+		this.idSecurise=testName();
 		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 		
 	}
@@ -57,9 +56,10 @@ public class Securise extends Appl implements ReceveSend {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws InvalidKeyException 
 	 */
-	public Securise(RingoSocket ringosocket) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
+	public Securise(RingoSocket ringosocket, String name) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
 		super("SECURISE",ringosocket);
 		init();
+		this.idSecurise=VerifName(name);
 		super.initThread(new MyRunnableReceve(this), new MyRunnableSend(this));
 		
 	}
@@ -69,8 +69,6 @@ public class Securise extends Appl implements ReceveSend {
 		this.cipher = Cipher.getInstance("RSA");
 		this.kpg.initialize(2048);
 		this.keyPair = kpg.generateKeyPair();
-		this.idSecurise=testName();
-		
 	}
 	
 	private PublicKey reconstruct_public_key( byte[] pub_key) {
@@ -117,7 +115,7 @@ public class Securise extends Appl implements ReceveSend {
 			String message = new String(decrypted);
 			if(super.modeService){
 				synchronized (listOutput) {
-					listOutput.addLast(msgInByte);
+					listOutput.addLast(decrypted);
 					listOutput.notify();
 				}
 			}else{
@@ -135,35 +133,50 @@ public class Securise extends Appl implements ReceveSend {
 		String name=new String(data,9,8);
 		
 		int tailleKey = Integer.parseInt(new String(data,18,3));
-		printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "TAILLE DE CLEF RECU "+tailleKey+" DE "+name + style);
+		printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "TAILLE DE CLEF RECU "+tailleKey+" DE "+name+"\n" + style);
 		
 		byte [] pubkey = Arrays.copyOfRange(data, 22, 22+tailleKey);
 		
 		PublicKey key =reconstruct_public_key(pubkey);
 		
-		this.listeCorrespondant.put(name,key);
+		if(this.idSecurise.equals(name)){
+			printModeApplication("meme nom IMPOSSIBLE");
+			return;
+		}
 		
+		synchronized (listeCorrespondant) {
+			this.listeCorrespondant.put(name,key);
+			this.listeCorrespondant.notify();
+		}
 	}
 
-	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException {
+	public void waitForPublicKey(String name) {
+
+		name=VerifName(name);
+		synchronized (listeCorrespondant) {
+			while(!this.listeCorrespondant.containsKey(name)) {
+				try {
+					listeCorrespondant.wait();
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+	}
 	
-		if(input.equals("SENDPUBLIC")){
-			this.sendPublicKey();
-			return;
-		}
+	public void doSend(String input , String nameRece) throws NumberOfBytesException, ParseException, RingoSocketCloseException, InterruptedException, IOException{
 		
-		if(input.length()>240){
-			return;
-		}
+		nameRece=VerifName(nameRece);
+		
 		byte[] encrypted = null;
+		PublicKey keyRece ;
+		synchronized (listeCorrespondant) {
 		
-		System.out.println("ENTER THE NAME OF RECEIVER");
+			keyRece=this.listeCorrespondant.get(nameRece);	
+		}
 		
-		String nameRece=testName();
-		
-		PublicKey keyRece = this.listeCorrespondant.get(nameRece);
 		if(keyRece==null){
-			System.out.println("RECEIVER NOT IN DATA BASE , ASK HIM TO SEND IS PUBKEY");
+			printModeApplication("RECEIVER NOT IN DATA BASE , ASK HIM TO SEND IS PUBKEY");
+			
 			return;
 		}
 		
@@ -187,7 +200,28 @@ public class Securise extends Appl implements ReceveSend {
 		printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "SEND : to "+nameRece+" : " + input + "\n" + style);
 		
 		super.ringoSocket.send(msg);
+	
 		
+	}
+	
+	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException {
+	
+		if(input.equals("SENDPUBLIC")){
+			this.sendPublicKey();
+			return;
+		}
+		
+		if(input.length()>240){
+			return;
+		}
+		
+		
+		printModeApplication("ENTER THE NAME OF RECEIVER");
+		
+		String nameRece=testName();
+		
+		this.doSend(input, nameRece);
+			
 	}
 	
 	
@@ -209,10 +243,17 @@ public class Securise extends Appl implements ReceveSend {
 		super.ringoSocket.send(msg);
 	}
 	
-	public  String testName(){
+	public String testName(){
 		System.out.println("NOW ENTER A NAME OF max 8 char : ");
 		Scanner scanner= new Scanner(System.in);
 		String name=scanner.nextLine();
+		name=VerifName(name);
+		System.out.println("YOU SELECTED \""+name+"\"");
+		System.out.println(Appl.style);
+		return name;
+	}
+
+	private String VerifName(String name){
 		if(name.length()>8){
 			name=name.substring(0,8);
 		}
@@ -223,11 +264,10 @@ public class Securise extends Appl implements ReceveSend {
 			}
 			name=builder.toString();
 		}
-		System.out.println("YOU SELECTED \""+name+"\"");
-		System.out.println(Appl.style);
 		return name;
 	}
-
+	
+	
 	public static void main(String[] args) {
 		boolean verbose = Appl.testArgs(args);
 		
@@ -240,9 +280,6 @@ public class Securise extends Appl implements ReceveSend {
 		} catch (BindException | ParseException e) {
 			System.out.println("The ports are already in use or are bigger than 4digit");
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
