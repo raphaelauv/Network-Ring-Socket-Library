@@ -121,7 +121,7 @@ public class Securise extends Appl implements ReceveSend {
 					listOutput.notify();
 				}
 			}else{
-				printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "RECEVE :" + message + "\n" + style);
+				printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "RECEVE : from "+debut+" : " + message + "\n" + style);
 			}
 			
 		}
@@ -135,7 +135,8 @@ public class Securise extends Appl implements ReceveSend {
 		String name=new String(data,9,8);
 		
 		int tailleKey = Integer.parseInt(new String(data,18,3));
-		System.out.println("TAILLE DE CLEF RECU "+tailleKey+" pour "+name);
+		printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "TAILLE DE CLEF RECU "+tailleKey+" DE "+name + style);
+		
 		byte [] pubkey = Arrays.copyOfRange(data, 22, 22+tailleKey);
 		
 		PublicKey key =reconstruct_public_key(pubkey);
@@ -183,7 +184,7 @@ public class Securise extends Appl implements ReceveSend {
 		
 		Message msg=Message.APPL(ringoSocket.getUniqueIdm(), "SECURISE", contenu);
 		
-		printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "SEND :" + new String(contenu) + "\n" + style);
+		printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "SEND : to "+nameRece+" : " + input + "\n" + style);
 		
 		super.ringoSocket.send(msg);
 		
@@ -197,18 +198,19 @@ public class Securise extends Appl implements ReceveSend {
 		
 		byte [] entete =("PUB__KEY "+this.idSecurise+" "+publicKey.length+" ").getBytes();
 		
+		
 		byte[]contenu =new byte[450];
 		Message.remplirData(contenu, entete,publicKey);
 		
 		Message msg=Message.APPL(ringoSocket.getUniqueIdm(), "SECURISE", contenu);
 		
-		printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "SEND :" + new String(contenu) + "\n" + style);
+		printModeApplication(style + "\n" + LocalDateTime.now() + " -> " + "SEND MY PUBLIC KEY" + "\n" + style);
 		
 		super.ringoSocket.send(msg);
 	}
 	
 	public  String testName(){
-		System.out.println("NOW ENTER A NAME OF 8char : ");
+		System.out.println("NOW ENTER A NAME OF max 8 char : ");
 		Scanner scanner= new Scanner(System.in);
 		String name=scanner.nextLine();
 		if(name.length()>8){
