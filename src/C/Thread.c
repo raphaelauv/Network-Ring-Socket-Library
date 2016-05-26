@@ -137,11 +137,11 @@ void* serveur_multi(void*arg){
   setsockopt(sock,SOL_SOCKET,SO_REUSEPORT,&ok,sizeof(ok));
   struct sockaddr_in address_sock;
   address_sock.sin_family=AF_INET;
-  address_sock.sin_port=htons(9999);
+  address_sock.sin_port=htons(entite.port_multi);
   address_sock.sin_addr.s_addr=htonl(INADDR_ANY);
   bind(sock,(struct sockaddr *)&address_sock,sizeof(struct sockaddr_in));
   struct ip_mreq mreq;
-  mreq.imr_multiaddr.s_addr=inet_addr("225.1.2.4");
+  mreq.imr_multiaddr.s_addr=inet_addr(entite.ip_multi);
   mreq.imr_interface.s_addr=htonl(INADDR_ANY);
   setsockopt(sock,IPPROTO_IP,IP_ADD_MEMBERSHIP,&mreq,sizeof(mreq));
   char tampon[100];
@@ -185,7 +185,7 @@ void* serveur_udp(void*arg){
       int rec=recv(sock,tampon,512,0);
       tampon[rec]='\0';
       printf("message recu en udp %s \n",tampon);
-       traitement_mudp(tampon);
+       //traitement_mudp(tampon);
     }
   }
     }

@@ -57,6 +57,7 @@ int main(int argc ,char* argv[]){
   pthread_create(&threads.th_multi,NULL,serveur_multi,&(entite.port_multi));
   pthread_create(&threads.th_udp,NULL,serveur_udp,&(entite.port_udp));
   char buf[150];
+  char port[4];
   while(!entite.casse){
     read_command(buf); 
     if(strncmp(buf,"connecTo",8)==0){
@@ -66,12 +67,13 @@ int main(int argc ,char* argv[]){
      }else  if(strncmp(buf,"dowN",4)==0){
         send_multi("DOWN");
     }else  if(strncmp(buf,"disconnecT",4)==0){
-       formate_mudp(mess,4,"EBYE","6666",entite.ip);
+       sprintf(port,"%d",entite.port_udp);
+       formate_mudp(mess,4,"EBYE",port,entite.ip);
       send_udp(buf);
     }else  if(strncmp(buf,"whoS",4)==0){
-
-
-    }  
+        send_udp(buf);
+    }else  send_udp(buf);  
+        
   }
   return 0;
 }

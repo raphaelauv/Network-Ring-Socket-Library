@@ -31,7 +31,7 @@ int port_udp ;
 int port_tcp ;
 char ip[16];
 int udp_succ1;
-char ip_succ[15];
+char ip_succ[16];
 int udp_succ2;
 int port_multi;
 char ip_multi[16];
