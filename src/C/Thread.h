@@ -22,5 +22,4 @@ void* serveur_multi(void*);
 void* serveur_udp(void*);
 void send_udp(char*);
 void send_multi(char*);
-
 #endif

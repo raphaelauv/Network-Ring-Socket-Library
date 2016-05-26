@@ -34,13 +34,13 @@ void*  serveur_tcp(void *_port){
 	sprintf(udp1,"%d",entite.port_multi);
 	if(entite.is_connected){
         sprintf(udp,"%d",entite.udp_succ1);
-        formate_mtcp(mess,5,"WELCOM",entite.ip_succ,udp,entite.ip_multi,udp1);
+        formate_mtcp(mess,6,"WELC",entite.ip_succ,udp,entite.ip_multi,udp1);
 	}else{
           sprintf(udp,"%d",entite.port_udp);
-	  formate_mtcp(mess,5,"WELCOM",entite.ip,udp,entite.ip_multi,udp1);
+	  formate_mtcp(mess,6,"WELC",entite.ip,udp,entite.ip_multi,udp1);
 	}
 	  strcat(mess,"\n");
-	send(sock2,mess,strlen(mess)*sizeof(char),0);
+	send(sock2,mess,strlen(mess)*sizeof(char)+1,0);
 	char buff[100];
 	int recu=recv(sock2,buff,99*sizeof(char),0);
 	buff[recu]='\0';
@@ -52,7 +52,7 @@ void*  serveur_tcp(void *_port){
         if(!entite.is_dupl){
 	  if(strcmp(split[0],"NEWC")==0){
 	    connectringo(split[1],split[2],1);
-            send(sock2,"ACKC\n",5,0);
+            send(sock2,"ACKC\n",6,0);
 	  }else if(strcmp(split[0],"DUPL")==0){
 	    connectringo(split[1],split[2],2);
             sprintf(udp,"%d",entite.port_udp);
@@ -103,19 +103,20 @@ int insertion(char* _lu,int flag){
       formate_mtcp(mess,4,"NEWC",entite.ip,udp);
     }else{
       char multi[4];
-      sprintf(multi,"%d",entite.port_udp);
+      sprintf(multi,"%d",entite.port_multi);
       formate_mtcp(mess,6,"DUPL",entite.ip,udp,entite.ip_multi,multi);
     }
     strcat(mess,"\n");
     send(descr,mess,strlen(mess)*sizeof(char),0);
     char *split1 [5];
     i=tokenize_string(buff,split1);
+    if(flag==1){
+    connectringo(split1[1],split1[2],flag);
+    }
     size_rec=read(descr,buff,99*sizeof(char));
     buff[size_rec]='\0';
     printf("Message : %s\n",buff);
-    if(flag==1){
-    connectringo(split1[1],split1[2],flag);
-    }else{
+    if(flag!=1){
        char *split2 [3];
        i=tokenize_string(buff,split2);
        connectringo(split[1],split2[1],flag);

@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <stdint.h>
 #include "Thread.h"
 #include "hashmap.h"
 
@@ -38,6 +39,7 @@ boolean is_connected ;
 boolean is_dupl;
 boolean casse;
 int ind_m;//indice du idm 
+int idm;
 }parametres;
 typedef struct {
   int sock;
@@ -51,4 +53,6 @@ int formate_mudp(char*,int ,char*,char* ,...);
 int formate_mtcp(char*,int ,char*,char* ,...);
 int init_parametres();
 int connectringo(char*,char*,int);
+char* norm_addr(char *);
+char* idmachine(char*,int);
 #endif 

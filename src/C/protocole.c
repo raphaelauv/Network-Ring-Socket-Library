@@ -8,9 +8,10 @@ extern  hashmap_map *messages;
 
 int  traitement_mudp(char * buff){
   char mess[512];
+  if(!deja_recu(buff)){
   if((strncmp(buff,"WHOS",4)==0)){
        
-
+   
   }else if((strncmp(buff,"MEMB",4)==0)){
           send_udp(buff);
 
@@ -38,14 +39,31 @@ int  traitement_mudp(char * buff){
     }
     return -1;
   }
-  send_udp(buff);
+   send_udp(buff);
+  }
   return 0;
 }
-char* make_idm(char*id){
+int deja_recu(char*mess){
+  char idm [9];
+  strncpy(idm,mess+5,8);
+  if(hashmap_get(mess,idm,(void**)&idm)==-3){
+    printf("message déja reçu : %s \n ",mess);
+    return 0;
+}
+ return 1;
+}
+int ajout_idm(char*mess){
+  char idm [9];
+  strncpy(idm,mess+5,8);
+  hashmap_put(mess,idm,(void**)&idm);
+    return 0;
+}
+char* make_idm(){
   char *res=(char*)(malloc(sizeof(char)*8));
-  strncpy(res,id,6);
-  sprintf(res+6,"%u",(unsigned int) entite.ind_m);
+  int n=entite.idm+entite.ind_m;
+  sprintf(res,"%d",n);
   entite.ind_m=(entite.ind_m+1) % MAX_NBM;
+  printf("idm= %s \n",res);
   return res;
 }
 int formate_mudp(char*res,int nbarg,char*type,char* arg1,...){
@@ -82,34 +100,38 @@ int formate_mtcp(char*res,int nbarg,char*type,char* arg1,...){
   va_end(ap);
   return 0;
 }
-int init_parametres(int _port_tcp,int _port_udp){
+int init_parametres(int _port_tcp,int _port_udp,char*ip_multi, int _portmulti,char*ip){
   entite.casse=0;
   entite.port_udp=_port_udp ;
   entite.port_tcp=_port_tcp;
   entite.udp_succ1=_port_udp;
-  strcpy(entite.ip,"127.000.000.001");
-  strcpy(entite.ip_succ,"127.000.000.001");
-  strcpy(entite.id,entite.ip+9);
+  strcpy(entite.ip,ip);
+  strcpy(entite.ip_succ,ip);
+  strcpy(entite.id, idmachine(entite.ip,_port_udp));
+  entite.idm=atoi(entite.id)*1000;
   entite.ind_m=0;
   entite.is_connected=FALSE;
   entite.is_dupl=FALSE;
-  strcpy(entite.ip_multi,"225.001.002.004");
+  strcpy(entite.ip_multi,ip_multi);
   struct addrinfo *first_info;
   struct addrinfo hints;
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_INET;
   hints.ai_socktype=SOCK_DGRAM;
-  int r=getaddrinfo("225.001.002.004","9999",NULL,&first_info);
+   char multi[4] ;
+   sprintf(multi,"%d",_portmulti);
+  int r=getaddrinfo(ip_multi,multi,NULL,&first_info);
   if(r==0){
     if(first_info!=NULL){
       addrs.addrmulti=first_info->ai_addr;
     }
   }
-  entite.port_multi=9999;
+  entite.port_multi=_portmulti;
   addrs.sock=socket(PF_INET,SOCK_DGRAM,0);
   return 0;
 }
 int connectringo(char* ip ,char* port,int flag){
+   printf("l ip est : %s le port est : %s le flag est : %d \n",ip,port,flag);
   if(flag==1){
     entite.udp_succ1=atoi(port);
     struct addrinfo *first_info;
@@ -147,6 +169,53 @@ int connectringo(char* ip ,char* port,int flag){
   return -1 ;
 }
 
+char* norm_addr(char *ip){
+  int i=0;
+  int j=0;
+  int k=0 ;
+  int n=strlen(ip);
+  char * res=(char*)malloc(15*sizeof(char));
+  for(i=1;i<=n;i++){
+        if(ip[n-i]=='.'){
+          while((k%3)!=0){
+           res[14-j]='0';
+	   j++;k++;
+         }
+         k=-1;
+        }
+       res[14-j]=ip[n-i];
+       j++;k++;
+   }
+  for(i=j;i<15;i++)res[14-i]='0';
+return res;
+}
 
+char* idmachine(char* ip,int port){
+    int i=0;
+  int j=4;
+   int k=0 ;
+  int n=strlen(ip);
+  printf("n vaut %d \n",n);
+  char *id=(char*)(malloc(5*sizeof(char)));
+  char * res=(char*)malloc((n-2)*sizeof(char));
+   res[n-3]='\0';
+  for(i=1;i<=n;i++){
+        if(ip[n-i]!='.'){
+          res[n-j]=ip[n-i];
+           j++;
+        }  
+   }
+  char *test;
+    int p=port*9;
+   if(port<10)p=port*9000;
+   else if(port<100)p=port*900;
+   else if(port<1000)p=port*90;
+   k= strtol(res+9, &test,10);
+   k+=p;
+   char *res1=(char*)(malloc(5*sizeof(char)));
+    sprintf(res1,"%d",k);
+   printf("le resultat est %s \n",res1);
 
+   return res1; 
+}
 
