@@ -14,10 +14,10 @@ adresses addrs;
 parametres entite;
 hashmap_map *messages;
 _threads threads;
-int test_arguments(int argc ,char* argv[],char *ip){
+int test_arguments(int argc ,char* argv[]){
   //test des arguments  
   if(argc<5){
-    fprintf(stderr,"ils vous faut au 4 arguments port_tcp port_udp addr_multi port_multi \n");
+    fprintf(stderr,"ils vous faut 4 arguments port_tcp port_udp addr_multi port_multi \n");
     return -1;
   }
   char *test;
@@ -36,8 +36,7 @@ int test_arguments(int argc ,char* argv[],char *ip){
     fprintf(stderr,"le quatrième  argument doit etre un entier \n");
     return -1;
   }
-   printf("arg3=%s",argv[3]);
-  init_parametres(n1,n2,norm_addr(argv[3]),n3,norm_addr(ip));
+  init_parametres(n1,n2,norm_addr(argv[3]),n3,norm_addr(recupere_ip()));
   return 0;
 }
 void read_command(char* argl) {
@@ -51,14 +50,12 @@ void read_command(char* argl) {
 
 
 int main(int argc ,char* argv[]){
-  if(test_arguments(argc,argv,recupere_ip())!=0)return -1;
+  if(test_arguments(argc,argv)!=0)return -1;
   messages=hashmap_new();
   char mess[512];
   pthread_create(&threads.th_tcp,NULL,serveur_tcp,&(entite.port_tcp));
   pthread_create(&threads.th_multi,NULL,serveur_multi,&(entite.port_multi));
   pthread_create(&threads.th_udp,NULL,serveur_udp,&(entite.port_udp));
-  idmachine("127.000.000.001",125);
-  idmachine("127.000.000.001",8200);
   char buf[150];
   while(!entite.casse){
     read_command(buf); 

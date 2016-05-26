@@ -195,7 +195,6 @@ char* idmachine(char* ip,int port){
   int j=4;
    int k=0 ;
   int n=strlen(ip);
-  printf("n vaut %d \n",n);
   char *id=(char*)(malloc(5*sizeof(char)));
   char * res=(char*)malloc((n-2)*sizeof(char));
    res[n-3]='\0';
@@ -214,8 +213,6 @@ char* idmachine(char* ip,int port){
    k+=p;
    char *res1=(char*)(malloc(5*sizeof(char)));
     sprintf(res1,"%d",k);
-   printf("le resultat est %s \n",res1);
-
    return res1; 
 }
 
