@@ -21,3 +21,6 @@ java -cp ./Java Entity 4545 7878 9898 -v
 * Traduire en C le code Java
 
 * Essayer de maitriser JNI pour appeler le protocole du c dans du java et inversement
+
+*pour lancer le programme c il faut taper dans le repertoire src/C :
+	./main port_tcp port_udp addr_multi port_multi
