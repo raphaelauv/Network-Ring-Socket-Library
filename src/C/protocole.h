@@ -38,6 +38,7 @@ char ip_multi[16];
 boolean is_connected ;
 boolean is_dupl;
 boolean casse;
+boolean dec;
 int ind_m;//indice du idm 
 int idm;
 }parametres;
@@ -54,5 +55,6 @@ int formate_mtcp(char*,int ,char*,char* ,...);
 int init_parametres();
 int connectringo(char*,char*,int);
 char* norm_addr(char *);
+int ajout_idm(char*);
 char* idmachine(char*,int);
 #endif 

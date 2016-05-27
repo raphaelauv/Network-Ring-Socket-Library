@@ -70,8 +70,9 @@ int main(int argc ,char* argv[]){
     }else  if(strncmp(buf,"disconnecT",10)==0){
        sprintf(port,"%d",entite.port_udp);
        sprintf(port_succ,"%d",entite.udp_succ1);
-        
        formate_mudp(mess,6,"GBYE",entite.ip,port,entite.ip_succ,port_succ);
+        entite.dec=0;
+       ajout_idm(mess);
       send_udp(mess);
     }else  if(strncmp(buf,"whoS",4)==0){
         send_udp(buf);

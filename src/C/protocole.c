@@ -23,35 +23,48 @@ int  traitement_mudp(char * buff){
   }else if((strncmp(buff,"APPL",4)==0)){
         send_udp(buff);
   }else if((strncmp(buff,"TEST",4)==0)){
-     
+         send_udp(buff);
   }if((strncmp(buff,"GBYE",4)==0)){
-         formate_mudp(mess,2,"EBYE",entite.ip);
-           send_udp(mess);
-
+         if(succ(buff)){
+         formate_mudp(mess,2,"EBYE","");
+         send_udp(mess);
+          char *split[6];
+          tokenize_string(buff,split);
+          connectringo(split[4],split[5],1);
+         }else send_udp(buff);
+          
   }else if((strncmp(buff,"EBYE",4)==0)){
-
-
+          entite.is_connected=entite.dec;
+           
 
   }else{
     if(verbose){
       char tmp[5];
       strncpy(tmp,buff,4);
       tmp[4]='\0';
-      fprintf(stderr,"le type de message est  inconnu ");
+      fprintf(stderr,"le type de message %s est  inconnu ",tmp);
     }
     return -1;
   }
   }
   return 0;
 }
+int succ(char *buff){
+   char port[4];
+   strncpy(port,buff+30,4);
+     port[4]='\0';
+    char *test;
+     printf("le port vaut %s \n",port);
+    return(entite.udp_succ1==strtol(port, &test,10));
+}
 int deja_recu(char*mess){
   char idm [9];
   char *res=malloc(9*sizeof(char));
    strncpy(idm,mess+5,8);
   if(hashmap_get(messages,idm,(void**)&res)==-3){
-    printf("message déja reçu : %s \n ",mess);
     return 0;
    }
+   printf("message déja reçu : %s \n ",mess);
  return 1;
 }
 int ajout_idm(char*mess){
@@ -146,6 +159,7 @@ int connectringo(char* ip ,char* port,int flag){
       if(first_info!=NULL){
 	addrs.addrudp1=first_info->ai_addr;
         entite.is_connected=TRUE;
+        entite.dec=1;
         strcpy(entite.ip_succ,ip);
 	return 0;
       }
