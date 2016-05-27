@@ -45,7 +45,6 @@ public class Toto {
 		
 		
 		
-		
 		diff1.send("bijour");
 		diff2.send("salut a toi");
 		//diff1.setVerbose(true);
@@ -53,7 +52,7 @@ public class Toto {
 		//ringo1.setVerbose(true);
 		//trans1.setVerbose(true);
 		
-		//trans1.doSend("coco.txt");
+		trans1.send("papa");
 		
 		
 		
@@ -65,7 +64,7 @@ public class Toto {
 		
 		System.out.println("diff 1 recoit :"+new String(diff1.receve()));
 
-		//System.out.println(new String(trans1.output()));	
+		System.out.println(new String(trans1.receve()));	
 		//trans1.setVerbose(true);
 		//ringo1.setVerbose(true);
 		//trans1.setVerbose(true);

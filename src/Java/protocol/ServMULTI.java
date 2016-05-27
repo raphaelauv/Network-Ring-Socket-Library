@@ -166,7 +166,7 @@ class ServMULTI implements Runnable{
 						}
 					}
 					catch(CancelledKeyException e){
-						System.out.println("CancelledKeyException");
+						//ringoSocket.printVerbose(e.getMessage());
 					}
 				}
 			}

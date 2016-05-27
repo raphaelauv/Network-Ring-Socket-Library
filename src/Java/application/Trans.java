@@ -377,7 +377,7 @@ public class Trans extends ApplSendReceve {
 		this.files.put(name,path);
 	}
 
-	protected void send(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException {
+	public void send(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException {
 		String contenu = "REQ " + Message.intToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
 		
 		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));
