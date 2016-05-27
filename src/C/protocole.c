@@ -26,14 +26,14 @@ int  traitement_mudp(char * buff){
          send_udp(buff);
   }if((strncmp(buff,"GBYE",4)==0)){
          if(succ(buff)){
-         formate_mudp(mess,2,"EBYE","");
+         formate_mudp(mess,2,"EYBG","");
          send_udp(mess);
           char *split[6];
           tokenize_string(buff,split);
           connectringo(split[4],split[5],1);
          }else send_udp(buff);
           
-  }else if((strncmp(buff,"EBYE",4)==0)){
+  }else if((strncmp(buff,"EYBG",4)==0)){
           entite.is_connected=entite.dec;
            
 
