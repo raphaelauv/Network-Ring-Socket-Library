@@ -3,13 +3,11 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
+
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.nio.ByteOrder;
-import java.util.Arrays;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -18,10 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import protocol.ServMULTI.MultiChanel;
+
 import protocol.exceptions.AlreadyConnectException;
 import protocol.exceptions.ImpossibleDUPLConnection;
-import protocol.exceptions.ImpossibleDisconnectDupl;
+
 import protocol.exceptions.ParseException;
 import protocol.exceptions.ProtocolException;
 import protocol.exceptions.RingoSocketCloseException;
@@ -391,14 +389,13 @@ public class RingoSocket implements Ringo {
 		}
 		tcpAcces.acquire();
 		
-		Socket socket;
+		Socket socket=new Socket();
 		try {
-			socket = new Socket(adresse, TCP);
-		} catch (UnknownHostException e) {
-			tcpAcces.release();
-			throw e;
+			socket.connect(new InetSocketAddress(adresse, TCP),15); 
+			
 		} catch (IOException e) {
 			tcpAcces.release();
+			socket.close();
 			throw e;
 		}
 		printVerbose("Conecter en TCP a :" + adresse + " sur port : " + TCP);

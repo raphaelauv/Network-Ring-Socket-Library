@@ -4,37 +4,36 @@ import protocol.exceptions.*;
 import java.io.IOException;
 
 public class MyRunnableReceve implements Runnable {
-	private final ReceveSend recever;
-	private final Appl appl;
 	
-	public MyRunnableReceve(ReceveSend recever) {
-		this.appl=(Appl)recever;
-		this.recever = recever;
+	private final ApplSendReceve recever;
+	
+	public MyRunnableReceve(ApplSendReceve recever) {
+		this.recever=recever;
 	}
 
 	public void run() {
-		while (appl.runContinue) {
+		while (recever.runContinue) {
 			try {
-				recever.doReceve(appl.ringoSocket.receive());
+				recever.doReceve(recever.ringoSocket.receive());
 
 			} catch (RingoSocketCloseException e) {
-				appl.printModeApplication("the socket is CLOSE");
-				appl.runContinue = false;
+				recever.printModeApplication("the socket is CLOSE");
+				recever.runContinue = false;
 			} catch (InterruptedException e) {
-				appl.runContinue = false;
+				recever.runContinue = false;
 			} catch (IOException e) {
-				appl.printModeApplication("THREAD: APP RECEVE | File error");
+				recever.printModeApplication("THREAD: APP RECEVE | File error");
 			} catch (NumberOfBytesException e) {
-				// TODO Auto-generated catch block
+				//TODO
 				e.printStackTrace();
 			} catch (ParseException e) {
-				appl.printModeApplication("the MSG is incorrect");
-				appl.runContinue= false;
+				recever.printModeApplication("the MSG is incorrect");
+				recever.runContinue= false;
 			}
 		}
-		if(appl.verboseMode){
-			appl.printModeApplication("THREAD: APP RECEVE | END");
+		if(recever.verboseMode){
+			recever.printModeApplication("THREAD: APP RECEVE | END");
 		}
-		appl.ThSend.interrupt();
+		recever.ThSend.interrupt();
 	}
 }

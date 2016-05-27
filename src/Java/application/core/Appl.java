@@ -6,12 +6,11 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class Appl implements Closeable{
+public abstract class Appl implements Closeable{
 
 	protected boolean modeService;
 	private boolean verboseAppl=false;
@@ -68,47 +67,12 @@ public class Appl implements Closeable{
 		this.modeService=true;
 	}
 	
-	public byte[] output() throws Exception, InterruptedException{
-		if(!modeService){
-			throw new Exception();
-		}
-		synchronized (listOutput) {
-			while (listOutput.isEmpty()) {
-				listOutput.wait();
-			}
-			return listOutput.pop();
-		}
-	}
-	
-	
 	public void close() throws IOException{
 		runContinue = false;
 		ringoSocket.close();
 		
 	}
-	
-	/**
-	 * Pour initialiser les threads , les nommer puis les lancer
-	 * @param receve
-	 * @param send
-	 * @param name nom de l'APPL
-	 */
-	protected void initThread(MyRunnableReceve runnableReceve,MyRunnableSend runnableSend){
-	
-		this.ThRecev=new Thread(runnableReceve);
-		this.ThSend=new Thread(runnableSend);
-		this.ThRecev.setName(APPLID+" RECE");
-		this.ThSend.setName(APPLID+" SEND ");
-		if(modeService){
-			this.ThRecev.setDaemon(true);
-			this.ThSend.setDaemon(true);
-		}
-		this.ThRecev.start();
-		this.ThSend.start();
-		
-		
-	}
-	
+
 	/**
 	 * Test les arguments et affiche les informations de base des APPL
 	 * pour le  mode Application
@@ -240,21 +204,17 @@ public class Appl implements Closeable{
 				}else{
 					ringoSocket.connect(ip, port,false);
 				}
-				
 				printModeApplication(" ---> SUCCES");
 				return null;
 			}
 			
 			
 			return input;
-		} catch (UnknownHostException e) {
-			printModeApplication("\nERREUR connecTo : UnknownHost ");
-			
 		} catch (IOException e) {
-			printModeApplication("\nERREUR connecTo : IO - ConnectException");
+			printModeApplication("\nERREUR connecTo : IO - "+e.getMessage()+" , retry");
 			
 		} catch (InterruptedException e) {
-			printModeApplication("\nERREUR connecTo : Interrupted");
+			printModeApplication("\nERREUR connecTo : Interrupted ");
 			
 		} catch (NoSuchElementException e) {
 			printModeApplication("\nERREUR connecTo : NoSuchElement");
@@ -276,7 +236,8 @@ public class Appl implements Closeable{
 			printModeApplication("\nERREUR connecTo : impossible to connect To Dupl entity");
 			
 		}catch(Exception e){
-			e.printStackTrace();//TODO
+			runContinue = false;
+			printModeApplication(e.getMessage());
 		}
 		return null;
 

@@ -23,7 +23,7 @@ import protocol.*;
 import protocol.exceptions.*;
 import application.core.*;
 
-public class Securise extends Appl implements ReceveSend {
+public class Securise extends ApplSendReceve {
 
 	String idSecurise;
 	Object mutexAttente=new Object();
@@ -88,7 +88,7 @@ public class Securise extends Appl implements ReceveSend {
 	}
 	
 	
-	public void doReceve(Message msg) throws RingoSocketCloseException {
+	protected void doReceve(Message msg) throws RingoSocketCloseException {
 		byte[] msgInByte =msg.getData_app();
 		
 		String debut =new String(msgInByte,0,8);
@@ -105,12 +105,8 @@ public class Securise extends Appl implements ReceveSend {
 			try {
 				this.cipher.init(Cipher.DECRYPT_MODE, this.keyPair.getPrivate());
 				decrypted = this.cipher.doFinal(encrypted);
-			} catch (IllegalBlockSizeException | BadPaddingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvalidKeyException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException e) {
+				printModeApplication(e.getMessage());
 			}
 			String message = new String(decrypted);
 			if(super.modeService){
@@ -183,11 +179,9 @@ public class Securise extends Appl implements ReceveSend {
 		try {
 			this.cipher.init(Cipher.ENCRYPT_MODE,keyRece);
 			encrypted=this.cipher.doFinal(input.getBytes());
-		} catch (IllegalBlockSizeException | BadPaddingException e) {
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException e) {
+			printModeApplication(e.getMessage());
+			return;
 		}
 		
 		byte[] entete =(nameRece+" " +Message.intToStringRepresentation(encrypted.length, 3)+" ").getBytes();
@@ -204,17 +198,17 @@ public class Securise extends Appl implements ReceveSend {
 		
 	}
 	
-	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException {
-	
+	protected void send(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException {
+
 		if(input.equals("SENDPUBLIC")){
 			this.sendPublicKey();
 			return;
 		}
 		
 		if(input.length()>240){
+			printModeApplication("LIMIT OF MESSAGE IS 240");
 			return;
 		}
-		
 		
 		printModeApplication("ENTER THE NAME OF RECEIVER");
 		
@@ -273,23 +267,13 @@ public class Securise extends Appl implements ReceveSend {
 		
 		try {
 			String ip = Appl.selectIp();
-			
 			System.out.println("## for sending your public key   type : SENDPUBLIC          ##");
 			System.out.println(Appl.style);
 			new Securise(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]),Integer.parseInt(args[2]) , verbose);
 		} catch (BindException | ParseException e) {
 			System.out.println("The ports are already in use or are bigger than 4digit");
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		}catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException e) {
+			System.err.println(e.getMessage());
 		}
 	}
 }

@@ -44,8 +44,10 @@ public class Toto {
 		ringo8.connect(ringo5, false);
 		
 		
-		diff1.doSend("bijour");
-		diff2.doSend("salut a toi");
+		
+		
+		diff1.send("bijour");
+		diff2.send("salut a toi");
 		//diff1.setVerbose(true);
 		//trans1.setVerbose(true);
 		//ringo1.setVerbose(true);
@@ -53,13 +55,15 @@ public class Toto {
 		
 		//trans1.doSend("coco.txt");
 		
-		System.out.println("diff 3 recoit :"+new String(diff3.output()));
 		
-		System.out.println("diff 3 recoit :"+new String(diff3.output()));		
 		
-		System.out.println("diff 2 recoit :"+new String(diff2.output()));
+		System.out.println("diff 3 recoit :"+new String(diff3.receve()));
 		
-		System.out.println("diff 1 recoit :"+new String(diff1.output()));
+		System.out.println("diff 3 recoit :"+new String(diff3.receve()));		
+		
+		System.out.println("diff 2 recoit :"+new String(diff2.receve()));
+		
+		System.out.println("diff 1 recoit :"+new String(diff1.receve()));
 
 		//System.out.println(new String(trans1.output()));	
 		//trans1.setVerbose(true);
@@ -76,8 +80,8 @@ public class Toto {
 		secu1.doSend("salut a madame", "mama");
 		secu2.doSend("salut a monsieur", "papa");
 		
-		System.out.println("SECU 1 : papa  recoit :"+new String(secu1.output()));
-		System.out.println("SECU 2 : mama  recoit :"+new String(secu2.output()));
+		System.out.println("SECU 1 : papa  recoit :"+new String(secu1.receve()));
+		System.out.println("SECU 2 : mama  recoit :"+new String(secu2.receve()));
 
 		
 		diff1.close();
@@ -109,7 +113,6 @@ public class Toto {
 		}
 		
 		
-		
 		ringoManuel.isClose();
 		
 		ringoManuel.send(Message.APPL(ringoManuel.getUniqueIdm(),idApp , "juste pour le fun".getBytes()));
@@ -120,8 +123,9 @@ public class Toto {
 		
 		ringoManuel2.disconnect();//TODO
 	
-		ringoManuel.down();
+		//ringoManuel.down();
 		
+		ringoManuel.close();
 	
 		System.out.println(ringoManuel.isClose());//TODO
 	}

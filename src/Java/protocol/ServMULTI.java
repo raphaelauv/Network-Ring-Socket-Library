@@ -101,7 +101,6 @@ class ServMULTI implements Runnable{
 	}
 	
 	private void removeMulti(String ip_diff,Integer port_diff) throws IOException{
-		System.out.println("remove appeler");
 		MultiChanel todelete = null;
 		for(MultiChanel mc : this.listMultiChannel){
 			if(mc.entityinfo.ip_diff.equals(ip_diff) && mc.entityinfo.port_diff==port_diff){
@@ -157,7 +156,6 @@ class ServMULTI implements Runnable{
 			while (it.hasNext()) {
 				SelectionKey sk = it.next();
 				it.remove();
-				System.out.println("je recois un signal multi");
 				for(MultiChanel mc : this.listMultiChannel){
 					try{
 						if (mc.key != null && mc.key.isValid() && sk.isReadable() && sk.channel() == mc.dc) {

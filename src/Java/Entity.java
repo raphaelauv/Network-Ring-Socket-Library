@@ -1,8 +1,11 @@
 import java.io.IOException;
 import java.net.BindException;
 import application.core.Appl;
+import protocol.Message;
 import protocol.RingoSocket;
+import protocol.exceptions.NumberOfBytesException;
 import protocol.exceptions.ParseException;
+import protocol.exceptions.RingoSocketCloseException;
 
 public class Entity extends Appl {
 
@@ -38,4 +41,5 @@ public class Entity extends Appl {
 			// e.printStackTrace();
 		}
 	}
+
 }

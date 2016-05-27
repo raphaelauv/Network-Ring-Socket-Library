@@ -19,7 +19,7 @@ import protocol.*;
 import protocol.exceptions.*;
 import application.core.*;
 
-public class Trans extends Appl implements ReceveSend {
+public class Trans extends ApplSendReceve {
 
 	private class infoTransfert {
 		public long actual_no_mess;
@@ -102,7 +102,7 @@ public class Trans extends Appl implements ReceveSend {
 		}
 	}
 	
-	public void doReceve(Message msg) throws RingoSocketCloseException, IOException, NumberOfBytesException, InterruptedException, ParseException {
+	protected void doReceve(Message msg) throws RingoSocketCloseException, IOException, NumberOfBytesException, InterruptedException, ParseException {
 		byte[] msgInByte =msg.getData_app();
 		int curseur;
 		String affichage=style + "\n"+LocalDateTime.now() +" -> " + "RECEVE : ";
@@ -327,7 +327,7 @@ public class Trans extends Appl implements ReceveSend {
 		this.files.put(name,path);
 	}
 
-	public void doSend(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException {
+	protected void send(String input) throws NumberOfBytesException, RingoSocketCloseException, InterruptedException, ParseException, IOException {
 		String contenu = "REQ " + Message.intToStringRepresentation(input.length(), byteSizeNom)+ " " + input;
 		
 		ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", contenu.getBytes()));

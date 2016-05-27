@@ -6,12 +6,12 @@ import protocol.Ringo;
 import protocol.exceptions.*;
 
 public class MyRunnableSend implements Runnable {
-	private final ReceveSend sender;
-	private final Appl appl;
 	
-	public MyRunnableSend(ReceveSend sender) {
-		this.appl=(Appl)sender;
-		this.sender = sender;
+	private final ApplSendReceve appl;
+	
+	public MyRunnableSend(ApplSendReceve sender) {
+		this.appl=sender;
+		
 	}
 
 	public void run(){
@@ -22,7 +22,7 @@ public class MyRunnableSend implements Runnable {
 			String input = appl.testEntry();
 			if (input!=null) {
 				try {
-					sender.doSend(input);
+					appl.send(input);
 				} catch (NumberOfBytesException e) {
 					//TODO	
 					appl.printModeApplication("\nERREUR SizeMessageException !! the limit is : " + Ringo.maxSizeMsg);
@@ -35,7 +35,7 @@ public class MyRunnableSend implements Runnable {
 					appl.printModeApplication("the MSG is incorrect");
 					appl.runContinue= false;
 				} catch (IOException e) {
-					
+					appl.runContinue= false;
 				}
 			}
 		}
