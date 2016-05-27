@@ -152,11 +152,12 @@ public class Trans extends ApplSendReceve {
 		curseur+=byteSizeNo_Mess+Ringo.byteSizeSpace;
 		
 		String size_contentSTR = new String(msgInByte,curseur,byteSizeContent);
-		int size_content;
+		int size_content=0;
 		try{
 			size_content = Integer.parseInt(size_contentSTR);
 		}catch(NumberFormatException e){
 			System.out.println("ERREUR PARSE INT pour : "+size_contentSTR);
+			return true;
 		}
 		
 		curseur+=byteSizeContent+Ringo.byteSizeSpace;
