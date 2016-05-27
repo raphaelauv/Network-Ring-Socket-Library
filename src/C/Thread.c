@@ -185,7 +185,7 @@ void* serveur_udp(void*arg){
       int rec=recv(sock,tampon,512,0);
       tampon[rec]='\0';
       printf("message recu en udp %s \n",tampon);
-       //traitement_mudp(tampon);
+      traitement_mudp(tampon);
     }
   }
     }
