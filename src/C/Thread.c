@@ -161,25 +161,14 @@ void* serveur_multi(void*arg){
   return arg;
 }
 void* serveur_udp(void*arg){
+
+  
   int sock=socket(PF_INET,SOCK_DGRAM,0);
-  struct sockaddr  *address_sock;
-  /*address_sock.sin_family=AF_INET;
+  struct sockaddr_in address_sock;
+  address_sock.sin_family=AF_INET;
   address_sock.sin_port=htons(entite.port_udp);
-  address_sock.sin_addr.s_addr=htonl(INADDR_ANY);*/
-   struct addrinfo *first_info;
-  struct addrinfo hints;
-  memset(&hints, 0, sizeof(struct addrinfo));
-  hints.ai_family = AF_INET;
-  hints.ai_socktype=SOCK_DGRAM;
-  char port [4];
-  sprintf(port,"%d",entite.port_udp);
-  int r=getaddrinfo(entite.ip,port,&hints,&first_info);
-    if(r==0){
-      printf("l 'adresse ip est %s",entite.ip);
-      if(first_info!=NULL){
-	address_sock=first_info->ai_addr;
-      }
-   r=bind(sock,(struct sockaddr *)address_sock,sizeof(struct sockaddr_in));
+  address_sock.sin_addr.s_addr=htonl(INADDR_ANY);
+  int r=bind(sock,(struct sockaddr *)&address_sock,sizeof(struct sockaddr_in));
   if(r==0){
     char tampon[512];
     while(1){
@@ -188,16 +177,15 @@ void* serveur_udp(void*arg){
       printf("message recu en udp %s \n",tampon);
       traitement_mudp(tampon);
     }
-  }
+  
     }
   return arg;
 }
 void send_udp(char*mess){
-  if(entite.is_connected) sendto(addrs.sock,mess,strlen(mess),0,addrs.addrudp1,(socklen_t)sizeof(struct sockaddr_in));
-  if(entite.is_dupl)
-    sendto(addrs.sock,mess,strlen(mess),0,addrs.addrudp2,(socklen_t)sizeof(struct sockaddr_in));
-   
+  if(entite.is_connected)sendto(addrs.sock,mess,strlen(mess),0,addrs.addrudp1,(socklen_t)sizeof(struct sockaddr_in));
+  if(entite.is_dupl)sendto(addrs.sock,mess,strlen(mess),0,addrs.addrudp2,(socklen_t)sizeof(struct sockaddr_in));
 }
+
 void send_multi(char*mess){
   sendto(addrs.sock,mess,strlen(mess),0,addrs.addrmulti,(socklen_t)sizeof(struct sockaddr_in));
 }

@@ -161,7 +161,7 @@ int connectringo(char* ip ,char* port,int flag){
         entite.is_connected=TRUE;
         entite.dec=1;
         strcpy(entite.ip_succ,ip);
-         printf("votre ip est %s \n",ip)
+         printf("votre ip est coco %s \n",ip);
 	return 0;
       }
     }
