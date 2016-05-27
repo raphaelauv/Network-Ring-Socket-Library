@@ -52,8 +52,7 @@ public class Toto {
 		//ringo1.setVerbose(true);
 		//trans1.setVerbose(true);
 		
-		trans1.send("papa");
-		
+		trans1.send("papa.pdf");
 		
 		
 		System.out.println("diff 3 recoit :"+new String(diff3.receve()));
@@ -110,7 +109,6 @@ public class Toto {
 		for (Map.Entry<InetSocketAddress, String> entry : members.entrySet()) {
 		    System.out.println(entry.getKey()+" : "+entry.getValue());
 		}
-		
 		
 		ringoManuel.isClose();
 		

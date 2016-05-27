@@ -205,9 +205,13 @@ public class Trans extends ApplSendReceve {
 		double p1=(double)(value.actual_no_mess);
 		double p2=(double)(value.num_mess);
 		int pourcentage =(int) ((p1/p2)*100.0);
-		printModeApplication(style+"\n"+pourcentage+"% TRANSMIS");
+		
+		if(value.actual_no_mess%400==0){
+			printModeApplication(style+"\n Already Receve : "+pourcentage+"%");
+		}
 		//printModeApplication("ecris dedans "+new String(msgInByte,curseur,size_content));
 		if(value.actual_no_mess==value.num_mess	){
+			printModeApplication(style+"\n Already Receve : "+pourcentage+"%");
 			value.outputStream.flush();
 			value.outputStream.close();
 			updateFileList(value.nameFile,value.path);
@@ -284,89 +288,112 @@ public class Trans extends ApplSendReceve {
 		
 		Path pathFile=files.get(name_fileSTR);
 		if(pathFile!=null){
-			printModeApplication("FILE IS HERE | ");
 			
-			byte []  debutMsg= "ROK".getBytes();
-			long idt= ringoSocket.getUniqueIdm();
-			printModeApplication("id transaction "+idt);
-			byte [] idTrans=Message.longToByteArray(idt, byteSizeId_Trans,ByteOrder.LITTLE_ENDIAN );
 			
-			long sizeFIle=Files.size(pathFile);
-			printModeApplication("SIZE OF FILE :"+sizeFIle);
-			long num_messLong = sizeFIle/maxSizeContent;
-			if(num_messLong<1){
-				num_messLong=1L;
-			}else{
-				num_messLong++;
-			}
-			byte [] num_mess =Message.longToByteArray(num_messLong, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
-			byte [] SPACE =" ".getBytes();
-			byte [] data = new byte [byteSizeDataROK_withoutName_FILE+tailleNameFile];
-			
-			Message.remplirData(data,debutMsg,SPACE,idTrans,SPACE,size_nom,SPACE,name_file,SPACE,num_mess);
-			ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
-			
-			debutMsg="SEN".getBytes();
-			
-			File file=pathFile.toFile();
-			BufferedInputStream out=new BufferedInputStream(new FileInputStream(file));
-			byte [] content = new byte[maxSizeContent];
-			int size_contentVal;
-			byte [] no_mess;
-			byte [] size_content;
-			
-			long sizeAlreadyRead=0;
-			
-			boolean end=false;
-			for(long i=0; i<num_messLong ; i++){
-				if(i%50==0){
-					Thread.sleep(1L,1);
-					//LockSupport.parkNanos(20000L);
-				}
+			Runnable doSend =new Runnable() {
 				
-				size_contentVal=0;
-				size_contentVal=out.read(content);
-				
-				int jusqua =this.maxSizeContent-size_contentVal;
-				
-				if(size_contentVal!=sizeFIle  && sizeAlreadyRead<sizeFIle){
-
-					while(size_contentVal!=this.maxSizeContent && size_contentVal!=-1){
-						
-						//printModeApplication("JE RELIS");
-						
-						//System.out.println("je demande a lire de "+size_contentVal+"  de longeur MAX "+jusqua);
-						
-						int sizeRead=out.read(content,size_contentVal,jusqua);
-						
-						if(sizeRead==-1){
-							end=true;
-							break;
-						}
-						//System.out.println("size read "+sizeRead);
-						size_contentVal+=size_contentVal+sizeRead;
-						//System.out.println("taille LUT MNT"+size_contentVal);
-						
-						jusqua=this.maxSizeContent-size_contentVal;
-						
+				public void run() {
+					try{
+					printModeApplication("FILE IS HERE | ");
+					
+					byte []  debutMsg= "ROK".getBytes();
+					long idt= ringoSocket.getUniqueIdm();
+					printModeApplication("id transaction "+idt);
+					byte [] idTrans=Message.longToByteArray(idt, byteSizeId_Trans,ByteOrder.LITTLE_ENDIAN );
+					
+					long sizeFIle=Files.size(pathFile);
+					printModeApplication("SIZE OF FILE :"+sizeFIle);
+					long num_messLong = sizeFIle/maxSizeContent;
+					if(num_messLong<1){
+						num_messLong=1L;
+					}else{
+						num_messLong++;
 					}
 					
+					printModeApplication("NUMBER OF MSG :"+num_messLong);
+					byte [] num_mess =Message.longToByteArray(num_messLong, byteSizeNum_Mess, ByteOrder.LITTLE_ENDIAN);
+					byte [] SPACE =" ".getBytes();
+					byte [] data = new byte [byteSizeDataROK_withoutName_FILE+tailleNameFile];
+					
+					Message.remplirData(data,debutMsg,SPACE,idTrans,SPACE,size_nom,SPACE,name_file,SPACE,num_mess);
+					ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
+					
+					debutMsg="SEN".getBytes();
+					
+					File file=pathFile.toFile();
+					BufferedInputStream out=new BufferedInputStream(new FileInputStream(file));
+					byte [] content = new byte[maxSizeContent];
+					int size_contentVal;
+					byte [] no_mess;
+					byte [] size_content;
+					
+					long sizeAlreadyRead=0;
+					
+					boolean end=false;
+					
+					
+					for(long i=0; i<num_messLong ; i++){
+						if(i%100==0){
+							
+							
+							Thread.sleep(1);
+							//LockSupport.parkNanos(20000L);
+						}
+						
+						if(i%1000==0){
+							printModeApplication("Alredy send  :"+((i*100)/num_messLong)+"%");
+						}
+						
+						size_contentVal=0;
+						size_contentVal=out.read(content);
+						
+						int jusqua =maxSizeContent-size_contentVal;
+						
+						if(size_contentVal!=sizeFIle  && sizeAlreadyRead<sizeFIle){
+
+							while(size_contentVal!=maxSizeContent && size_contentVal!=-1){
+								
+								//printModeApplication("JE RELIS");
+								
+								//System.out.println("je demande a lire de "+size_contentVal+"  de longeur MAX "+jusqua);
+								
+								int sizeRead=out.read(content,size_contentVal,jusqua);
+								
+								if(sizeRead==-1){
+									end=true;
+									break;
+								}
+								//System.out.println("size read "+sizeRead);
+								size_contentVal+=size_contentVal+sizeRead;
+								//System.out.println("taille LUT MNT"+size_contentVal);
+								
+								jusqua=maxSizeContent-size_contentVal;
+								
+							}
+							
+						}
+						
+						sizeAlreadyRead+=size_contentVal;
+						
+						no_mess=Message.longToByteArray( i, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
+						size_content=Message.intToStringRepresentation(size_contentVal, 3).getBytes();
+						data= new byte[500];//TODO
+						Message.remplirData(data, debutMsg,SPACE,idTrans,SPACE,no_mess,SPACE,size_content,SPACE,content);
+						ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
+						
+						if(end){
+							printModeApplication("END OF SENDING");
+							break;
+						}
+					}
+					out.close();
+					
+					}catch(Exception e){
+						
+					}
 				}
-				
-				sizeAlreadyRead+=size_contentVal;
-				
-				no_mess=Message.longToByteArray( i, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
-				size_content=Message.intToStringRepresentation(size_contentVal, 3).getBytes();
-				data= new byte[500];//TODO
-				Message.remplirData(data, debutMsg,SPACE,idTrans,SPACE,no_mess,SPACE,size_content,SPACE,content);
-				ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
-				
-				if(end){
-					printModeApplication("END OF SENDING");
-					break;
-				}
-			}
-			out.close();
+			};
+			new Thread(doSend).start();
 			return true;
 		}else{
 			return false;

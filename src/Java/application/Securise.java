@@ -108,6 +108,9 @@ public class Securise extends ApplSendReceve {
 			} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException e) {
 				printModeApplication(e.getMessage());
 			}
+			if(decrypted==null){
+				return;
+			}
 			String message = new String(decrypted);
 			if(super.modeService){
 				synchronized (listOutput) {
@@ -119,7 +122,6 @@ public class Securise extends ApplSendReceve {
 			}
 			
 		}
-		
 	
 		super.ringoSocket.send(msg);// renvoi sur l'anneau du message
 	}
@@ -260,7 +262,6 @@ public class Securise extends ApplSendReceve {
 		}
 		return name;
 	}
-	
 	
 	public static void main(String[] args) {
 		boolean verbose = Appl.testArgs(args);
