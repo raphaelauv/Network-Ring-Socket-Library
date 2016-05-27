@@ -13,14 +13,15 @@ java -cp ./Java application.Trans 4545 7878 9898 -v
 java -cp ./Java Entity 4545 7878 9898 -v
 
 
-
-###############################################################
-#						Etat Projet							  #
-###############################################################
-
-* Traduire en C le code Java
-
-* Essayer de maitriser JNI pour appeler le protocole du c dans du java et inversement
-
 *pour lancer le programme c il faut taper dans le repertoire src/C :
 	./main port_tcp port_udp addr_multi port_multi
+
+
+###############################################################
+#						   Projet							  #
+###############################################################
+
+
+AUVERT RAPHAEL 211013888
+
+AIT AMEUR Samir
