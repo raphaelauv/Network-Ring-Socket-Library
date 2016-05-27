@@ -152,7 +152,15 @@ public class Trans extends ApplSendReceve {
 		curseur+=byteSizeNo_Mess+Ringo.byteSizeSpace;
 		
 		String size_contentSTR = new String(msgInByte,curseur,byteSizeContent);
-		int size_content = Integer.parseInt(size_contentSTR);
+		int size_content=0;
+		try{
+			size_content = Integer.parseInt(size_contentSTR);
+		}catch(NumberFormatException e){
+			
+			printModeApplication("MESSAGE INCORRECT , parse de size_content impossible = "+size_contentSTR);
+			return true;
+		}
+		
 		curseur+=byteSizeContent+Ringo.byteSizeSpace;
 		
 		

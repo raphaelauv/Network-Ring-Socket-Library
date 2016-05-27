@@ -45,7 +45,7 @@ class ServUDPlisten implements Runnable{
 			return;
 		}
 		
-		ringoSocket.printVerbose("Message Recu    : " + msgR.toStringSHORT(70));
+		ringoSocket.printVerbose("Message Recu    : " + msgR.toStringSHORT(90));
 		
 		if (msgR.getType() == TypeMessage.TEST) {
 			synchronized (ringoSocket.TESTisComeBack) {

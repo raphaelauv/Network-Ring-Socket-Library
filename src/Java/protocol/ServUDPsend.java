@@ -65,7 +65,7 @@ class ServUDPsend implements Runnable{
 			
 			
 			try{
-				ringoSocket.printVerbose("Message Envoyer : "+ msg.toStringSHORT(70));
+				ringoSocket.printVerbose("Message Envoyer : "+ msg.toStringSHORT(90));
 				
 				if(msg.getType()==TypeMessage.WHOS){
 					if(ringoSocket.ValTest!=null){
