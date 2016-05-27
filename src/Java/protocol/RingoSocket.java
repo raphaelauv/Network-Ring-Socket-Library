@@ -391,7 +391,7 @@ public class RingoSocket implements Ringo {
 		
 		Socket socket=new Socket();
 		try {
-			socket.connect(new InetSocketAddress(adresse, TCP),15); 
+			socket.connect(new InetSocketAddress(adresse, TCP),5000); 
 			
 		} catch (IOException e) {
 			tcpAcces.release();
