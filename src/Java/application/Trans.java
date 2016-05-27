@@ -28,11 +28,11 @@ public class Trans extends ApplSendReceve {
 		public Path path;
 		public String nameFile;
 
-	public infoTransfert( long actual_no_mess,long num_mess,String nameFile) {
+		public infoTransfert(long actual_no_mess, long num_mess, String nameFile) {
 			super();
 			this.actual_no_mess = actual_no_mess;
 			this.num_mess = num_mess;
-			this.nameFile=nameFile;
+			this.nameFile = nameFile;
 		}
 	}
 	
@@ -57,8 +57,10 @@ public class Trans extends ApplSendReceve {
 	 */
 	private HashMap<Long, infoTransfert> id_TransMAP;
 	
-	private final int maxSizeContent = Ringo.maxSizeMsg - (Ringo.byteSizeType + (Ringo.byteSizeSpace * 7)
+	private final int sizeHEAD = (Ringo.byteSizeType + (Ringo.byteSizeSpace * 7)
 			+ Ringo.byteSizeIdm * 3 + Ringo.byteSizeIdApp + byteSizeTransType +byteSizeContent) ;
+	
+	private final int maxSizeContent = Ringo.maxSizeMsg - sizeHEAD; 
 	private final int byteSizeStart=byteSizeTransType+Ringo.byteSizeSpace*4+byteSizeId_Trans;
 	private final int byteSizeDataROK_withoutName_FILE =byteSizeStart+byteSizeNom+byteSizeNum_Mess;
 	
@@ -70,6 +72,8 @@ public class Trans extends ApplSendReceve {
 	public Trans(String ip,Integer udpPort, Integer tcpPort,Integer multiPort,boolean verbose) throws BindException, IOException, ParseException {
 		super(ip,"TRANS###", udpPort, tcpPort ,multiPort,verbose);
 		this.initTrans();
+		System.out.println("taille entete "+this.sizeHEAD);
+		System.out.println("taille max content "+this.maxSizeContent);
 	}
 	
 	/**
@@ -287,8 +291,9 @@ public class Trans extends ApplSendReceve {
 			printModeApplication("id transaction "+idt);
 			byte [] idTrans=Message.longToByteArray(idt, byteSizeId_Trans,ByteOrder.LITTLE_ENDIAN );
 			
-			printModeApplication("SIZE OF FILE :"+Files.size(pathFile));
-			long num_messLong = Files.size(pathFile)/maxSizeContent;
+			long sizeFIle=Files.size(pathFile);
+			printModeApplication("SIZE OF FILE :"+sizeFIle);
+			long num_messLong = sizeFIle/maxSizeContent;
 			if(num_messLong<1){
 				num_messLong=1L;
 			}else{
@@ -309,20 +314,57 @@ public class Trans extends ApplSendReceve {
 			int size_contentVal;
 			byte [] no_mess;
 			byte [] size_content;
+			
+			long sizeAlreadyRead=0;
+			
+			boolean end=false;
 			for(long i=0; i<num_messLong ; i++){
-				if(i%10==0){
+				if(i%50==0){
 					Thread.sleep(1L,1);
 					//LockSupport.parkNanos(20000L);
 				}
 				
-
+				size_contentVal=0;
 				size_contentVal=out.read(content);
+				
+				int jusqua =this.maxSizeContent-size_contentVal;
+				
+				if(size_contentVal!=sizeFIle  && sizeAlreadyRead<sizeFIle){
+
+					while(size_contentVal!=this.maxSizeContent && size_contentVal!=-1){
+						
+						//printModeApplication("JE RELIS");
+						
+						//System.out.println("je demande a lire de "+size_contentVal+"  de longeur MAX "+jusqua);
+						
+						int sizeRead=out.read(content,size_contentVal,jusqua);
+						
+						if(sizeRead==-1){
+							end=true;
+							break;
+						}
+						//System.out.println("size read "+sizeRead);
+						size_contentVal+=size_contentVal+sizeRead;
+						//System.out.println("taille LUT MNT"+size_contentVal);
+						
+						jusqua=this.maxSizeContent-size_contentVal;
+						
+					}
+					
+				}
+				
+				sizeAlreadyRead+=size_contentVal;
+				
 				no_mess=Message.longToByteArray( i, byteSizeNo_Mess, ByteOrder.LITTLE_ENDIAN);
 				size_content=Message.intToStringRepresentation(size_contentVal, 3).getBytes();
 				data= new byte[500];//TODO
 				Message.remplirData(data, debutMsg,SPACE,idTrans,SPACE,no_mess,SPACE,size_content,SPACE,content);
 				ringoSocket.send(Message.APPL(ringoSocket.getUniqueIdm(), "TRANS###", data));
 				
+				if(end){
+					printModeApplication("END OF SENDING");
+					break;
+				}
 			}
 			out.close();
 			return true;
@@ -370,7 +412,7 @@ public class Trans extends ApplSendReceve {
 	public static void main(String[] args) {
 
 		boolean verbose=Appl.testArgs(args);
-
+		
 		try {
 			String ip = Appl.selectIp();
 			new Trans(ip,Integer.parseInt(args[0]), Integer.parseInt(args[1]),Integer.parseInt(args[2]),verbose);
