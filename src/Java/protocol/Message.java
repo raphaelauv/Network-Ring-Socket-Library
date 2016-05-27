@@ -42,6 +42,9 @@ public class Message {
 	private final static int FLAG_IP_NORMAL = 2;
 	private final static int FLAG_IP_SUCC = 3;
 
+	
+	private final static ByteOrder byteORDER_IDM=ByteOrder.LITTLE_ENDIAN;
+	
 	/**
 	 * Create a new Message and Parse it from data
 	 * @param data le contenu du message a parser
@@ -101,7 +104,7 @@ public class Message {
 			this.ip_succ=convertIP(this.ip_succ);
 		}
 		if(this.idm!=-1){
-			this.idmLITTLE_ENDIAN_8=Message.longToByteArray(this.idm,8, ByteOrder.LITTLE_ENDIAN);
+			this.idmLITTLE_ENDIAN_8=Message.longToByteArray(this.idm,8,byteORDER_IDM);
 		}
 	}
 	
@@ -204,7 +207,7 @@ public class Message {
 		}
 		
 		byte[] valIdm=getDataFrom_N_byte(curseur,Ringo.byteSizeIdm);
-		this.idm=byteArrayToLong(valIdm,Ringo.byteSizeIdm,ByteOrder.LITTLE_ENDIAN);
+		this.idm=byteArrayToLong(valIdm,Ringo.byteSizeIdm,byteORDER_IDM);
 		
 		curseur+=Ringo.byteSizeIdm;
 		if(type==TypeMessage.WHOS || type==TypeMessage.EYBG){
@@ -398,7 +401,7 @@ public class Message {
 			
 		}	
 		try {
-			str=str+" "+Message.byteArrayToLong(this.idmLITTLE_ENDIAN_8, Ringo.byteSizeIdm,ByteOrder.LITTLE_ENDIAN);
+			str=str+" "+Message.byteArrayToLong(this.idmLITTLE_ENDIAN_8, Ringo.byteSizeIdm,byteORDER_IDM);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
