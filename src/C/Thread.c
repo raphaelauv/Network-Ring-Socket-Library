@@ -175,6 +175,7 @@ void* serveur_udp(void*arg){
   sprintf(port,"%d",entite.port_udp);
   int r=getaddrinfo(entite.ip,port,&hints,&first_info);
     if(r==0){
+      printf("l 'adresse ip est %s",entite.ip);
       if(first_info!=NULL){
 	address_sock=first_info->ai_addr;
       }
