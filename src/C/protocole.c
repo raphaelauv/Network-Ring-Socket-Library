@@ -8,23 +8,25 @@ extern  hashmap_map *messages;
 
 int  traitement_mudp(char * buff){
   char mess[512];
+  if(strlen(buff)<13){
+    printf(" le message %s ne respecte pas le format \n",buff);
+    return -1;
+  }
   if(!deja_recu(buff)){
+   ajout_idm(buff);
   if((strncmp(buff,"WHOS",4)==0)){
        
    
   }else if((strncmp(buff,"MEMB",4)==0)){
           send_udp(buff);
 
-
   }else if((strncmp(buff,"APPL",4)==0)){
         send_udp(buff);
   }else if((strncmp(buff,"TEST",4)==0)){
      
-
-
   }if((strncmp(buff,"GBYE",4)==0)){
-
-
+         formate_mudp(mess,2,"EBYE",entite.ip);
+           send_udp(mess);
 
   }else if((strncmp(buff,"EBYE",4)==0)){
 
@@ -39,23 +41,23 @@ int  traitement_mudp(char * buff){
     }
     return -1;
   }
-   send_udp(buff);
   }
   return 0;
 }
 int deja_recu(char*mess){
   char idm [9];
-  strncpy(idm,mess+5,8);
-  if(hashmap_get(mess,idm,(void**)&idm)==-3){
+  char *res=malloc(9*sizeof(char));
+   strncpy(idm,mess+5,8);
+  if(hashmap_get(messages,idm,(void**)&res)==-3){
     printf("message déja reçu : %s \n ",mess);
     return 0;
-}
+   }
  return 1;
 }
 int ajout_idm(char*mess){
   char idm [9];
   strncpy(idm,mess+5,8);
-  hashmap_put(mess,idm,(void**)&idm);
+  hashmap_put(messages,idm,(void**)&idm);
     return 0;
 }
 char* make_idm(){

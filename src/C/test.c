@@ -58,6 +58,7 @@ int main(int argc ,char* argv[]){
   pthread_create(&threads.th_udp,NULL,serveur_udp,&(entite.port_udp));
   char buf[150];
   char port[4];
+  char port_succ[4];
   while(!entite.casse){
     read_command(buf); 
     if(strncmp(buf,"connecTo",8)==0){
@@ -66,10 +67,12 @@ int main(int argc ,char* argv[]){
       if(!entite.is_dupl) insertion(buf,2);
      }else  if(strncmp(buf,"dowN",4)==0){
         send_multi("DOWN");
-    }else  if(strncmp(buf,"disconnecT",4)==0){
+    }else  if(strncmp(buf,"disconnecT",10)==0){
        sprintf(port,"%d",entite.port_udp);
-       formate_mudp(mess,4,"EBYE",port,entite.ip);
-      send_udp(buf);
+       sprintf(port_succ,"%d",entite.udp_succ1);
+        
+       formate_mudp(mess,6,"GBYE",entite.ip,port,entite.ip_succ,port_succ);
+      send_udp(mess);
     }else  if(strncmp(buf,"whoS",4)==0){
         send_udp(buf);
     }else  send_udp(buf);  
