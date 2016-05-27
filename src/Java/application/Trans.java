@@ -156,7 +156,8 @@ public class Trans extends ApplSendReceve {
 		try{
 			size_content = Integer.parseInt(size_contentSTR);
 		}catch(NumberFormatException e){
-			System.out.println("ERREUR PARSE INT pour : "+size_contentSTR);
+			
+			printModeApplication("MESSAGE INCORRECT , parse de size_content impossible = "+size_contentSTR);
 			return true;
 		}
 		
