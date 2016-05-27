@@ -58,8 +58,6 @@ public abstract class ApplSendReceve extends Appl {
 		}
 		this.ThRecev.start();
 		this.ThSend.start();
-		
-		
 	}
 	
 }
