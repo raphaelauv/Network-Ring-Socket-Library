@@ -29,7 +29,14 @@ public class Diff extends ApplSendReceve {
 
 	protected void doReceve(Message msg) throws RingoSocketCloseException {
 		byte[] msgInByte =msg.getData_app();
-		int taille = Integer.parseInt(new String(msgInByte, 0, byteSizeMess));
+		int taille;
+		try{
+			taille = Integer.parseInt(new String(msgInByte, 0, byteSizeMess));
+		}catch(NumberFormatException e){
+			printModeApplication("MESSAGE DIFF INCORRRECT , parse TAILLE MESSAGE");
+			return;
+		}
+		
 		String message = new String(msgInByte, 4, taille);
 		if(super.modeService){
 			synchronized (listOutput) {
